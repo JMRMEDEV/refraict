@@ -1,0 +1,34 @@
+# Local tests
+e2e-test/*
+
+# Ignore .libreq directory contents BY DEFAULT, but allow git to enter the folder
+.libreq/*
+
+# Unignore the agents directory specifically
+!.libreq/agents/
+
+# Cache
+refraict-cache.sqlite
+
+# Executables & Binaries
+# Commonly used output directories when using 'go build -o bin/' or scripts
+bin/
+dist/
+
+# Raw binaries (matching root executable names or OS outputs)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries produced by `go test -c`
+*.test
+
+# Output of 'go build' if built directly in the root directory without -o
+# (Replace 'app' with your project's main binary name if applicable)
+/app
+
+# Go coverage / profiling outputs
+*.out
+*.prof

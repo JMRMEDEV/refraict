@@ -1,0 +1,5 @@
+{
+  "vision":   {"provider": "ollama", "endpoint": "http://localhost:11434", "model": "qwen-vl-3b"},
+  "summary":  {"provider": "ollama", "endpoint": "http://localhost:11434", "model": "qwen-3b"},
+  "aggregator": {"provider": "ollama", "endpoint": "http://localhost:11434", "model": "qwen-14b"}
+}

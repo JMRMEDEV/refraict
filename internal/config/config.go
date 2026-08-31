@@ -1,0 +1,148 @@
+// Package config loads and exposes Refraict runtime configuration.
+package config
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
+
+// Config is the top-level Refraict configuration.
+type Config struct {
+	Vision     VisionConfig     `json:"vision" yaml:"vision"`
+	Summary    BackendConfig    `json:"summary" yaml:"summary"`
+	Aggregator BackendConfig    `json:"aggregator" yaml:"aggregator"`
+	Image      ImageConfig      `json:"image" yaml:"image"`
+	Analysis   AnalysisConfig   `json:"analysis" yaml:"analysis"`
+	Cache      CacheConfig      `json:"cache" yaml:"cache"`
+	Cloud      CloudConfig      `json:"cloud" yaml:"cloud"`
+	Output     OutputConfig     `json:"output" yaml:"output"`
+	Recon      ReconcilerConfig `json:"reconciler" yaml:"reconciler"`
+}
+
+// VisionConfig configures the vision model backend.
+type VisionConfig struct {
+	Provider  string `json:"provider" yaml:"provider"`
+	Model     string `json:"model" yaml:"model"`
+	Endpoint  string `json:"endpoint" yaml:"endpoint"`
+	Workers   int    `json:"workers" yaml:"workers"`
+	BatchSize int    `json:"batch_size" yaml:"batch_size"`
+}
+
+// BackendConfig configures a text model backend.
+type BackendConfig struct {
+	Provider string `json:"provider" yaml:"provider"`
+	Model    string `json:"model" yaml:"model"`
+	Endpoint string `json:"endpoint" yaml:"endpoint"`
+}
+
+// ImageConfig controls image ingest and crop planning.
+type ImageConfig struct {
+	OverviewWidth          int     `json:"overview_width" yaml:"overview_width"`
+	CropLongSide           int     `json:"crop_long_side" yaml:"crop_long_side"`
+	CropOverlap            float64 `json:"crop_overlap" yaml:"crop_overlap"`
+	MinimumTextHeightAfter int     `json:"minimum_text_height_after_resize" yaml:"minimum_text_height_after_resize"`
+	DetailLongSide         int     `json:"detail_long_side" yaml:"detail_long_side"`
+}
+
+// AnalysisConfig controls analysis behavior.
+type AnalysisConfig struct {
+	ConfidenceThreshold float64 `json:"confidence_threshold" yaml:"confidence_threshold"`
+	GenerateDOMGuess    bool    `json:"generate_dom_guess" yaml:"generate_dom_guess"`
+	NoOCR               bool    `json:"no_ocr" yaml:"no_ocr"`
+	NoSummary           bool    `json:"no_summary" yaml:"no_summary"`
+}
+
+// CacheConfig controls caching behavior.
+type CacheConfig struct {
+	Enabled  bool   `json:"enabled" yaml:"enabled"`
+	Database string `json:"database" yaml:"database"`
+}
+
+// CloudConfig controls cloud escalation policy.
+type CloudConfig struct {
+	Enabled       bool   `json:"enabled" yaml:"enabled"`
+	LocalOnly     bool   `json:"local_only" yaml:"local_only"`
+	AllowCloud    bool   `json:"allow_cloud" yaml:"allow_cloud"`
+	RedactText    bool   `json:"redact_text_before_cloud" yaml:"redact_text_before_cloud"`
+}
+
+// OutputConfig controls output behavior.
+type OutputConfig struct {
+	Verbose bool `json:"verbose" yaml:"verbose"`
+	JSON    bool `json:"json" yaml:"json"`
+}
+
+// ReconcilerConfig controls duplicate reconciliation.
+type ReconcilerConfig struct {
+	IoUThreshold       float64 `json:"iou_threshold" yaml:"iou_threshold"`
+	ConfidenceMerge    float64 `json:"confidence_merge" yaml:"confidence_merge"`
+}
+
+// Default returns a Config populated with sensible defaults.
+func Default() *Config {
+	return &Config{
+		Vision: VisionConfig{
+			Provider:  "ollama",
+			Model:     "qwen-vl-3b",
+			Endpoint:  "http://localhost:11434",
+			Workers:   1,
+			BatchSize: 2,
+		},
+		Summary: BackendConfig{
+			Provider: "ollama",
+			Model:    "qwen-3b",
+			Endpoint: "http://localhost:11434",
+		},
+		Aggregator: BackendConfig{
+			Provider: "ollama",
+			Model:    "qwen-14b",
+			Endpoint: "http://localhost:11434",
+		},
+		Image: ImageConfig{
+			OverviewWidth:          1000,
+			CropLongSide:           1280,
+			CropOverlap:            0.20,
+			MinimumTextHeightAfter: 12,
+			DetailLongSide:         1100,
+		},
+		Analysis: AnalysisConfig{
+			ConfidenceThreshold: 0.80,
+			GenerateDOMGuess:    true,
+		},
+		Cache: CacheConfig{
+			Enabled:  true,
+			Database: "./refraict-cache.sqlite",
+		},
+		Cloud: CloudConfig{
+			Enabled:    false,
+			LocalOnly:  true,
+			AllowCloud: false,
+			RedactText: true,
+		},
+		Recon: ReconcilerConfig{
+			IoUThreshold:    0.65,
+			ConfidenceMerge: 0.5,
+		},
+	}
+}
+
+// Load reads a JSON config file and overlays it on defaults. If path is empty
+// or the file does not exist, defaults are returned.
+func Load(path string) (*Config, error) {
+	cfg := Default()
+	if path == "" {
+		return cfg, nil
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return cfg, nil
+		}
+		return nil, fmt.Errorf("read config: %w", err)
+	}
+	if err := json.Unmarshal(data, cfg); err != nil {
+		return nil, fmt.Errorf("parse config %s: %w", path, err)
+	}
+	return cfg, nil
+}
