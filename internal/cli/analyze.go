@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"image"
 	"encoding/json"
 	"fmt"
+	"image"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -27,23 +27,23 @@ import (
 
 // analysisOptions captures command-line runtime flags.
 type analysisOptions struct {
-	visionModel    string
-	summaryModel   string
-	aggregatorModel string
-	visionProvider string
-	summaryProvider string
+	visionModel        string
+	summaryModel       string
+	aggregatorModel    string
+	visionProvider     string
+	summaryProvider    string
 	aggregatorProvider string
-	cropSize       int
-	cropOverlap    float64
-	minTextHeight  int
-	batchSize      int
-	workers        int
-	noOCR          bool
-	noSummary      bool
-	noDOM          bool
-	cloudFallback  bool
-	output         string
-	adaptive       bool
+	cropSize           int
+	cropOverlap        float64
+	minTextHeight      int
+	batchSize          int
+	workers            int
+	noOCR              bool
+	noSummary          bool
+	noDOM              bool
+	cloudFallback      bool
+	output             string
+	adaptive           bool
 }
 
 func newAnalyzeCmd() *cobra.Command {
@@ -87,6 +87,7 @@ func newAnalyzeCmd() *cobra.Command {
 func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error {
 	ctx := cmd.Context()
 	start := time.Now()
+	resetStageTimes()
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn})))
 
 	cfg := config.Default()
@@ -115,7 +116,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 
 	// Cache. The cache lives at the configured database directory so it is
 	// shared across analyses of the same image hash.
-	cacheDB := resolveCacheDB(cfg.Cache.Database)
+	cacheDB := resolveCacheDB(cfg.Cache.Dir)
 	c, err := cache.New(cacheDir(cacheDB), cfg.Cache.Enabled)
 	if err != nil {
 		return err
@@ -123,11 +124,11 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 
 	// manifest.
 	manifest := map[string]any{
-		"image":          imagePath,
-		"image_sha256":   img.Sha256,
-		"width":          W,
-		"height":         H,
-		"started_at":     time.Now(),
+		"image":        imagePath,
+		"image_sha256": img.Sha256,
+		"width":        W,
+		"height":       H,
+		"started_at":   time.Now(),
 	}
 	_ = ws.WriteJSON("manifest.json", manifest)
 
@@ -192,9 +193,12 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	var cropResults []*model.VisionResult
 	var cropComponents []ir.Component
 	schemaFailures := 0
+	boxFailures := 0
+	boxRepairs := 0
+	boxDrops := 0
 	debugDir := ws.Path("crops")
 	_ = debugDir
-	for i, cp := range plan.Crops {
+	for _, cp := range plan.Crops {
 		if cp.ID == "ov" {
 			// Overview handled separately; still record a stub result.
 			continue
@@ -235,18 +239,24 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		if vr.Description != "" {
 			_ = ws.WriteText("crops/"+cp.ID+".md", vr.Description)
 		}
-		for _, comp := range vr.Components {
-			cropComponents = append(cropComponents, ir.Component{
-				ID:         comp.ID,
-				Type:       ir.ConstString{Value: comp.Type, Source: cfg.Vision.Provider, Confidence: comp.Confidence},
-				BBox:       comp.BBoxGlobal,
-				Text:       optionalTextValue(comp.Text),
-				Semantic:   optionalRoleValue(comp.Role),
-				Confidence: comp.Confidence,
-				Source:     "crop-vision",
-			})
+		// Repair/normalize each component: synthesize IDs, recover empty boxes
+		// (via OCR text match or the enclosing crop's box), and clamp to bounds.
+		ocrCropTokens := tokensIn(cp.BBox, toks)
+		for idx, comp := range vr.Components {
+			cc, oc := repairComponent(comp, cp.ID, idx, cp.BBox, ocrCropTokens, W, H)
+			if oc.Dropped {
+				boxFailures++
+				boxDrops++
+				continue
+			}
+			if oc.BoxesFlagged {
+				boxFailures++
+			}
+			if oc.Repaired {
+				boxRepairs++
+			}
+			cropComponents = append(cropComponents, cc)
 		}
-		_ = i
 	}
 	stage("vision", start)
 
@@ -311,28 +321,28 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 
 	// page.json
 	pageJSON := map[string]any{
-		"image_sha256":   img.Sha256,
-		"width":          W,
-		"height":         H,
-		"schema_version": prompt.SchemaVersion,
-		"components":     merged,
-		"colors":         colors,
+		"image_sha256":           img.Sha256,
+		"width":                  W,
+		"height":                 H,
+		"schema_version":         prompt.SchemaVersion,
+		"components":             merged,
+		"colors":                 colors,
 		"relationships_elements": uiGraph.Relationships,
-		"summary":        pageSummary,
+		"summary":                pageSummary,
 		"provenance": map[string]any{
 			"vision":     cfg.Vision,
 			"summary":    cfg.Summary,
 			"aggregator": cfg.Aggregator,
 		},
 		"escalation": map[string]any{
-			"schema_failures": schemaFailures,
-			"unresolved":      countUnresolved(merged),
+			"schema_failures":        schemaFailures,
+			"components_box_failed":  boxFailures,
+			"components_box_repairs": boxRepairs,
+			"components_dropped":     boxDrops,
+			"unresolved":             countUnresolved(merged),
 		},
 		"meta": map[string]any{
-			"stages": map[string]int64{
-				"ocr":   msSince(start),
-				"vision": msSince(start),
-			},
+			"stages":     stageTimes,
 			"crop_count": len(plan.Crops),
 		},
 	}
@@ -375,19 +385,28 @@ func optionalTextValue(s string) *ir.ConstString {
 	}
 	return &ir.ConstString{Value: s, Source: "ocr_or_vlm", Confidence: 0.8}
 }
-func optionalRoleValue(s string) *ir.ConstString {
-	if strings.TrimSpace(s) == "" {
-		return nil
-	}
-	return &ir.ConstString{Value: s, Source: "vlm", Confidence: 0.7}
-}
-
 func stage(name string, start time.Time) {
 	if verbose {
 		fmt.Fprintf(os.Stderr, "[stage] %-12s %s\n", name, time.Since(start).Round(time.Millisecond))
 	}
+	now := time.Now()
+	if !lastStageAt.IsZero() {
+		stageTimes[name] = now.Sub(lastStageAt).Milliseconds()
+	}
+	lastStageAt = now
 }
-func msSince(start time.Time) int64 { return time.Since(start).Milliseconds() }
+
+// stageTimes records per-stage durations (ms) keyed by stage name, used to
+// produce honest per-stage timings in page.json (see C3).
+var stageTimes = map[string]int64{}
+
+// lastStageAt is the end time of the most recently completed stage.
+var lastStageAt time.Time
+
+func resetStageTimes() {
+	stageTimes = map[string]int64{}
+	lastStageAt = time.Time{}
+}
 func shortHash(h string) string {
 	if len(h) > 12 {
 		return h[:12]

@@ -98,17 +98,17 @@ type ConstString = Value[string]
 
 // Component is a single normalized UI element in the canonical representation.
 type Component struct {
-	ID         string        `json:"id"`
-	Type       ConstString   `json:"type"`
-	BBox       BoundingBox   `json:"bbox"`
-	BBoxLocal  *BoundingBox  `json:"bbox_local,omitempty"`
-	Text       *ConstString  `json:"text,omitempty"`
-	Appearance *Appearance   `json:"appearance,omitempty"`
-	Semantic   *ConstString  `json:"semantic,omitempty"`
-	Children   []string      `json:"children,omitempty"`
-	Role       ConstString   `json:"role,omitempty"`
-	Confidence float64       `json:"confidence"`
-	Source     string        `json:"source,omitempty"`
+	ID         string         `json:"id"`
+	Type       ConstString    `json:"type"`
+	BBox       BoundingBox    `json:"bbox"`
+	BBoxLocal  *BoundingBox   `json:"bbox_local,omitempty"`
+	Text       *ConstString   `json:"text,omitempty"`
+	Appearance *Appearance    `json:"appearance,omitempty"`
+	Semantic   *ConstString   `json:"semantic,omitempty"`
+	Children   []string       `json:"children,omitempty"`
+	Role       *ConstString   `json:"role,omitempty"`
+	Confidence float64        `json:"confidence"`
+	Source     string         `json:"source,omitempty"`
 	Provenance *RunProvenance `json:"provenance,omitempty"`
 }
 

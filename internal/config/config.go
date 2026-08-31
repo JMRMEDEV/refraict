@@ -53,18 +53,39 @@ type AnalysisConfig struct {
 	NoSummary           bool    `json:"no_summary" yaml:"no_summary"`
 }
 
-// CacheConfig controls caching behavior.
+// CacheConfig controls caching behavior. The cache is a file-based JSON store
+// on disk rooted at Dir; despite the earlier ".sqlite" naming, no SQLite is
+// involved (see QA finding B2).
 type CacheConfig struct {
-	Enabled  bool   `json:"enabled" yaml:"enabled"`
-	Database string `json:"database" yaml:"database"`
+	Enabled bool   `json:"enabled" yaml:"enabled"`
+	Dir     string `json:"dir" yaml:"dir"`
+}
+
+// UnmarshalJSON accepts both the canonical "dir" key and the legacy "database"
+// key so existing configuration files keep working after the naming fix.
+func (c *CacheConfig) UnmarshalJSON(data []byte) error {
+	type alias CacheConfig
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	*c = CacheConfig(a)
+	// Legacy compatibility: if only "database" was supplied, use it as Dir.
+	var legacy struct {
+		Database string `json:"database"`
+	}
+	if err := json.Unmarshal(data, &legacy); err == nil && legacy.Database != "" && c.Dir == "" {
+		c.Dir = legacy.Database
+	}
+	return nil
 }
 
 // CloudConfig controls cloud escalation policy.
 type CloudConfig struct {
-	Enabled       bool   `json:"enabled" yaml:"enabled"`
-	LocalOnly     bool   `json:"local_only" yaml:"local_only"`
-	AllowCloud    bool   `json:"allow_cloud" yaml:"allow_cloud"`
-	RedactText    bool   `json:"redact_text_before_cloud" yaml:"redact_text_before_cloud"`
+	Enabled    bool `json:"enabled" yaml:"enabled"`
+	LocalOnly  bool `json:"local_only" yaml:"local_only"`
+	AllowCloud bool `json:"allow_cloud" yaml:"allow_cloud"`
+	RedactText bool `json:"redact_text_before_cloud" yaml:"redact_text_before_cloud"`
 }
 
 // OutputConfig controls output behavior.
@@ -75,8 +96,8 @@ type OutputConfig struct {
 
 // ReconcilerConfig controls duplicate reconciliation.
 type ReconcilerConfig struct {
-	IoUThreshold       float64 `json:"iou_threshold" yaml:"iou_threshold"`
-	ConfidenceMerge    float64 `json:"confidence_merge" yaml:"confidence_merge"`
+	IoUThreshold    float64 `json:"iou_threshold" yaml:"iou_threshold"`
+	ConfidenceMerge float64 `json:"confidence_merge" yaml:"confidence_merge"`
 }
 
 // Default returns a Config populated with sensible defaults.
@@ -111,8 +132,8 @@ func Default() *Config {
 			GenerateDOMGuess:    true,
 		},
 		Cache: CacheConfig{
-			Enabled:  true,
-			Database: "./refraict-cache.sqlite",
+			Enabled: true,
+			Dir:     "./.refraict-cache",
 		},
 		Cloud: CloudConfig{
 			Enabled:    false,

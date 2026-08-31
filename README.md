@@ -292,7 +292,7 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
   },
   "cache": {
     "enabled": true,
-    "database": "./refraict-cache.sqlite"
+    "dir": "./.refraict-cache"
   },
   "cloud": {
     "enabled": false,
@@ -380,7 +380,7 @@ Refraict caches every expensive, reproducible stage, keyed by image SHA + stage 
 
 Re-running `analyze` on an unchanged image is near-instant because cached crop/OCR results are reused (unless the model or relevant version keys change).
 
-- Cache location defaults to `./refraict-cache.sqlite` (config: `cache.database`).
+- Cache location defaults to `./.refraict-cache` (config: `cache.dir`; legacy `cache.database` key is still accepted).
 - Inspect/clear with `./refraict cache status` / `./refraict cache clear`.
 
 ---

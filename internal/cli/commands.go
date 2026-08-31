@@ -92,11 +92,11 @@ func newInspectCmd() *cobra.Command {
 			}
 			W, H := img.Bounds()
 			out := map[string]any{
-				"path":     args[0],
-				"width":    W,
-				"height":   H,
-				"sha256":   img.Sha256,
-				"format":   img.DetectFormat(),
+				"path":   args[0],
+				"width":  W,
+				"height": H,
+				"sha256": img.Sha256,
+				"format": img.DetectFormat(),
 			}
 			// Sample a few anchor colors.
 			if W > 0 && H > 0 {
@@ -208,7 +208,7 @@ func newReconstructCmd() *cobra.Command {
 				return fail("read components: %w", err)
 			}
 			var comps []ir.Component
-			if json.Unmarshal(data, &comps) != nil {
+			if err := json.Unmarshal(data, &comps); err != nil {
 				return fail("parse components: %w", err)
 			}
 			dom := probableDOM(comps)

@@ -1,7 +1,7 @@
-// Package cache implements caching for expensive deterministic and inference
-// stages. The cache key combines input hash + stage version + model version.
-// A file-based cache is used by default; SQLite is available for indexed
-// metadata.
+// Package cache implements a file-based key->value cache for expensive
+// deterministic and inference stages. The cache key combines input hash +
+// stage version + model version. Each entry is stored as raw bytes plus a
+// version tag under a root directory. No SQLite is used.
 package cache
 
 import (
@@ -110,7 +110,7 @@ func (c *Cache) Set(key string, v any, meta map[string]any) error {
 
 // Status returns counts for diagnostics.
 type Status struct {
-	Entries int `json:"entries"`
+	Entries int    `json:"entries"`
 	Root    string `json:"root"`
 }
 

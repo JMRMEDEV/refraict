@@ -8,7 +8,8 @@ e2e-test/*
 !.libreq/agents/
 
 # Cache
-refraict-cache.sqlite
+.refraict-cache
+.refraict-cache.sqlite
 
 # Executables & Binaries
 # Commonly used output directories when using 'go build -o bin/' or scripts

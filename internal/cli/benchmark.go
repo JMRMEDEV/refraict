@@ -1,14 +1,14 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/refraict/refraict/internal/config"
+	"github.com/refraict/refraict/internal/crop"
 	"github.com/refraict/refraict/internal/imageproc"
-	"github.com/refraict/refraict/internal/ir"
 	"github.com/spf13/cobra"
 )
 
@@ -62,9 +62,15 @@ func isImage(name string) bool {
 	return false
 }
 
-func cropPlanOnly(img *imageproc.Image, W, H int) []ir.BoundingBox {
+// cropPlanOnly returns the crop regions a deterministic (no-OCR) analysis would
+// produce for an image, using the real fixed-tile planner. See QA finding B5.
+func cropPlanOnly(img *imageproc.Image, W, H int) []crop.Crop {
 	_ = img
-	_ = context.Background
-	// Placeholder region count based on width/height.
-	return []ir.BoundingBox{{X0: 0, Y0: 0, X1: W, Y1: H}}
+	cfg := config.Default()
+	side := cfg.Image.CropLongSide
+	if side <= 0 {
+		side = 1280
+	}
+	overlap := cfg.Image.CropOverlap
+	return crop.PlanFixed(W, H, side, overlap)
 }

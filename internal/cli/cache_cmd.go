@@ -5,8 +5,24 @@ import (
 	"fmt"
 
 	"github.com/refraict/refraict/internal/cache"
+	"github.com/refraict/refraict/internal/config"
 	"github.com/spf13/cobra"
 )
+
+// resolveCacheDir loads the active config (or default) and returns the cache
+// directory used by the analyze pipeline, so `cache status`/`clear` operate on
+// the same on-disk cache that `analyze` writes to. See QA finding B1.
+func resolveCacheDir() (string, error) {
+	cfg := config.Default()
+	if configPath != "" {
+		c, err := config.Load(configPath)
+		if err != nil {
+			return "", err
+		}
+		cfg = c
+	}
+	return cacheDir(resolveCacheDB(cfg.Cache.Dir)), nil
+}
 
 func newCacheCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -18,7 +34,11 @@ func newCacheCmd() *cobra.Command {
 			Use:   "status",
 			Short: "Show cache status",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				c, err := cache.New("./.refraict-cache", true)
+				dir, err := resolveCacheDir()
+				if err != nil {
+					return err
+				}
+				c, err := cache.New(dir, true)
 				if err != nil {
 					return err
 				}
@@ -38,7 +58,11 @@ func newCacheCmd() *cobra.Command {
 			Use:   "clear",
 			Short: "Clear the analysis cache",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				c, err := cache.New("./.refraict-cache", true)
+				dir, err := resolveCacheDir()
+				if err != nil {
+					return err
+				}
+				c, err := cache.New(dir, true)
 				if err != nil {
 					return err
 				}
