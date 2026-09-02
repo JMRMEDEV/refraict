@@ -25,9 +25,11 @@ type Plan struct {
 
 // CropPlanConfig controls crop generation.
 type CropPlanConfig struct {
-	CropLongSide int
-	Overlap      float64
-	Rect         image.Rectangle
+	CropLongSide       int
+	Overlap            float64
+	Rect               image.Rectangle
+	DetailLongSide     int // preferred long side for detail-level crops (0 => CropLongSide)
+	MinimumTextHeight  int // after-resize minimum text height guarding legibility (0 => disabled)
 }
 
 // PlanFixed generates an overlapping fixed tile grid covering the whole image.
@@ -64,10 +66,93 @@ func PlanFixed(w, h, cropSide int, overlap float64) []Crop {
 	return crops
 }
 
+// GridPlanConfig controls the bounded overview+grid planner.
+//
+// This strategy is intentionally independent of OCR token density: it always
+// produces exactly 1 overview crop plus Rows*Cols focused tiles. This bounds
+// the number of VLM calls to a small, predictable constant (1 + Rows*Cols),
+// which keeps a single model warm (sequential calls) and avoids the crop-count
+// explosion that OCR-density-driven subdivision can cause.
+type GridPlanConfig struct {
+	Rows           int     // number of tile rows (>=1)
+	Cols           int     // number of tile columns (>=1)
+	Overlap        float64 // fractional overlap between adjacent tiles (0..~0.5)
+	DetailLongSide int     // long side each tile is resized to for the VLM (0 => no resize hint)
+}
+
+// PlanOverviewGrid builds a bounded, OCR-independent crop plan:
+//
+//	crop[0]        = "ov"  full-page overview (low-res, whole-page context)
+//	crop[1..N]     = fixed Rows x Cols grid of higher-res focused tiles
+//
+// Tiles overlap by Overlap so components straddling a tile boundary are still
+// fully visible in at least one tile. The total VLM call count is exactly
+// 1 + Rows*Cols regardless of image content, which is the property that keeps
+// the pipeline fast and the model warm.
+func PlanOverviewGrid(w, h int, cfg GridPlanConfig) *Plan {
+	rows := cfg.Rows
+	if rows < 1 {
+		rows = 1
+	}
+	cols := cfg.Cols
+	if cols < 1 {
+		cols = 1
+	}
+	overlap := cfg.Overlap
+	if overlap < 0 {
+		overlap = 0
+	}
+	if overlap > 0.5 {
+		overlap = 0.5
+	}
+
+	var p Plan
+	p.Crops = append(p.Crops, Crop{ID: "ov", BBox: ir.BoundingBox{X0: 0, Y0: 0, X1: w, Y1: h}, Level: 0})
+
+	// Base (non-overlapping) tile size.
+	baseW := float64(w) / float64(cols)
+	baseH := float64(h) / float64(rows)
+	// Overlap padding added to each side of a tile.
+	padX := int(baseW * overlap)
+	padY := int(baseH * overlap)
+
+	id := 0
+	for ry := 0; ry < rows; ry++ {
+		for cx := 0; cx < cols; cx++ {
+			x0 := int(float64(cx)*baseW) - padX
+			y0 := int(float64(ry)*baseH) - padY
+			x1 := int(float64(cx+1)*baseW) + padX
+			y1 := int(float64(ry+1)*baseH) + padY
+			if x0 < 0 {
+				x0 = 0
+			}
+			if y0 < 0 {
+				y0 = 0
+			}
+			if x1 > w {
+				x1 = w
+			}
+			if y1 > h {
+				y1 = h
+			}
+			if x1 <= x0 || y1 <= y0 {
+				continue
+			}
+			id++
+			p.Crops = append(p.Crops, Crop{
+				ID:    cID(id),
+				BBox:  ir.BoundingBox{X0: x0, Y0: y0, X1: x1, Y1: y1},
+				Level: 2,
+			})
+		}
+	}
+	return &p
+}
+
 // BuildPlan assembles a multi-scale crop plan: an overview crop covering the
 // whole page plus section crops derived from OCR density, subdivided to stay
 // within the target long side.
-func BuildPlan(im *imageproc.Image, toks []ir.ORCToken, cfg CropPlanConfig) *Plan {
+func BuildPlan(im *imageproc.Image, toks []ir.OCRToken, cfg CropPlanConfig) *Plan {
 	w, h := im.Bounds()
 	var p Plan
 	p.Crops = append(p.Crops, Crop{ID: "ov", BBox: ir.BoundingBox{X0: 0, Y0: 0, X1: w, Y1: h}, Level: 0})
@@ -81,13 +166,13 @@ func BuildPlan(im *imageproc.Image, toks []ir.ORCToken, cfg CropPlanConfig) *Pla
 
 // HorizontalPartition slices the image into vertical bands separated by
 // whitespace gaps in OCR token density.
-func HorizontalPartition(im *imageproc.Image, toks []ir.ORCToken, rect image.Rectangle) []ir.BoundingBox {
+func HorizontalPartition(im *imageproc.Image, toks []ir.OCRToken, rect image.Rectangle) []ir.BoundingBox {
 	if len(toks) == 0 {
 		return []ir.BoundingBox{{X0: rect.Min.X, Y0: rect.Min.Y, X1: rect.Max.X, Y1: rect.Max.Y}}
 	}
 	// Use token top coordinates to find clustering gaps.
 	ys := make([]int, 0, len(toks))
-	ymap := map[int]ir.ORCToken{}
+	ymap := map[int]ir.OCRToken{}
 	for _, t := range toks {
 		ys = append(ys, t.BBoxGlobal.Y0)
 		ymap[t.BBoxGlobal.Y0] = t
@@ -124,12 +209,12 @@ func HorizontalPartition(im *imageproc.Image, toks []ir.ORCToken, rect image.Rec
 }
 
 // groupTokensByRow groups OCR tokens into rows based on vertical overlap.
-func groupTokensByRow(toks []ir.ORCToken) [][]ir.ORCToken {
-	sorted := append([]ir.ORCToken(nil), toks...)
+func groupTokensByRow(toks []ir.OCRToken) [][]ir.OCRToken {
+	sorted := append([]ir.OCRToken(nil), toks...)
 	sort.Slice(sorted, func(i, j int) bool {
 		return sorted[i].BBoxGlobal.Y0 < sorted[j].BBoxGlobal.Y0
 	})
-	var rows [][]ir.ORCToken
+	var rows [][]ir.OCRToken
 	for _, t := range sorted {
 		placed := false
 		for i := range rows {
@@ -140,13 +225,13 @@ func groupTokensByRow(toks []ir.ORCToken) [][]ir.ORCToken {
 			}
 		}
 		if !placed {
-			rows = append(rows, []ir.ORCToken{t})
+			rows = append(rows, []ir.OCRToken{t})
 		}
 	}
 	return rows
 }
 
-func rowOverlaps(row []ir.ORCToken, b ir.BoundingBox) bool {
+func rowOverlaps(row []ir.OCRToken, b ir.BoundingBox) bool {
 	for _, r := range row {
 		if r.BBoxGlobal.Y0 < b.Y1 && b.Y0 < r.BBoxGlobal.Y1 {
 			return true
@@ -156,14 +241,46 @@ func rowOverlaps(row []ir.ORCToken, b ir.BoundingBox) bool {
 }
 
 // SubdivideRegion splits a region into overlapping crops whose longest side
-// stays under the target.
-func SubdivideRegion(im *imageproc.Image, toks []ir.ORCToken, reg ir.BoundingBox, cfg CropPlanConfig, depth int) []Crop {
+// stays under the target. Subdivision is size-driven first (keep crops within
+// CropLongSide) and, when a MinimumTextHeight is configured, additionally
+// consults NeedsSubdivision so that detail-level crops do not shrink text below
+// the legibility threshold (see QA finding B6).
+func SubdivideRegion(im *imageproc.Image, toks []ir.OCRToken, reg ir.BoundingBox, cfg CropPlanConfig, depth int) []Crop {
 	_ = im
 	_ = depth
-	if reg.X1-reg.X0 <= cfg.CropLongSide && reg.Y1-reg.Y0 <= cfg.CropLongSide {
+	// Detail-level crops aim at DetailLongSide (default CropLongSide); pick the
+	// smaller of the two when both are set so we never exceed CropLongSide.
+	reach := cfg.CropLongSide
+	if cfg.DetailLongSide > 0 && cfg.DetailLongSide < reach {
+		reach = cfg.DetailLongSide
+	}
+	rgW := int(reg.X1 - reg.X0)
+	rgH := int(reg.Y1 - reg.Y0)
+	regionLong := rgW
+	if rgH > rgW {
+		regionLong = rgH
+	}
+	// Subdivision side starts at the maximum allowed long side, then shrinks
+	// when a MinimumTextHeight is configured and text legibility would be lost
+	// after the VLM rescales the crop (QA finding B6).
+	side := reach
+	if cfg.MinimumTextHeight > 0 {
+		med := MedianTextHeight(toks)
+		if med > 0 {
+			// Max crop side keeping resized text at/above the minimum.
+			legible := int(med * float64(reach) / float64(cfg.MinimumTextHeight))
+			if legible < 1 {
+				legible = 1
+			}
+			if legible < side {
+				side = legible
+			}
+		}
+	}
+	// A region is a single "level 1" crop only if it fits the effective side.
+	if regionLong <= side {
 		return []Crop{{ID: cID(regIndex(reg)), BBox: reg, Level: 1}}
 	}
-	side := cfg.CropLongSide
 	step := int(float64(side) * (1 - cfg.Overlap))
 	if step < 1 {
 		step = 1
@@ -241,7 +358,7 @@ func regIndex(reg ir.BoundingBox) int {
 }
 
 // MedianTextHeight computes the median height of OCR text tokens.
-func MedianTextHeight(toks []ir.ORCToken) float64 {
+func MedianTextHeight(toks []ir.OCRToken) float64 {
 	if len(toks) == 0 {
 		return 0
 	}
