@@ -51,6 +51,24 @@ func TestCanonicalizeWeakLastResort(t *testing.T) {
 	}
 }
 
+func TestCanonicalizeWithProfileWordCap(t *testing.T) {
+	// A tight max-label-words profile rejects a 3-word label that the default
+	// (4) would accept, proving the per-model cap is honored.
+	tight, err := NewWithProfile(2, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// "credit card icon" -> content words after stopword drop: credit, card
+	// (icon is a stopword), which is 2 -> accepted at cap 2.
+	if got := tight.Canonicalize("credit card icon"); got == "" {
+		t.Fatalf("2 content words should pass cap=2, got empty")
+	}
+	// "a large search magnifier glass" -> search, magnifier, glass = 3 > cap 2.
+	if got := tight.Canonicalize("a large search magnifier glass"); got != "" {
+		t.Fatalf("3 content words should be rejected at cap=2, got %q", got)
+	}
+}
+
 func TestVoteModeAndAgreement(t *testing.T) {
 	c := mustNew(t)
 	raw := []string{

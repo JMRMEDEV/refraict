@@ -68,7 +68,7 @@ var wordRe = regexp.MustCompile(`[a-zA-Z]+`)
 //   - text:      a quoted string, or a content word, that does not appear in the
 //     OCR corpus (structural/UI vocabulary and stopwords are exempt, since the
 //     model must be able to describe layout without quoting text).
-func CheckGrounding(summary string, colors []ir.ColorFact, toks []ir.OCRToken) GroundingReport {
+func CheckGrounding(summary string, colors []ir.ColorFact, toks []ir.OCRToken, stripHex bool) GroundingReport {
 	report := GroundingReport{Grounded: true, ColorSupport: 1.0, TextSupport: 1.0}
 	if strings.TrimSpace(summary) == "" {
 		return report
@@ -194,9 +194,13 @@ func CheckGrounding(summary string, colors []ir.ColorFact, toks []ir.OCRToken) G
 	}
 	numSeen := map[string]bool{}
 	// Colors (hex codes) are validated by the color path, not the numeric path.
-	// Strip #RRGGBB and bare 6-hex-digit color tokens so a summary that cites a
-	// measured color like "#252829" is not mis-flagged as an unsupported number.
-	numSrc := hexCodeRe.ReplaceAllString(summary, " ")
+	// When the model cites hex codes in prose (stripHex), strip #RRGGBB / bare
+	// 6-hex-digit tokens so a measured color like "#252829" is not mis-flagged
+	// as an unsupported number.
+	numSrc := summary
+	if stripHex {
+		numSrc = hexCodeRe.ReplaceAllString(summary, " ")
+	}
 	for _, n := range numberRe.FindAllString(numSrc, -1) {
 		norm := normalizeNumber(n)
 		if norm == "" || numSeen[norm] {

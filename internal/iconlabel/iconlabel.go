@@ -27,10 +27,10 @@ type aliasEntry struct {
 	IDF     float64 `json:"idf"`
 }
 
-// maxLabelWords rejects rambling model outputs before voting: a real icon name
-// is a few words; long outputs are refusals/descriptions that would inject
-// spurious tokens (validated over-long-run filter).
-const maxLabelWords = 4
+// maxLabelWordsDefault rejects rambling model outputs before voting: a real
+// icon name is a few words; long outputs are refusals/descriptions that would
+// inject spurious tokens. Overridable per model via NewWithProfile.
+const maxLabelWordsDefault = 4
 
 var wordRe = regexp.MustCompile(`[a-z]+`)
 
@@ -43,21 +43,37 @@ var stopwords = map[string]bool{
 	"or": true, "for": true,
 }
 
-// garbageMarkers flag format-garbage (code/markup) the model sometimes emits.
-var garbageMarkers = []string{"<svg", "```", "viewbox", "{", "http", "path fill"}
+// defaultGarbageMarkers flag format-garbage (code/markup) small VLMs emit.
+var defaultGarbageMarkers = []string{"<svg", "```", "viewbox", "{", "http", "path fill"}
 
-// Canonicalizer maps free-text icon labels to canonical concept keys.
+// Canonicalizer maps free-text icon labels to canonical concept keys, using a
+// per-model output profile for the noise filters (max label words, garbage
+// markers).
 type Canonicalizer struct {
-	alias map[string]aliasEntry
+	alias          map[string]aliasEntry
+	maxLabelWords  int
+	garbageMarkers []string
 }
 
-// New builds a Canonicalizer from the embedded Lucide alias map.
+// New builds a Canonicalizer with default (model-agnostic) noise filters.
 func New() (*Canonicalizer, error) {
+	return NewWithProfile(maxLabelWordsDefault, defaultGarbageMarkers)
+}
+
+// NewWithProfile builds a Canonicalizer with model-specific noise filters.
+// A maxLabelWords <= 0 or nil markers fall back to the defaults.
+func NewWithProfile(maxLabelWords int, garbageMarkers []string) (*Canonicalizer, error) {
 	var m map[string]aliasEntry
 	if err := json.Unmarshal(aliasJSON, &m); err != nil {
 		return nil, err
 	}
-	return &Canonicalizer{alias: m}, nil
+	if maxLabelWords <= 0 {
+		maxLabelWords = maxLabelWordsDefault
+	}
+	if len(garbageMarkers) == 0 {
+		garbageMarkers = defaultGarbageMarkers
+	}
+	return &Canonicalizer{alias: m, maxLabelWords: maxLabelWords, garbageMarkers: garbageMarkers}, nil
 }
 
 // Canonicalize reduces a raw VLM label to a canonical concept key, or "" if the
@@ -65,7 +81,7 @@ func New() (*Canonicalizer, error) {
 // are only used as a last resort, so distinctive/multi-word matches win.
 func (c *Canonicalizer) Canonicalize(text string) string {
 	low := strings.ToLower(text)
-	for _, g := range garbageMarkers {
+	for _, g := range c.garbageMarkers {
 		if strings.Contains(low, g) {
 			return ""
 		}
@@ -76,7 +92,7 @@ func (c *Canonicalizer) Canonicalize(text string) string {
 			words = append(words, w)
 		}
 	}
-	if len(words) == 0 || len(words) > maxLabelWords {
+	if len(words) == 0 || len(words) > c.maxLabelWords {
 		return ""
 	}
 

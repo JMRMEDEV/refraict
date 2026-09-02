@@ -12,6 +12,7 @@ import (
 	"github.com/refraict/refraict/internal/crop"
 	"github.com/refraict/refraict/internal/graph"
 	"github.com/refraict/refraict/internal/model"
+	"github.com/refraict/refraict/internal/modelprofile"
 	"github.com/refraict/refraict/internal/iconlabel"
 	"github.com/refraict/refraict/internal/imageproc"
 	"github.com/refraict/refraict/internal/ir"
@@ -80,11 +81,31 @@ func buildOCREngine() (ocr.Engine, error) {
 	return &ocr.ExternalEngine{Command: cmd, Args: args}, nil
 }
 
+// resolveVisionProfile returns the output-handling profile for the configured
+// vision model, applying any per-model overrides from config.
+func resolveVisionProfile(cfg *config.Config) modelprofile.Profile {
+	p := modelprofile.Resolve(cfg.Vision.Model)
+	if o := cfg.Vision.Profile; o != nil {
+		if o.MaxLabelWords != nil {
+			p.MaxLabelWords = *o.MaxLabelWords
+		}
+		if o.StripHexInNumbers != nil {
+			p.StripHexInNumbers = *o.StripHexInNumbers
+		}
+		if o.StructuredOutput != nil {
+			p.StructuredOutput = *o.StructuredOutput
+		}
+	}
+	return p
+}
+
 // buildVisionBackend constructs the vision adapter for the configured provider.
 func buildVisionBackend(cfg *config.Config, o *analysisOptions) (model.VisionBackend, error) {
 	provider := cfg.Vision.Provider
 	if provider == "" || provider == "ollama" {
-		return model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, resolveKeepAlive(cfg, o)), nil
+		ol := model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, resolveKeepAlive(cfg, o))
+		ol.StructuredOutput = resolveVisionProfile(cfg).StructuredOutput
+		return ol, nil
 	}
 	return nil, fmt.Errorf("unsupported vision provider %q", provider)
 }
@@ -99,7 +120,9 @@ func buildVisionBackendKeepAlive(cfg *config.Config, keepWarm string) (model.Vis
 		if ka == "" {
 			ka = cfg.Models.KeepAlive
 		}
-		return model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, ka), nil
+		ol := model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, ka)
+		ol.StructuredOutput = resolveVisionProfile(cfg).StructuredOutput
+		return ol, nil
 	}
 	return nil, fmt.Errorf("unsupported vision provider %q", provider)
 }

@@ -134,7 +134,8 @@ func runIcons(cmd *cobra.Command, imagePath string, o *iconsOptions) error {
 		if verr != nil || vision == nil {
 			return fail("vision backend unavailable: %v", verr)
 		}
-		canon, cerr := iconlabel.New()
+		prof := resolveVisionProfile(cfg)
+		canon, cerr := iconlabel.NewWithProfile(prof.MaxLabelWords, prof.GarbageMarkers)
 		if cerr != nil {
 			return fail("icon canonicalizer: %w", cerr)
 		}

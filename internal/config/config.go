@@ -39,6 +39,18 @@ type VisionConfig struct {
 	Endpoint  string `json:"endpoint" yaml:"endpoint"`
 	Workers   int    `json:"workers" yaml:"workers"`
 	BatchSize int    `json:"batch_size" yaml:"batch_size"`
+	// Profile optionally overrides the model's output-handling profile
+	// (verbosity cap, hex-in-numbers handling, structured output). When nil,
+	// the profile is resolved from the model name (see internal/modelprofile).
+	Profile *ProfileOverride `json:"profile,omitempty" yaml:"profile,omitempty"`
+}
+
+// ProfileOverride carries optional per-model output-profile overrides. Any nil
+// field falls back to the resolved (name-based) profile value.
+type ProfileOverride struct {
+	MaxLabelWords     *int  `json:"max_label_words,omitempty" yaml:"max_label_words,omitempty"`
+	StripHexInNumbers *bool `json:"strip_hex_in_numbers,omitempty" yaml:"strip_hex_in_numbers,omitempty"`
+	StructuredOutput  *bool `json:"structured_output,omitempty" yaml:"structured_output,omitempty"`
 }
 
 // BackendConfig configures a text model backend.

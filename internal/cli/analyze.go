@@ -358,7 +358,8 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// a vision backend. Deterministic geometry/colors remain the source of
 	// truth; these labels are interpretation.
 	if cfg.Analysis.LabelElements {
-		canon, cErr := iconlabel.New()
+		prof := resolveVisionProfile(cfg)
+		canon, cErr := iconlabel.NewWithProfile(prof.MaxLabelWords, prof.GarbageMarkers)
 		if cErr != nil {
 			slog.Warn("icon-label canonicalizer unavailable; skipping element labels", "err", cErr)
 		} else {
@@ -468,7 +469,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// colors or behavior that the measured evidence does not support, and emit
 	// a machine-readable report so a downstream agent can decide whether to
 	// trust the summary or fall back to a direct (paid) image read.
-	grounding := detect.CheckGrounding(pageSummary, colors, toks)
+	grounding := detect.CheckGrounding(pageSummary, colors, toks, resolveVisionProfile(cfg).StripHexInNumbers)
 	writeArtifact(func() error { return ws.WriteJSON("evidence/grounding.json", grounding) })
 
 	// DOM guess (probable DOM, clearly inferred).

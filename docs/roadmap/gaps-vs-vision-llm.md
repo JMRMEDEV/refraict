@@ -388,6 +388,23 @@ Adopted gemma3:4b as the default `vision.model`. Two honest caveats:
    tokens) are stripped before the numeric-claim check (colors are validated by
    the color path). Unit-tested.
 
+### 2026-09-02 — Per-model output-profile layer (internal/modelprofile)
+
+Model-reactive filters (verbosity cap, hex-in-numbers, garbage markers,
+structured-output) had accumulated as hardcoded constants in shared code, each
+added in response to whichever model was tested last (e.g. the hex-in-numbers
+strip was added when switching to gemma3, which cites "#RRGGBB" in prose). This
+made per-model tuning implicit and messy.
+
+Introduced `internal/modelprofile`: a Profile struct + registry (default,
+gemma3, llava-phi3, moondream) resolved by model-name substring, with an
+optional per-model config override (`vision.profile`: max_label_words,
+strip_hex_in_numbers, structured_output). `iconlabel.NewWithProfile` and
+`guard.CheckGrounding(..., stripHex)` now consume the resolved profile instead
+of constants; the vision backend gets `StructuredOutput` from it too. Filters
+that are genuinely general keep sane defaults; model-specific tuning is now
+explicit and visible. Unit-tested (resolution + filter behavior).
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses
