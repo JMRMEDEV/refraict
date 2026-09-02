@@ -29,6 +29,7 @@ This document is both a **reference** and a **user guide**.
 8. [Caching](#caching)
 9. [End-to-end example](#end-to-end-example)
 10. [FAQ / troubleshooting](#faq--troubleshooting)
+11. [Documentation](#documentation)
 
 ---
 
@@ -37,13 +38,14 @@ This document is both a **reference** and a **user guide**.
 Given a screenshot, Refraict:
 
 - Detects and dissects the image deterministically (dimensions, dominant colors, hash).
-- Runs OCR to pull visible text tokens with bounding boxes.
-- Plans a set of **crops** (adaptive regions) optimized for small vision models.
-- Uses a **vision model** on each crop to extract components (buttons, inputs, text, images…) with confidence and global coordinates.
-- Reconciles overlapping per-crop observations into one deduplicated component set.
+- Runs OCR to pull visible text tokens with bounding boxes (auto-inverts dark-theme UIs for legibility).
+- Plans a bounded set of **crops** (overview + grid of focused tiles) optimized for small vision models.
+- Synthesizes **components deterministically** from measured evidence: OCR text tokens become text components, and a CV detector finds non-text regions (cards, panels, chart containers). Coordinates and colors are measured, not guessed.
+- Uses a **vision model** on each crop only for a *grounded* natural-language description (constrained to the measured OCR text and colors), not for geometry — small local models cannot emit reliable bounding boxes.
+- Reconciles overlapping observations into one deduplicated component set.
 - Measures actual pixel colors for each component.
 - Builds a canonical **UI IR** (`page.json`) plus a spatial **relationship graph** (`graph.json`).
-- Generates **region-level** and **page-level** natural-language summaries.
+- Generates **region-level** and **page-level** natural-language summaries, then runs a deterministic **grounding guard** that flags summary claims (colors, numbers, quoted text, non-observable behavior) unsupported by the measured evidence.
 - Infers a **probable DOM/UI tree** (clearly marked as inference, not observed).
 
 ### Design principles
@@ -70,7 +72,27 @@ go build -o refraict ./cmd/refraict
 
 The resulting `./refraict` binary has no runtime dependencies.
 
-Cross-compile:
+### Optional: OpenCV-backed region detection
+
+Refraict detects non-text UI regions (cards, panels, chart containers) using a
+pure-Go connected-components detector by default — no extra dependencies. For
+**low-contrast flat UIs** (faint cards on a near-uniform background) that the
+pure-Go detector cannot segment reliably, an optional OpenCV Canny detector is
+available behind a build tag:
+
+```bash
+# Requires system OpenCV 4.x + headers (e.g. Debian/Ubuntu):
+sudo apt-get install -y libopencv-dev pkg-config
+go build -tags opencv -o refraict ./cmd/refraict
+```
+
+The `opencv` build links CGo + system OpenCV (so it is **not** a static binary
+and needs OpenCV present at runtime). The default build stays pure-Go and
+statically linkable; region detection then uses the built-in detector. Both
+builds expose the same output — only the detector strength differs. Region
+detection is controlled by `analysis.detect_regions` (default on).
+
+Cross-compile (default pure-Go build only):
 
 ```bash
 # macOS arm64
@@ -158,7 +180,8 @@ Flags:
 | `--no-dom` | Skip DOM guess | `false` |
 | `--cloud-fallback` | Allow cloud escalation | `false` |
 | `--output`, `-o` | Output directory | `./analysis-<basename>` |
-| `--adaptive` | Use adaptive crop planning | `true` |
+| `--adaptive` | Use adaptive crop planning (see crop strategies) | `true` |
+| `--keep-warm` | Keep local models loaded for this duration after use (e.g. `30s`, `5m`, `-1` = indefinite). Empty frees them immediately. | (free immediately) |
 
 On success it prints:
 
@@ -175,6 +198,30 @@ Analysis complete: ./out (2.1s), 4 crops, 12 components.
 ```
 
 Output: `{"tokens": [...], "count": N}`. If no OCR engine is configured, it prints a warning and an empty result.
+
+OCR is optional and uses an **external command** driven by two environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `REFRAICT_OCR_CMD` | Executable that performs OCR on an image and prints a JSON array of tokens to stdout. If unset, OCR is skipped (VLM-only analysis still runs). |
+| `REFRAICT_OCR_ARGS` | Optional space-separated fixed arguments passed to the OCR command (**before** the image path). |
+
+The OCR command receives the input image path as its final argument (`REFRAICT_OCR_CMD [REFRAICT_OCR_ARGS...] <image>`). Its stdout must be a JSON array of token objects:
+
+```json
+[
+  {"text": "Submit", "bbox": [100, 200, 240, 220], "confidence": 0.99}
+]
+```
+
+`bbox` is the token's bounding box in **global image coordinates** as `[x0, y0, x1, y1]`. Example with a RapidOCR/PaddleOCR-style CLI:
+
+```bash
+export REFRAICT_OCR_CMD="ocr-infer"
+./refraict analyze screenshot.png
+```
+
+OCR tokens are cached per image, used to steer the adaptive crop plan, appended to crop prompts, and (when a crop's vision output is broken) recovered via text-token matching in the repair stage. OCR degrades gracefully — without it, the deterministic pieces (overview, colors, geometry) are still produced.
 
 ### `regions`
 
@@ -277,16 +324,23 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
     "model": "qwen-14b",
     "endpoint": "http://localhost:11434"
   },
+  "models": {
+    "keep_alive": "0"
+  },
   "image": {
     "overview_width": 1000,
     "crop_long_side": 1280,
     "crop_overlap": 0.20,
     "minimum_text_height_after_resize": 12,
-    "detail_long_side": 1100
+    "detail_long_side": 1100,
+    "crop_strategy": "grid",
+    "grid_rows": 2,
+    "grid_cols": 2
   },
   "analysis": {
     "confidence_threshold": 0.80,
     "generate_dom_guess": true,
+    "detect_regions": true,
     "no_ocr": false,
     "no_summary": false
   },
@@ -316,8 +370,9 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
 - **`vision`** — vision model backend (provider, model, endpoint, workers, batch size).
 - **`summary`** — small text model used for region/page summarization.
 - **`aggregator`** — larger text model for global reasoning/escalation.
-- **`image`** — ingest + crop-planning parameters.
-- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles.
+- **`models`** — cross-cutting local-model runtime settings. `keep_alive` is the Ollama keep-alive applied to every model request. Default `"0"` frees each model from memory immediately after use (only one model resident at a time — lowest RAM/VRAM). Set a duration (`"30s"`, `"5m"`) or `"-1"` (indefinite) for batch/agentic callers that prefer to trade memory for reduced reload latency. The `--keep-warm` flag overrides this per run.
+- **`image`** — ingest + crop-planning parameters. `crop_strategy` selects the crop planner: `"grid"` (default; bounded overview + `grid_rows`×`grid_cols` focused tiles — fast, OCR-independent, keeps a single model warm within a run) or `"adaptive"` (legacy OCR-density-driven subdivision, which can explode the crop count on text-dense pages).
+- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles, and `detect_regions` (default `true`) which enables deterministic non-text region detection (cards, panels, chart containers). The detector implementation is chosen at build time: pure-Go by default, OpenCV Canny with `-tags opencv`.
 - **`cache`** — cache enablement and database directory.
 - **`cloud`** — cloud escalation policy (disabled by default; text is redacted before any cloud call).
 - **`output`** — global verbosity / JSON defaults.
@@ -346,8 +401,9 @@ out/
 └── evidence/
     ├── ocr.json               # OCR tokens
     ├── regions.json           # planned crop regions
-    ├── merged_components.json # deduplicated components
-    └── colors.json            # measured pixel colors per component
+    ├── merged_components.json # deduplicated components (OCR text + CV regions)
+    ├── colors.json            # measured pixel colors per component
+    └── grounding.json         # grounding-guard report (claims unsupported by evidence)
 ```
 
 **`page.json`** is the key reusable artifact — feed it to any LLM as structured UI context. It includes schema version, components, colors, relationship elements, the page summary, and full provenance of every model backend.
@@ -447,8 +503,22 @@ Cloud is disabled by default. Keep it disabled, stick with Ollama, and rely on `
 **I changed the crop size / overlap but output is identical.**
 `analyze` flags override config at runtime (`--crop-size`, `--crop-overlap`). Also confirm `--adaptive` is on, or pass `--adaptive=true` explicitly.
 
+**High RAM/VRAM usage with local models.**
+By default Refraict frees each local model from memory immediately after use (`models.keep_alive: "0"`), so at most one model is resident at a time. If you run many analyses back-to-back and want to avoid repeated model reloads, pass `--keep-warm=5m` (or set `models.keep_alive`) to trade memory for speed. Note that on constrained VRAM, keeping both the vision and text models warm simultaneously can exceed the GPU and spill into system RAM.
+
+**Region detection misses cards on a low-contrast/dark UI.**
+The default pure-Go detector needs a visible contrast step between cards and the background. For faint flat designs, build with `-tags opencv` (requires system OpenCV) to use the stronger Canny-based detector. See [Optional: OpenCV-backed region detection](#optional-opencv-backed-region-detection). You can also disable region detection with `analysis.detect_regions: false`.
+
 ---
+
+## Documentation
+
+All project documentation lives under [`docs/`](docs/):
+
+- [`docs/refraict.md`](docs/refraict.md) — the implementation/spec guide: full architecture, IR schema, and design rationale.
+- [`docs/roadmap/gaps-vs-vision-llm.md`](docs/roadmap/gaps-vs-vision-llm.md) — the gap roadmap and gap-closing history: how Refraict compares to a vision-LLM (`fs_read`) on text, color, layout, and non-text detection, the prioritized plan to narrow each gap, and a dated log of what has been implemented (OCR dark-theme fix, grounded summaries + grounding guard, CV region detection, keep-alive memory controls).
+- [`docs/qa/`](docs/qa/) — QA findings and reassessments.
 
 ## License / contribution
 
-See `refraict.md` (the implementation/spec guide) for the full architecture, IR schema, and design rationale. Contributions, issues, and PRs are welcome.
+See [`docs/refraict.md`](docs/refraict.md) for the full architecture, IR schema, and design rationale. Contributions, issues, and PRs are welcome.
