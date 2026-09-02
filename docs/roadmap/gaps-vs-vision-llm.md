@@ -365,6 +365,29 @@ search/x/square-m (all correct), withholds docs/pricing/chat/send. Precision
 over recall — a withheld label is honest; a confident-wrong one is dangerous for
 a verification tool.
 
+### 2026-09-02 — gemma3:4b adopted as default vision model
+
+Evaluated gemma3:4b (3.3 GB, same VRAM class as llava-phi3) across the whole
+pipeline, not just icons. Measured vs llava-phi3 on deep-seek-ui.png:
+
+- Icon labeling (threshold 0.7): gemma3 accepted 6 confident labels at ~1.0
+  agreement (search, mail, chart, speech×2) vs phi3's 2-3. Big lift — confirms
+  the icon-ID ceiling was partly model capability.
+- Crop descriptions: gemma3 grounded and specific (real OCR text + measured
+  colors) where phi3 often rambled/garbled.
+- Page summary: references real content, notes uncertainty honestly.
+- Cost: ~6m48 vs phi3 ~5m (slower per call + more labels succeed), ~177MB RSS.
+
+Adopted gemma3:4b as the default `vision.model`. Two honest caveats:
+1. High agreement != correctness — gemma3 is so self-consistent it can be
+   confidently WRONG (docs→"chart bar" 10/10, pricing→"search" 8/10 both cleared
+   0.7). The agreement threshold guards consistency, not truth; genuinely hard
+   icons remain a model limit.
+2. gemma3 cites hex color codes in prose ("#252829"), which the grounding
+   guard's numeric check mis-flagged. Fixed: hex codes (#RRGGBB / bare 6-hex
+   tokens) are stripped before the numeric-claim check (colors are validated by
+   the color path). Unit-tested.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses

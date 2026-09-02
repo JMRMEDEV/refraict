@@ -453,7 +453,7 @@ hardware (examples that run on modest GPUs):
 
 ```bash
 ollama serve &
-ollama pull llava-phi3    # vision (~3.8B, fits ~8 GB VRAM)
+ollama pull gemma3:4b     # vision (~3.3 GB, fits ~8 GB VRAM; best measured for icons/UI)
 ollama pull qwen2.5:3b    # summary + aggregator (text)
 ```
 

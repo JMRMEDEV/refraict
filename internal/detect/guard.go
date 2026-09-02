@@ -193,7 +193,11 @@ func CheckGrounding(summary string, colors []ir.ColorFact, toks []ir.OCRToken) G
 		}
 	}
 	numSeen := map[string]bool{}
-	for _, n := range numberRe.FindAllString(summary, -1) {
+	// Colors (hex codes) are validated by the color path, not the numeric path.
+	// Strip #RRGGBB and bare 6-hex-digit color tokens so a summary that cites a
+	// measured color like "#252829" is not mis-flagged as an unsupported number.
+	numSrc := hexCodeRe.ReplaceAllString(summary, " ")
+	for _, n := range numberRe.FindAllString(numSrc, -1) {
 		norm := normalizeNumber(n)
 		if norm == "" || numSeen[norm] {
 			continue
@@ -220,6 +224,10 @@ func CheckGrounding(summary string, colors []ir.ColorFact, toks []ir.OCRToken) G
 // numberRe matches integers, decimals, and grouped numbers, with optional
 // currency symbol and sign (e.g. "$1.58", "20,998,307", "0.8").
 var numberRe = regexp.MustCompile(`\$?-?\d[\d,]*(?:\.\d+)?`)
+
+// hexCodeRe matches color codes (#RRGGBB or a bare 6-hex-digit token) as whole
+// tokens, so they can be excluded from the numeric-claim check.
+var hexCodeRe = regexp.MustCompile(`#?\b[0-9a-fA-F]{6}\b`)
 
 // normalizeNumber strips currency symbols, thousands separators, and a trailing
 // ".0" so "$1,591" and "1591" compare equal.

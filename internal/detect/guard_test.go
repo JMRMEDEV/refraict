@@ -140,6 +140,18 @@ func TestGuardPassesGrayForGrayPalette(t *testing.T) {
 	}
 }
 
+func TestGuardHexCodesNotFlaggedAsNumbers(t *testing.T) {
+	// A summary citing measured hex colors must not flag them as numbers.
+	colors := []ir.ColorFact{colorFact("#252829", 37, 40, 41), colorFact("#161718", 22, 23, 24)}
+	summary := "Dark gray background (e.g., #252829, #161718, and #1D2020)."
+	rep := CheckGrounding(summary, colors, nil)
+	for _, c := range rep.UnsupportedClaims {
+		if c.Kind == "number" {
+			t.Fatalf("hex color code should not be flagged as a number, got %+v", c)
+		}
+	}
+}
+
 func TestGuardFlagsUnsupportedNumber(t *testing.T) {
 	// Summary claims "$0.8 per month" but OCR only has 0.4 and 1.58 (Gap 4b:
 	// the classic chart y-axis "0.8" misread as a monthly cost).

@@ -150,10 +150,10 @@ func Default() *Config {
 	return &Config{
 		Vision: VisionConfig{
 			Provider:  "ollama",
-			Model:     "qwen-vl-3b",
+			Model:     "gemma3:4b",
 			Endpoint:  "http://localhost:11434",
 			Workers:   1,
-			BatchSize: 2,
+			BatchSize: 1,
 		},
 		Summary: BackendConfig{
 			Provider: "ollama",
