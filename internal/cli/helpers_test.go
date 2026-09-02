@@ -10,39 +10,6 @@ import (
 	"github.com/refraict/refraict/internal/summarize"
 )
 
-func TestSanitizeElementLabel(t *testing.T) {
-	cases := []struct {
-		in   string
-		want string
-		ok   bool
-	}{
-		{"Search icon", "Search icon", true},
-		{"Settings gear", "Settings gear", true},
-		{"A bar graph", "A bar graph", true},
-		{"Bar Chart.", "Bar Chart", true},
-		{"Email icon", "Email icon", true},
-		{"Speech bubble icon", "Speech bubble icon", true},
-		{"```diff\nIcon on a black background of a cross.\n```", "", false}, // >6 words
-		{"I'm sorry, but I can't provide the name", "", false},
-		{"It's difficult to determine the exact function", "", false},
-		{"lua", "", false},      // stray code token, no element noun
-		{"css", "", false},      // stray code token
-		{"1) P", "", false},     // list marker + junk
-		{"", "", false},
-		{"   ", "", false},
-	}
-	for _, c := range cases {
-		got, ok := sanitizeElementLabel(c.in)
-		if ok != c.ok {
-			t.Errorf("sanitize(%q) ok=%v want %v (got %q)", c.in, ok, c.ok, got)
-			continue
-		}
-		if ok && got != c.want {
-			t.Errorf("sanitize(%q)=%q want %q", c.in, got, c.want)
-		}
-	}
-}
-
 func TestIsGraphicType(t *testing.T) {
 	for _, ty := range []string{"icon", "logo", "chart", "image"} {
 		if !isGraphicType(ty) {

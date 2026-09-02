@@ -17,6 +17,7 @@ import (
 	"github.com/refraict/refraict/internal/dub"
 	"github.com/refraict/refraict/internal/escalate"
 	"github.com/refraict/refraict/internal/graph"
+	"github.com/refraict/refraict/internal/iconlabel"
 	"github.com/refraict/refraict/internal/imageproc"
 	"github.com/refraict/refraict/internal/ir"
 	"github.com/refraict/refraict/internal/model"
@@ -357,8 +358,16 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// a vision backend. Deterministic geometry/colors remain the source of
 	// truth; these labels are interpretation.
 	if cfg.Analysis.LabelElements {
-		n := labelGraphicElements(ctx, vision, img, merged, cfg.Analysis.MaxElementLabels, cfg.Vision.Provider, cfg.Vision.Model)
-		slog.Info("labeled graphic elements", "count", n)
+		canon, cErr := iconlabel.New()
+		if cErr != nil {
+			slog.Warn("icon-label canonicalizer unavailable; skipping element labels", "err", cErr)
+		} else {
+			n := labelGraphicElements(ctx, vision, canon, img, merged,
+				cfg.Analysis.MaxElementLabels, cfg.Analysis.ElementLabelRuns,
+				cfg.Analysis.ElementLabelThreshold, cfg.Vision.Provider, cfg.Vision.Model)
+			slog.Info("labeled graphic elements (voted)", "count", n,
+				"runs", cfg.Analysis.ElementLabelRuns, "threshold", cfg.Analysis.ElementLabelThreshold)
+		}
 	}
 	writeArtifact(func() error { return ws.WriteJSON("evidence/merged_components.json", merged) })
 

@@ -11,6 +11,7 @@ import (
 	"github.com/refraict/refraict/internal/crop"
 	"github.com/refraict/refraict/internal/graph"
 	"github.com/refraict/refraict/internal/model"
+	"github.com/refraict/refraict/internal/iconlabel"
 	"github.com/refraict/refraict/internal/imageproc"
 	"github.com/refraict/refraict/internal/ir"
 	"github.com/refraict/refraict/internal/ocr"
@@ -261,13 +262,16 @@ func isGraphicType(t string) bool {
 	}
 }
 
-// labelGraphicElements attaches a short grounded VLM label to each graphic
-// component's Semantic field (marked inference). It crops each element, sends it
-// to the vision backend with a bounded, element-scoped prompt, and stops after
-// max labels to keep model calls bounded. Components are modified in place.
-// A nil backend or max<=0 is a no-op.
-func labelGraphicElements(ctx context.Context, vision model.VisionBackend, img *imageproc.Image, comps []ir.Component, max int, provider, mdl string) int {
-	if vision == nil || max <= 0 {
+// labelGraphicElements attaches a short, voted, grounded label to each graphic
+// component's Semantic field (marked inference). For each element it crops a
+// padded region, queries the vision backend `runs` times, canonicalizes each
+// output via the Lucide TF-IDF alias map, and votes. The label is only set when
+// the vote agreement ratio meets `threshold` — otherwise the element is left
+// typed but unlabeled (honest "detected, not confidently identified"). Bounded
+// by max elements to keep model calls in check. A nil backend, nil canon,
+// max<=0, or runs<=0 is a no-op.
+func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon *iconlabel.Canonicalizer, img *imageproc.Image, comps []ir.Component, max, runs int, threshold float64, provider, mdl string) int {
+	if vision == nil || canon == nil || max <= 0 || runs <= 0 {
 		return 0
 	}
 	labeled := 0
@@ -283,123 +287,34 @@ func labelGraphicElements(ctx context.Context, vision model.VisionBackend, img *
 		if len(data) == 0 {
 			continue
 		}
-		res, err := vision.Analyze(ctx, model.VisionRequest{
-			ImageData:     data,
-			ImageMIME:     "image/png",
-			CropID:        c.ID,
-			BBoxGlobal:    c.BBox,
-			PromptVersion: prompt.CropAnalysisV1,
-			SchemaVersion: prompt.SchemaVersion,
-			Prompt:        prompt.BuildElementLabelPrompt(c.Type.Value),
-		})
-		if err != nil || res == nil {
+		raw := make([]string, 0, runs)
+		for r := 0; r < runs; r++ {
+			res, err := vision.Analyze(ctx, model.VisionRequest{
+				ImageData:     data,
+				ImageMIME:     "image/png",
+				CropID:        c.ID,
+				BBoxGlobal:    c.BBox,
+				PromptVersion: prompt.CropAnalysisV1,
+				SchemaVersion: prompt.SchemaVersion,
+				Prompt:        prompt.BuildElementLabelPrompt(c.Type.Value),
+			})
+			if err == nil && res != nil {
+				raw = append(raw, res.Description)
+			}
+		}
+		vote := canon.Vote(raw)
+		// Only accept a label with sufficient self-consistency. Low agreement
+		// means the model has no stable answer for this element — withhold.
+		if vote.Concept == "" || vote.Ratio < threshold {
 			continue
 		}
-		label, ok := sanitizeElementLabel(res.Description)
-		if !ok {
-			// Verbose / refusal / low-quality output — do not store noise.
-			continue
-		}
-		c.Semantic = &ir.ConstString{Value: label, Source: "vlm_element_label", Confidence: 0.5}
+		c.Semantic = &ir.ConstString{Value: vote.Concept, Source: "vlm_element_vote", Confidence: vote.Ratio}
 		c.Provenance = &ir.RunProvenance{Model: mdl, Provider: provider, PromptVersion: prompt.CropAnalysisV1, SchemaVersion: prompt.SchemaVersion}
 		labeled++
 	}
 	return labeled
 }
 
-// sanitizeElementLabel cleans a VLM element label and reports whether it is a
-// usable short label. It rejects refusals and verbose non-answers (small VLMs
-// often ramble or apologize on tiny icon crops) and trims to a short phrase.
-func sanitizeElementLabel(s string) (string, bool) {
-	s = strings.TrimSpace(s)
-	// Strip Markdown code fences and a leading language tag (```diff, ```json).
-	s = strings.ReplaceAll(s, "```", "")
-	s = strings.TrimSpace(s)
-	for _, lang := range []string{"diff", "json", "text", "plaintext"} {
-		if strings.HasPrefix(strings.ToLower(s), lang+"\n") || strings.ToLower(s) == lang {
-			s = strings.TrimSpace(s[len(lang):])
-		}
-	}
-	s = strings.Trim(s, "`")
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return "", false
-	}
-	low := strings.ToLower(s)
-	// Refusal / uncertainty / rambling markers => reject.
-	rejects := []string{
-		"i'm sorry", "i am sorry", "cannot", "can't", "unable to",
-		"difficult to determine", "without additional context",
-		"without more", "not possible", "it could potentially",
-		"as an ai", "i cannot",
-	}
-	for _, r := range rejects {
-		if strings.Contains(low, r) {
-			return "", false
-		}
-	}
-	// Take the first line/clause only.
-	if idx := strings.IndexAny(s, ".\n"); idx > 0 {
-		s = s[:idx]
-	}
-	s = strings.TrimSpace(s)
-	// A label should be a short phrase. Reject long descriptions / lists and
-	// degenerate fragments (empty, or a single very-short/numeric token).
-	fields := strings.Fields(s)
-	if len(fields) == 0 || len(fields) > 6 {
-		return "", false
-	}
-	// Strip a leading list marker like "1)" / "*" / "-".
-	if len(fields) > 1 {
-		switch fields[0] {
-		case "*", "-", "•", "1)", "1.", "2)", "3)":
-			fields = fields[1:]
-			s = strings.Join(fields, " ")
-		}
-	}
-	low = strings.ToLower(s)
-	// Accept only if it reads like a UI element description: either it mentions
-	// a known element noun, or it's a clean 2+ word phrase with no stray code
-	// tokens. This rejects small-VLM noise like "lua", "css", "1) P".
-	elementNouns := []string{
-		"icon", "logo", "chart", "graph", "image", "button", "gear", "search",
-		"magnifier", "menu", "bubble", "email", "mail", "bell", "arrow", "cross",
-		"close", "avatar", "user", "profile", "settings", "home", "dashboard",
-		"plus", "minus", "check", "star", "heart", "cart", "bar", "pie", "line",
-	}
-	hasNoun := false
-	for _, n := range elementNouns {
-		if strings.Contains(low, n) {
-			hasNoun = true
-			break
-		}
-	}
-	if !hasNoun {
-		// No element noun: require a clean multi-word phrase (>=2 words, each
-		// alphabetic and length>=3) to avoid stray code/identifier tokens.
-		if len(fields) < 2 {
-			return "", false
-		}
-		for _, f := range fields {
-			if len(f) < 3 || !isAlpha(f) {
-				return "", false
-			}
-		}
-	}
-	return s, true
-}
-
-func isAlpha(s string) bool {
-	if s == "" {
-		return false
-	}
-	for _, r := range s {
-		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')) {
-			return false
-		}
-	}
-	return true
-}
 
 // paddedBBox expands a bbox by frac of its size on each side (clamped to image
 // bounds), giving a small VLM more visual context around a tiny element.

@@ -85,6 +85,12 @@ type AnalysisConfig struct {
 	// MaxElementLabels caps how many graphic regions are labeled per analysis
 	// (bounds VLM calls / memory). 0 uses a built-in default.
 	MaxElementLabels int `json:"max_element_labels" yaml:"max_element_labels"`
+	// ElementLabelRuns is how many times the VLM is sampled per element for
+	// vote-based labeling (self-consistency). 0 uses a built-in default.
+	ElementLabelRuns int `json:"element_label_runs" yaml:"element_label_runs"`
+	// ElementLabelThreshold is the minimum vote agreement ratio (0..1) required
+	// to accept a voted element label; below it the element is left unlabeled.
+	ElementLabelThreshold float64 `json:"element_label_threshold" yaml:"element_label_threshold"`
 }
 
 // CacheConfig controls caching behavior. The cache is a file-based JSON store
@@ -173,6 +179,8 @@ func Default() *Config {
 			DetectRegions:       true,
 			LabelElements:       true,
 			MaxElementLabels:    12,
+			ElementLabelRuns:    6,
+			ElementLabelThreshold: 0.5,
 		},
 		Cache: CacheConfig{
 			Enabled: true,
