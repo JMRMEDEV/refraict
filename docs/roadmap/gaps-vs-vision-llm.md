@@ -134,7 +134,7 @@ Tier 3 — OUT OF SCOPE (do not build; departs from local/cheap):
 Plan: (1) deterministic region typing into icon/logo/chart; (2) grounded VLM
 labeling of those typed regions behind the existing summary/guard flow.
 
-### Gap 7 — Structural assembly: containers & their attributes (high value, tractable, NOT started)
+### Gap 7 — Structural grounding: whole-image hypothesis cross-checked (RE-SCOPED; cross-check DONE, assembler out of scope)
 
 Refraict emits correctly *positioned* components but does not *group* them into
 the semantic containers a human/vision-LLM reads directly. On the Hermes
@@ -199,12 +199,29 @@ effectively the grounding guard generalized from colors/text to STRUCTURE, and a
 natural staging ground for the fuller hybrid assembler above.
 
 Generalizes to nav sidebars, settings rows, and card grids via the same
-containment+band approach. Staging: (1) the cross-check/double-check pass
-(reuses existing artifacts, lowest risk) → (2) the `--structure` overview prompt
-+ deterministic kanban verifier → (3) a general `internal/assemble` package + IR
-types + tests. Should be spec'd before the full build. This is the largest
-remaining gap vs. a vision-LLM after text (Gap 1) and detection (Gaps 3/6) are
-addressed.
+containment+band approach.
+
+SCOPE DECISION (2026-09-02, owner): the deterministic container assembler —
+kanban/nav/settings-specific IR node types, column-band clustering, card-
+containment assignment, per-card attribute extraction — is OUT OF SCOPE. It is
+app-domain-specific structural RECONSTRUCTION: it would bake into refraict a
+model of what a "kanban card/column" is, be brittle across app layouts, and
+overreach the thesis (refraict emits measurable facts + grounded interpretation;
+reassembling those into a specific semantic hierarchy is reasoning the calling
+agent — which holds the components, coordinates, OCR, and the cross-check signal
+— is better placed to do). Same line drawn under "Not a gap" below.
+
+Therefore Gap 7's deliverable is bounded and DONE-in-principle:
+  (1) the cross-check/double-check pass — DONE (2026-09-02): grounds gemma's
+      whole-image read against measured evidence, emits crosscheck.json.
+  (2) OPTIONAL, in-scope: a `--structure` overview prompt variant that asks
+      gemma for a container-type + column/card HYPOTHESIS (a grounded VLM read,
+      like any other), surfaced and cross-checked — never assembled by refraict.
+  The container assembler (former step 3) is explicitly NOT built here.
+
+Net: for structure, refraict emits the grounded evidence + an optional grounded
+whole-image hypothesis, cross-checked — and stops. The agent assembles the
+kanban/nav/settings semantics from that.
 
 ### Not a gap — comparison/verification stays with the agent
 
