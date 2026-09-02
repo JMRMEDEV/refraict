@@ -213,6 +213,7 @@ Flags:
 | `--no-label` | Skip VLM labeling (detect + type + optional dump only; no model) | `false` |
 | `--runs` | VLM samples per element for voting | from config |
 | `--threshold` | Min vote agreement ratio to accept a label | from config |
+| `--pad` | Fractional padding around each element before cropping (smaller = tighter to the icon) | from config |
 | `--vision-model` | Vision model name | from config |
 | `--keep-warm` | Keep the model loaded for this duration after use | free immediately |
 
@@ -375,6 +376,7 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
     "max_element_labels": 12,
     "element_label_runs": 10,
     "element_label_threshold": 0.5,
+    "element_label_pad_frac": 0.15,
     "no_ocr": false,
     "no_summary": false
   },

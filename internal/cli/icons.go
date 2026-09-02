@@ -19,6 +19,7 @@ type iconsOptions struct {
 	noLabel   bool
 	runs      int
 	threshold float64
+	pad       float64
 	visionModel string
 	keepWarm    string
 }
@@ -29,7 +30,7 @@ type iconsOptions struct {
 // image fed to the VLM for each element (combine with --no-label for a fast,
 // model-free crop inspection / framing-tuning loop).
 func newIconsCmd() *cobra.Command {
-	o := &iconsOptions{runs: -1, threshold: -1}
+	o := &iconsOptions{runs: -1, threshold: -1, pad: -1}
 	cmd := &cobra.Command{
 		Use:   "icons <image>",
 		Short: "Detect and identify non-text UI elements (icons, logos, charts)",
@@ -42,6 +43,7 @@ func newIconsCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&o.noLabel, "no-label", false, "skip VLM labeling (detect + type + optional dump only)")
 	cmd.Flags().IntVar(&o.runs, "runs", -1, "VLM samples per element for voting (default: config)")
 	cmd.Flags().Float64Var(&o.threshold, "threshold", -1, "min vote agreement ratio to accept a label (default: config)")
+	cmd.Flags().Float64Var(&o.pad, "pad", -1, "fractional padding around each element before crop (default: config)")
 	cmd.Flags().StringVar(&o.visionModel, "vision-model", "", "vision model name (overrides config)")
 	cmd.Flags().StringVar(&o.keepWarm, "keep-warm", "", "keep the model loaded for this duration after use")
 	return cmd
@@ -67,6 +69,10 @@ func runIcons(cmd *cobra.Command, imagePath string, o *iconsOptions) error {
 	threshold := cfg.Analysis.ElementLabelThreshold
 	if o.threshold >= 0 {
 		threshold = o.threshold
+	}
+	pad := elementPadFrac(cfg)
+	if o.pad >= 0 {
+		pad = o.pad
 	}
 
 	img, err := imageproc.Load(imagePath)
@@ -98,7 +104,7 @@ func runIcons(cmd *cobra.Command, imagePath string, o *iconsOptions) error {
 			return fail("mkdir dump dir: %w", err)
 		}
 		for _, c := range graphics {
-			data := elementCropBytes(img, c.BBox)
+			data := elementCropBytes(img, c.BBox, pad)
 			if len(data) == 0 {
 				continue
 			}
@@ -133,7 +139,7 @@ func runIcons(cmd *cobra.Command, imagePath string, o *iconsOptions) error {
 			return fail("icon canonicalizer: %w", cerr)
 		}
 		for _, c := range graphics {
-			data := elementCropBytes(img, c.BBox)
+			data := elementCropBytes(img, c.BBox, pad)
 			raw := voteRawLabels(ctx, vision, data, c, runs)
 			v := canon.Vote(raw)
 			results = append(results, result{

@@ -91,6 +91,11 @@ type AnalysisConfig struct {
 	// ElementLabelThreshold is the minimum vote agreement ratio (0..1) required
 	// to accept a voted element label; below it the element is left unlabeled.
 	ElementLabelThreshold float64 `json:"element_label_threshold" yaml:"element_label_threshold"`
+	// ElementLabelPadFrac is the fractional padding added around a detected
+	// element before it is cropped and upscaled for the VLM. Small values keep
+	// the crop tight to the element (avoiding neighbor bleed on packed nav
+	// bars); larger values add surrounding context. 0 uses a built-in default.
+	ElementLabelPadFrac float64 `json:"element_label_pad_frac" yaml:"element_label_pad_frac"`
 }
 
 // CacheConfig controls caching behavior. The cache is a file-based JSON store
@@ -181,6 +186,7 @@ func Default() *Config {
 			MaxElementLabels:    12,
 			ElementLabelRuns:    10,
 			ElementLabelThreshold: 0.5,
+			ElementLabelPadFrac: 0.15,
 		},
 		Cache: CacheConfig{
 			Enabled: true,

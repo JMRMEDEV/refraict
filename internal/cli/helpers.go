@@ -312,7 +312,7 @@ func isGraphicType(t string) bool {
 // typed but unlabeled (honest "detected, not confidently identified"). Bounded
 // by max elements to keep model calls in check. A nil backend, nil canon,
 // max<=0, or runs<=0 is a no-op.
-func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon *iconlabel.Canonicalizer, img *imageproc.Image, comps []ir.Component, max, runs int, threshold float64, provider, mdl string) int {
+func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon *iconlabel.Canonicalizer, img *imageproc.Image, comps []ir.Component, max, runs int, threshold, padFrac float64, provider, mdl string) int {
 	if vision == nil || canon == nil || max <= 0 || runs <= 0 {
 		return 0
 	}
@@ -325,7 +325,7 @@ func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon
 		if !isGraphicType(c.Type.Value) {
 			continue
 		}
-		data := elementCropBytes(img, c.BBox)
+		data := elementCropBytes(img, c.BBox, padFrac)
 		if len(data) == 0 {
 			continue
 		}
@@ -369,6 +369,15 @@ func paddedBBox(b ir.BoundingBox, img *imageproc.Image, frac float64) ir.Boundin
 	return ir.BoundingBox{X0: x0, Y0: y0, X1: x1, Y1: y1}
 }
 
+// elementPadFrac returns the configured element-crop padding fraction, or a
+// sensible default when unset.
+func elementPadFrac(cfg *config.Config) float64 {
+	if cfg.Analysis.ElementLabelPadFrac > 0 {
+		return cfg.Analysis.ElementLabelPadFrac
+	}
+	return 0.15
+}
+
 // elementCropBytes renders a graphic element crop for the VLM: the region is
 // padded for context, then UPSCALED so the element fills a fixed square canvas
 // (via imageproc.ElementCropPNG). Filling the frame is what matters — an
@@ -377,13 +386,13 @@ func paddedBBox(b ir.BoundingBox, img *imageproc.Image, frac float64) ir.Boundin
 // fix (upscale small crops to the inner margin) lifted measured vote agreement
 // materially, e.g. "search" 3/10 -> 7/10 and "x" 5/10 -> 8/10. The canvas
 // background is the region's dominant color so the padding blends.
-func elementCropBytes(img *imageproc.Image, b ir.BoundingBox) []byte {
+func elementCropBytes(img *imageproc.Image, b ir.BoundingBox, padFrac float64) []byte {
 	if b.Empty() {
 		return nil
 	}
 	const canvas = 512
 	const inner = 448 // element occupies most of the canvas, small margin
-	pb := paddedBBox(b, img, 0.6)
+	pb := paddedBBox(b, img, padFrac)
 	bg := color.RGBA{0, 0, 0, 255}
 	if cols := cropDominantColors(img, pb); len(cols) > 0 {
 		bg = color.RGBA{uint8(cols[0].RGB[0]), uint8(cols[0].RGB[1]), uint8(cols[0].RGB[2]), 255}

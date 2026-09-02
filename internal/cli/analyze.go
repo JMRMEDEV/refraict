@@ -364,7 +364,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		} else {
 			n := labelGraphicElements(ctx, vision, canon, img, merged,
 				cfg.Analysis.MaxElementLabels, cfg.Analysis.ElementLabelRuns,
-				cfg.Analysis.ElementLabelThreshold, cfg.Vision.Provider, cfg.Vision.Model)
+				cfg.Analysis.ElementLabelThreshold, elementPadFrac(cfg), cfg.Vision.Provider, cfg.Vision.Model)
 			slog.Info("labeled graphic elements (voted)", "count", n,
 				"runs", cfg.Analysis.ElementLabelRuns, "threshold", cfg.Analysis.ElementLabelThreshold)
 		}
