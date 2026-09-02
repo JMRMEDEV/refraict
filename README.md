@@ -41,6 +41,7 @@ Given a screenshot, Refraict:
 - Runs OCR to pull visible text tokens with bounding boxes (auto-inverts dark-theme UIs for legibility).
 - Plans a bounded set of **crops** (overview + grid of focused tiles) optimized for small vision models.
 - Synthesizes **components deterministically** from measured evidence: OCR text tokens become text components, and a CV detector finds non-text regions (cards, panels, chart containers). Coordinates and colors are measured, not guessed.
+- Types non-text regions (icon/logo/chart/image) and, for graphic elements, adds a **vote-based semantic label**: the vision model is sampled multiple times per element, canonicalized against an embedded Lucide alias map, and majority-voted — a label is kept only when the runs agree (confidence = agreement ratio), else the element stays unlabeled.
 - Uses a **vision model** on each crop only for a *grounded* natural-language description (constrained to the measured OCR text and colors), not for geometry — small local models cannot emit reliable bounding boxes.
 - Reconciles overlapping observations into one deduplicated component set.
 - Measures actual pixel colors for each component.
@@ -343,6 +344,8 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
     "detect_regions": true,
     "label_elements": true,
     "max_element_labels": 12,
+    "element_label_runs": 10,
+    "element_label_threshold": 0.5,
     "no_ocr": false,
     "no_summary": false
   },
@@ -374,7 +377,7 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
 - **`aggregator`** — larger text model for global reasoning/escalation.
 - **`models`** — cross-cutting local-model runtime settings. `keep_alive` is the Ollama keep-alive applied to every model request. Default `"0"` frees each model from memory immediately after use (only one model resident at a time — lowest RAM/VRAM). Set a duration (`"30s"`, `"5m"`) or `"-1"` (indefinite) for batch/agentic callers that prefer to trade memory for reduced reload latency. The `--keep-warm` flag overrides this per run.
 - **`image`** — ingest + crop-planning parameters. `crop_strategy` selects the crop planner: `"grid"` (default; bounded overview + `grid_rows`×`grid_cols` focused tiles — fast, OCR-independent, keeps a single model warm within a run) or `"adaptive"` (legacy OCR-density-driven subdivision, which can explode the crop count on text-dense pages).
-- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles, `detect_regions` (default `true`) which enables deterministic non-text region detection (cards, panels, chart containers), and `label_elements` (default `true`, bounded by `max_element_labels`) which adds Tier-2 grounded VLM labels to graphic regions (icon/logo/chart/image), attached to each component's `semantic` field as inference. The detector implementation is chosen at build time: pure-Go by default, OpenCV Canny with `-tags opencv`.
+- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles, `detect_regions` (default `true`) which enables deterministic non-text region detection (cards, panels, chart containers), and `label_elements` (default `true`) which adds vote-based grounded labels to graphic regions (icon/logo/chart/image). Each such element is sampled by the vision model `element_label_runs` times (default `10`); the outputs are canonicalized against an embedded Lucide-derived alias map (TF-IDF weak-flagged) and majority-voted. A label is written to the component's `semantic` field (source `vlm_element_vote`, confidence = vote agreement ratio) **only** when agreement ≥ `element_label_threshold` (default `0.5`); otherwise the element is detected but left unlabeled. `max_element_labels` (default `12`) bounds VLM calls per analysis. The region-detector implementation is chosen at build time: pure-Go by default, OpenCV Canny with `-tags opencv`.
 - **`cache`** — cache enablement and database directory.
 - **`cloud`** — cloud escalation policy (disabled by default; text is redacted before any cloud call).
 - **`output`** — global verbosity / JSON defaults.
@@ -414,18 +417,38 @@ out/
 
 ## Backends: Ollama & cloud
 
-**Ollama** (default, recommended) — local and free:
+**Ollama** (default, recommended) — local and free. Pull models that fit your
+hardware (examples that run on modest GPUs):
 
 ```bash
 ollama serve &
-ollama pull qwen-vl-3b    # vision
-ollama pull qwen-3b       # summary
-ollama pull qwen-14b      # aggregator
+ollama pull llava-phi3    # vision (~3.8B, fits ~8 GB VRAM)
+ollama pull qwen2.5:3b    # summary + aggregator (text)
 ```
 
-Ollama exposes an OpenAI-compatible API, so Refraict speaks to it over HTTP at the configured endpoint (default `http://localhost:11434`).
+Ollama exposes an OpenAI-compatible API, so Refraict speaks to it over HTTP at
+the configured endpoint (default `http://localhost:11434`). Configure model
+names per role under `vision`, `summary`, and `aggregator` in the config file.
+By default each model is freed from memory immediately after use
+(`models.keep_alive: "0"`); pass `--keep-warm=<duration>` for batch runs.
 
-**Cloud** — cloud escalation is **disabled by default** for cost and privacy. If you enable it, text is redacted before any cloud request. See the `cloud` config section.
+**Cloud** — cloud escalation is **disabled by default** for cost and privacy.
+Refraict is local-first; cloud is only ever used to escalate the final
+page-level aggregation when local confidence is low, and only if you opt in. The
+`cloud` config controls this:
+
+| Field | Meaning | Default |
+| --- | --- | --- |
+| `cloud.enabled` | Master switch for the cloud backend. | `false` |
+| `cloud.local_only` | Hard guarantee that nothing leaves the machine; overrides escalation even if allowed. | `true` |
+| `cloud.allow_cloud` | Permit escalation to a cloud model when escalation signals warrant it. | `false` |
+| `cloud.redact_text_before_cloud` | Redact detected text before any cloud request. | `true` |
+
+With the defaults (`enabled:false`, `local_only:true`), Refraict never contacts
+a cloud service — everything runs locally. To use cloud escalation you must set
+`enabled:true`, `local_only:false`, and `allow_cloud:true`; even then, text is
+redacted first when `redact_text_before_cloud` is on. The `--cloud-fallback`
+flag enables escalation for a single run without editing config.
 
 ---
 

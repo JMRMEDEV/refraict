@@ -2,6 +2,22 @@
 
 ## Implementation Guide for a Portable, Efficient UI/UX Screenshot Analysis Pipeline
 
+> **Evolution note (living).** This document is the original design spec. The
+> shipped implementation has since evolved in several places based on measured
+> results; those changes are summarized in per-section quotes below and tracked
+> in full in [`docs/roadmap/gaps-vs-vision-llm.md`](roadmap/gaps-vs-vision-llm.md).
+> The biggest divergences from this spec:
+> - **Components are deterministic, not VLM-emitted.** Small local VLMs cannot
+>   reliably output bounding boxes, so components come from OCR + a CV region
+>   detector; the VLM only writes grounded natural-language descriptions.
+> - **Crop planning defaults to a bounded overview+grid**, not OCR-density
+>   subdivision (which exploded the crop count and overwhelmed the model).
+> - **A grounding guard** flags summary claims unsupported by measured evidence.
+> - **Non-text elements** (icon/logo/chart) are detected (OpenCV Canny, opt-in
+>   build tag) and labeled by **multi-run VLM voting** over a Lucide alias map.
+> - **Memory controls**: models default to `keep_alive:0` (freed immediately),
+>   with an opt-in `--keep-warm` for batch runs.
+
 ## 1. Purpose
 
 **Refraict** is a CLI-first system for analyzing screenshots of web and application interfaces and converting them into reusable, structured, AI-friendly context.
@@ -345,6 +361,14 @@ Use a high-quality downsampling filter such as Lanczos.
 
 # 8. Crop Planning
 
+> **Evolved to:** the default crop planner is a **bounded overview + fixed
+> Rows×Cols grid** (`crop_strategy: "grid"`), producing exactly `1 + rows*cols`
+> VLM calls. The OCR-density-driven adaptive subdivision described below is
+> retained as an opt-in (`crop_strategy: "adaptive"`) but is *not* the default:
+> on text-dense pages it exploded the crop count (e.g. 55 crops) and, combined
+> with a large model, exhausted memory. The grid keeps calls bounded and a
+> single model warm within a run.
+
 Naive quadrants should not be the default.
 
 ## Region-aware crop generation
@@ -452,6 +476,14 @@ Keep the analysis instructions and schema stable across requests so compatible r
 
 # 10. Crop-Level Vision Output
 
+> **Evolved to:** components are **not** produced from VLM-emitted bounding
+> boxes — small local VLMs cannot do that reliably (they returned malformed or
+> empty JSON). Instead, components are synthesized deterministically from OCR
+> tokens and a CV region detector, and the VLM is asked only for a *grounded*
+> natural-language description constrained to the measured OCR text and colors.
+> A deterministic grounding guard then flags any summary claim (color, number,
+> quoted text, non-observable behavior) unsupported by the evidence.
+
 Every crop analysis should return both:
 
 1. structured JSON
@@ -495,6 +527,13 @@ The semantic description should add interpretation rather than merely restating 
 ---
 
 # 11. OCR Integration
+
+> **Evolved to:** OCR now **auto-inverts dark-theme UIs** (light-on-dark text
+> defeats Tesseract, which expects dark-on-light) and upscales small text before
+> recognition — this turned garbled output into accurate labels on dark
+> dashboards. OCR is also promoted from a hint to a primary source: OCR tokens
+> become text components directly. A residual-error path (swapping Tesseract for
+> PaddleOCR/RapidOCR) is noted in the roadmap but not yet adopted.
 
 OCR should happen before or alongside VLM analysis.
 
