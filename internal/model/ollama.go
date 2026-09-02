@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -26,13 +27,26 @@ type Ollama struct {
 	StructuredOutput bool
 }
 
-// NewOllama creates an Ollama backend.
+// NewOllama creates an Ollama backend. By default it frees the model
+// immediately after each request (keep_alive=0) to minimize resident memory —
+// important on constrained VRAM. Use NewOllamaKeepAlive to keep models warm for
+// batch/agentic callers.
 func NewOllama(endpoint, model string) *Ollama {
+	return NewOllamaKeepAlive(endpoint, model, "0")
+}
+
+// NewOllamaKeepAlive creates an Ollama backend with an explicit keep_alive
+// value (an Ollama duration string such as "0", "30s", "5m", or "-1" to keep
+// loaded indefinitely). Empty is treated as "0" (free immediately).
+func NewOllamaKeepAlive(endpoint, model, keepAlive string) *Ollama {
+	if keepAlive == "" {
+		keepAlive = "0"
+	}
 	return &Ollama{
 		Endpoint:  endpoint,
 		Model:     model,
 		client:    &http.Client{Timeout: 10 * time.Minute},
-		KeepAlive: "5m",
+		KeepAlive: keepAlive,
 	}
 }
 
@@ -134,26 +148,17 @@ func (o *Ollama) Analyze(ctx context.Context, req VisionRequest) (*VisionResult,
 		BBoxGlobal: req.BBoxGlobal,
 		RawOutput:  out,
 	}
-	if err := json.Unmarshal([]byte(out), res); err != nil {
-		// Schema non-compliant -> attempt a one-time schema-repair retry.
-		repair := out + "\n\nThat was not valid JSON for the requested schema. "
-		repair += "Reply with ONLY the corrected JSON object matching the schema. "
-		repair += "Do not include the schema text or choose placeholder values."
-		greq2 := genRequest{Prompt: req.Prompt + "\n" + repair, Images: []string{imgB64}}
-		if o.StructuredOutput {
-			greq2.Format = visionSchema
-		}
-		out2, err2 := o.generate(ctx, greq2)
-		if err2 == nil {
-			if json.Unmarshal([]byte(out2), res) == nil {
-				out = out2
-			} else {
-				res.SchemaFailed = true
-			}
-		} else {
-			res.SchemaFailed = true
-		}
-		res.RawOutput = out
+	// Grounded mode: the crop prompt asks for a short Markdown description, not
+	// JSON. If the output parses as the legacy JSON schema, use it; otherwise
+	// treat the text as the grounded description (the expected path for small
+	// VLMs). Either way we get a usable, non-empty description.
+	trimmed := strings.TrimSpace(out)
+	looksJSON := strings.HasPrefix(trimmed, "{")
+	if looksJSON && json.Unmarshal([]byte(out), res) == nil {
+		// Legacy structured path succeeded.
+	} else {
+		res.Description = trimmed
+		res.Confidence = descriptionConfidence(trimmed)
 	}
 	if res.CropID == "" {
 		res.CropID = req.CropID
@@ -161,10 +166,22 @@ func (o *Ollama) Analyze(ctx context.Context, req VisionRequest) (*VisionResult,
 	if res.BBoxGlobal.X0 == 0 && res.BBoxGlobal.Y0 == 0 {
 		res.BBoxGlobal = req.BBoxGlobal
 	}
-	if res.SchemaFailed && len(res.Components) == 0 {
-		res.Confidence = 0
-	}
 	return res, nil
+}
+
+// descriptionConfidence assigns a coarse confidence to a grounded text
+// description: empty -> 0, very short -> low, otherwise moderate. The pipeline
+// treats vision descriptions as interpretation, so confidence stays <1.
+func descriptionConfidence(s string) float64 {
+	n := len(strings.Fields(s))
+	switch {
+	case n == 0:
+		return 0
+	case n < 5:
+		return 0.3
+	default:
+		return 0.6
+	}
 }
 
 var _ TextBackend = (*Ollama)(nil)

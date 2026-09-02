@@ -19,7 +19,7 @@ type VisionRequest struct {
 	// BBoxGlobal is the crop's bounding box in the original screenshot.
 	BBoxGlobal ir.BoundingBox
 	// OCRContext optionally provides OCR tokens scoped to this crop.
-	OCRContext []ir.ORCToken
+	OCRContext []ir.OCRToken
 	// PromptVersion is the versioned analysis instructions.
 	PromptVersion string
 	// SchemaVersion is the output schema version.
