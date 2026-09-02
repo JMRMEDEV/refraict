@@ -185,7 +185,7 @@ func Default() *Config {
 			LabelElements:       true,
 			MaxElementLabels:    12,
 			ElementLabelRuns:    10,
-			ElementLabelThreshold: 0.5,
+			ElementLabelThreshold: 0.7,
 			ElementLabelPadFrac: 0.15,
 		},
 		Cache: CacheConfig{

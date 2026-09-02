@@ -347,6 +347,24 @@ Lesson: inspect the actual model input, don't reason only from output metrics.
 Refactors: `imageproc.ElementCropPNG` + `PadBox` (exported), `voteRawLabels` +
 `buildVisionBackendKeepAlive` (shared by analyze + icons).
 
+### 2026-09-02 — Honest icon-ID accuracy + threshold raised to 0.7
+
+The PoC's "4/5 icons correct" was measured on a favorably-selected set (search,
+x, card, close — icons the 3B VLM handles well). Testing the icons that were NOT
+in that set (Docs/Help/Pricing/Chat) with the same clean crops + voting showed
+they fail: docs→"credit card" 6/10, pricing→"credit card" 3/10, chat→"panel top
+close" 3/10, help→"question" 2/10 (mean 3.5/10, ~0-1 of 4 correct). The crops
+are visually clean, so this is a genuine 3B model-capability limit, not framing.
+Real overall icon-ID hit rate is ~2-4 of 9 recognizable icons — below the
+cherry-picked 4/5.
+
+Consequence: the 0.5 acceptance threshold was too permissive — docs voted
+"credit card" at 6/10 would have been emitted as a CONFIDENT WRONG label.
+Raised `element_label_threshold` default to 0.7. Measured at 0.7: accepts only
+search/x/square-m (all correct), withholds docs/pricing/chat/send. Precision
+over recall — a withheld label is honest; a confident-wrong one is dangerous for
+a verification tool.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses
