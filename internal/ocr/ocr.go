@@ -12,7 +12,7 @@ import (
 // Engine is the abstraction over an OCR backend.
 type Engine interface {
 	// Recognize returns OCR tokens in global image coordinates.
-	Recognize(ctx context.Context, input Input) ([]ir.ORCToken, error)
+	Recognize(ctx context.Context, input Input) ([]ir.OCRToken, error)
 }
 
 // Input describes an image to be OCR'd.
@@ -25,5 +25,5 @@ type Input struct {
 
 // Result is a convenience container.
 type Result struct {
-	Tokens []ir.ORCToken
+	Tokens []ir.OCRToken
 }

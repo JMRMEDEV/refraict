@@ -1,8 +1,8 @@
 package ir
 
-// ORCToken is a single OCR-detected text piece with its bounding box (global
+// OCRToken is a single OCR-detected text piece with its bounding box (global
 // coordinates), confidence, and optional orientation.
-type ORCToken struct {
+type OCRToken struct {
 	Text       string      `json:"text"`
 	BBoxGlobal BoundingBox `json:"bbox_global"`
 	Confidence float64     `json:"confidence"`

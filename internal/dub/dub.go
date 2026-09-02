@@ -11,6 +11,13 @@ import (
 // Options configures reconciliation heuristics.
 type Options struct {
 	IoUThreshold float64
+	// ConfidenceMerge controls how the merged component's confidence is
+	// computed from two overlapping observations (see Merge). 0 selects the
+	// legacy area-weighted average; a value in (0,1] blends between the
+	// higher-confidence observation (weight 1-w) and the area-weighted average
+	// (weight w), so the threshold operators can tune how much to trust a
+	// confident reading. Config default is 0.5.
+	ConfidenceMerge float64
 }
 
 // Reconcile merges raw crop component observations into a normalized set of
@@ -26,7 +33,7 @@ func Reconcile(raw []ir.Component, o Options) []ir.Component {
 		merged := false
 		for i := range out {
 			if mergeable(out[i], c, o) {
-				out[i] = Merge(out[i], c)
+				out[i] = MergeOpts(out[i], c, o.ConfidenceMerge)
 				merged = true
 				break
 			}
@@ -66,10 +73,18 @@ func normalizeText(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
-// Merge combines b into a, producing a merged component. The box grows to union;
-// confidence is blended by a naive weighted average; conflict fields keep a's
-// value but record disagreement in confidence.
+// Merge combines b into a using the legacy area-weighted confidence blend
+// (ConfidenceMerge == 0). See MergeOpts for the weighted variant.
 func Merge(a, b ir.Component) ir.Component {
+	return MergeOpts(a, b, 0)
+}
+
+// MergeOpts combines b into a, producing a merged component. The box grows to
+// union; conflict fields keep a's value but record higher-confidence values.
+// When weight > 0 the merged confidence blends between the higher-confidence
+// observation and the area-weighted average (see Options.ConfidenceMerge);
+// otherwise it defaults to the area-weighted average.
+func MergeOpts(a, b ir.Component, weight float64) ir.Component {
 	// Union box.
 	if b.BBox.X0 < a.BBox.X0 {
 		a.BBox.X0 = b.BBox.X0
@@ -83,11 +98,28 @@ func Merge(a, b ir.Component) ir.Component {
 	if b.BBox.Y1 > a.BBox.Y1 {
 		a.BBox.Y1 = b.BBox.Y1
 	}
-	// Confidence weighted by area.
+	// Confidence is the area-weighted average by default.
 	areaA := float64(a.BBox.Area())
 	areaB := float64(b.BBox.Area())
-	if areaA+areaB > 0 {
-		a.Confidence = (areaA*a.Confidence + areaB*b.Confidence) / (areaA + areaB)
+	sum := areaA + areaB
+	if sum > 0 {
+		avg := (areaA*a.Confidence + areaB*b.Confidence) / sum
+		if weight <= 0 {
+			a.Confidence = avg
+		} else {
+			// Merge between the area-weighted average and the higher-confidence
+			// observation. Higher w keeps the conservative average; lower w
+			// trusts the stronger reading.
+			hi := a.Confidence
+			if b.Confidence > hi {
+				hi = b.Confidence
+			}
+			w := weight
+			if w > 1 {
+				w = 1
+			}
+			a.Confidence = w*avg + (1-w)*hi
+		}
 	}
 	// Type preference: measured/ocr higher priority per provenance rules.
 	// If types conflict record lower confidence.

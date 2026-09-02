@@ -5,7 +5,6 @@ package prompt
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 
 	"github.com/refraict/refraict/internal/ir"
@@ -22,51 +21,77 @@ const (
 // SchemaVersion identifies the canonical UI IR schema.
 const SchemaVersion = "ui-ir-v1"
 
-// BuildCropPrompt constructs the analysis instructions + OCR context for a crop.
-// bbox is the crop's global box; ocrCtx are OCR tokens scoped to the crop.
-func BuildCropPrompt(bbox ir.BoundingBox, ocrCtx []ir.ORCToken) string {
-	prompt := `You are Refraict, a UI screenshot analyzer. Analyze the provided web/app interface crop image and return ONLY valid JSON matching this schema:
-
-{
-  "role_guess": "semantic role of this crop's main content, e.g. header|sidebar|hero|content_grid|chart_area|table|footer|kpi_section|form|navigation",
-  "layout": {"type": "grid|stack|row|column|freeform", "columns": 0, "gap_px_approx": 0},
-  "components": [
-    {
-      "id": "unique-id",
-      "type": "card|button|input|label|navigation|tab|icon|chart|table|link|image|list-item|breadcrumb|badge|...",
-      "bbox_global": [x0, y0, x1, y1],
-      "confidence": 0.0-1.0,
-      "text": "visible text if any",
-      "role": "semantic role if inferable"
-    }
-  ],
-  "description": "A concise natural-language interpretation of THIS crop region, explaining meaning beyond restating coordinates.",
-  "confidence": 0.0-1.0
+// BuildCropPrompt constructs a GROUNDED per-crop analysis prompt. Instead of
+// demanding a strict JSON schema with bounding boxes (which small local VLMs
+// cannot reliably produce), it gives the model the crop image plus the
+// deterministic facts already measured for that crop — the OCR text actually
+// present and the measured colors — and asks for a short, grounded Markdown
+// description. The model's job is interpretation constrained to the evidence,
+// not geometry or invention. This is what keeps a 3B-class model from
+// free-associating a generic web page.
+func BuildCropPrompt(bbox ir.BoundingBox, ocrCtx []ir.OCRToken) string {
+	return BuildGroundedCropPrompt(bbox, ocrCtx, nil)
 }
 
-Rules:
-- Coordinates must be in the ORIGINAL screenshot global pixel space. This crop is at global box ` + fmt.Sprintf("%v", bbox) + `.
-- Do not invent text not visible. If unsure, omit text.
-- Only report clearly visible components.
-- Keep the description human-readable and useful for another AI model that cannot see the image.
+// BuildGroundedCropPrompt builds the grounded per-crop prompt with optional
+// measured color facts. ocrCtx is the OCR text within this crop; colors are the
+// measured colors within this crop. Both are the deterministic ground truth the
+// model must stay within.
+func BuildGroundedCropPrompt(bbox ir.BoundingBox, ocrCtx []ir.OCRToken, colors []ir.ColorFact) string {
+	var b bytes.Buffer
+	b.WriteString(`You are Refraict, a UI screenshot analyzer. You are shown ONE crop of a larger interface, plus the deterministic facts already measured for this exact crop (the text detected by OCR and the colors measured from the pixels).
 
-`
-	if len(ocrCtx) > 0 {
-		var buf bytes.Buffer
-		buf.WriteString("\nOCR text detected in this crop (text, global bbox, confidence):\n")
-		enc := json.NewEncoder(&buf)
-		enc.SetIndent("", "  ")
-		_ = enc.Encode(ocrCtx)
-		prompt += buf.String()
+Write a SHORT Markdown description of THIS crop for another AI system that cannot see the image. Follow these rules strictly:
+
+- Describe ONLY what is supported by the image together with the measured facts below.
+- Use ONLY the colors listed in MEASURED COLORS. Do not name any other color.
+- Refer ONLY to text that appears in DETECTED TEXT. Do not invent labels, headings, articles, footers, menu items, or button names that are not listed.
+- Do NOT describe behavior you cannot see (hover effects, animations, page transitions, what happens on click).
+- If the crop is ambiguous, say so briefly rather than guessing.
+- Keep it to a few sentences. No JSON, no coordinates.
+
+`)
+	b.WriteString(fmt.Sprintf("This crop covers global pixel box %s of the full screenshot.\n", fbox(bbox)))
+
+	b.WriteString("\nDETECTED TEXT (OCR, verbatim — the only text you may reference):\n")
+	if len(ocrCtx) == 0 {
+		b.WriteString("(none detected in this crop)\n")
+	} else {
+		for _, t := range ocrCtx {
+			if t.Text == "" {
+				continue
+			}
+			b.WriteString("- \"" + t.Text + "\"\n")
+		}
 	}
-	return prompt
+
+	b.WriteString("\nMEASURED COLORS (hex — the only colors you may name):\n")
+	if len(colors) == 0 {
+		b.WriteString("(no colors measured for this crop)\n")
+	} else {
+		seen := map[string]bool{}
+		for _, c := range colors {
+			if seen[c.Value] {
+				continue
+			}
+			seen[c.Value] = true
+			b.WriteString("- " + c.Value + "\n")
+		}
+	}
+	b.WriteString("\nNow write the grounded Markdown description:\n")
+	return b.String()
 }
 
 // BuildRegionSummaryPrompt condenses raw crop observations into a region summary.
 func BuildRegionSummaryPrompt(crops []string) string {
-	p := `You are Refraict summarizing a UI region from its crop analysis observations. Produce a concise Markdown summary with sections: REGION ROLE, STRUCTURE, CONTENT, VISUAL STYLE, SPATIAL RELATIONSHIPS, SEMANTIC INTERPRETATION, UNCERTAINTIES. Explain meaning, do not just restate fields.
+	p := `You are Refraict summarizing a UI region from its grounded crop descriptions. Produce a concise Markdown summary.
 
-CROP ANALYSES:
+Rules (strict):
+- Use ONLY information stated in the crop descriptions below.
+- Do NOT invent text, labels, colors, components, or behavior not present in them.
+- If the descriptions are sparse, keep the summary short and note what is uncertain.
+
+CROP DESCRIPTIONS (the only source you may use):
 `
 	for _, c := range crops {
 		p += "\n--- crop ---\n" + c + "\n"
@@ -76,12 +101,22 @@ CROP ANALYSES:
 
 // BuildPageSummaryPrompt condenses region summaries into a page summary.
 func BuildPageSummaryPrompt(regions []string, pageType string) string {
-	p := `You are Refraict writing a page-level summary of a UI screenshot for consumption by another AI system. Describe the page layout, main sections, repeated components, primary CTA, and visual style. Be concise but complete. Output Markdown.
+	p := `You are Refraict writing a page-level Markdown summary of a UI screenshot for another AI system. You are given per-region descriptions that were themselves grounded in measured facts.
 
-Page type guess: ` + pageType + `
+Rules (strict):
+- Summarize ONLY what the region descriptions below state. Compress and organize; do not add new facts.
+- Do NOT invent sections, articles, footers, menu items, CTAs, or component names not present in the region descriptions.
+- Do NOT name colors that are not mentioned in the region descriptions.
+- Do NOT describe behavior (hover, animation, transitions, click results) — a screenshot cannot show it.
+- If the regions are sparse or unclear, produce a short summary and say what is uncertain rather than filling gaps.
 
-REGION SUMMARIES:
+Page type guess (heuristic, may be wrong): ` + pageType + `
+
+REGION DESCRIPTIONS (the only source you may use):
 `
+	if len(regions) == 0 {
+		p += "\n(no region descriptions were produced; state that the page could not be described from available evidence)\n"
+	}
 	for _, r := range regions {
 		p += "\n--- region ---\n" + r + "\n"
 	}

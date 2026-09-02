@@ -27,7 +27,7 @@ type ExternalEngine struct {
 var ErrUnavailable = fmt.Errorf("ocr engine unavailable")
 
 // Recognize runs the external OCR command and parses tokens.
-func (e *ExternalEngine) Recognize(ctx context.Context, in Input) ([]ir.ORCToken, error) {
+func (e *ExternalEngine) Recognize(ctx context.Context, in Input) ([]ir.OCRToken, error) {
 	if e.Command == "" {
 		return nil, ErrUnavailable
 	}
@@ -50,9 +50,9 @@ func (e *ExternalEngine) Recognize(ctx context.Context, in Input) ([]ir.ORCToken
 	if err := json.Unmarshal(out, &raw); err != nil {
 		return nil, fmt.Errorf("parse ocr output: %w", err)
 	}
-	toks := make([]ir.ORCToken, 0, len(raw))
+	toks := make([]ir.OCRToken, 0, len(raw))
 	for _, r := range raw {
-		toks = append(toks, ir.ORCToken{
+		toks = append(toks, ir.OCRToken{
 			Text: r.Text,
 			BBoxGlobal: ir.BoundingBox{X0: r.BBox[0], Y0: r.BBox[1], X1: r.BBox[2], Y1: r.BBox[3]},
 			Confidence: r.Confidence,
@@ -68,7 +68,7 @@ var _ Engine = (*ExternalEngine)(nil)
 type NoopEngine struct{}
 
 // Recognize returns nothing.
-func (NoopEngine) Recognize(_ context.Context, _ Input) ([]ir.ORCToken, error) {
+func (NoopEngine) Recognize(_ context.Context, _ Input) ([]ir.OCRToken, error) {
 	return nil, nil
 }
 
