@@ -12,9 +12,9 @@ import (
 
 // Prompt versions. Bump when instructions/schema change.
 const (
-	CropAnalysisV1 = "crop-analysis-v1"
+	CropAnalysisV1  = "crop-analysis-v1"
 	RegionSummaryV1 = "region-summary-v1"
-	PageSummaryV1   = "page-summary-v1"
+	PageSummaryV1   = "page-summary-v2"
 	UIGraphV1       = "ui-graph-v1"
 )
 
@@ -38,6 +38,14 @@ func BuildCropPrompt(bbox ir.BoundingBox, ocrCtx []ir.OCRToken) string {
 // measured colors within this crop. Both are the deterministic ground truth the
 // model must stay within.
 func BuildGroundedCropPrompt(bbox ir.BoundingBox, ocrCtx []ir.OCRToken, colors []ir.ColorFact) string {
+	return BuildGroundedCropPromptTyped(bbox, ocrCtx, colors, "")
+}
+
+// BuildGroundedCropPromptTyped is BuildGroundedCropPrompt with an optional
+// page-type hint. The hint frames the crop within the kind of page it belongs
+// to so the model does not over-interpret quoted content (e.g. describing a
+// task-detail crop that quotes "login form" as if the crop were a login page).
+func BuildGroundedCropPromptTyped(bbox ir.BoundingBox, ocrCtx []ir.OCRToken, colors []ir.ColorFact, pageType string) string {
 	var b bytes.Buffer
 	b.WriteString(`You are Refraict, a UI screenshot analyzer. You are shown ONE crop of a larger interface, plus the deterministic facts already measured for this exact crop (the text detected by OCR and the colors measured from the pixels).
 
@@ -46,11 +54,15 @@ Write a SHORT Markdown description of THIS crop for another AI system that canno
 - Describe ONLY what is supported by the image together with the measured facts below.
 - Use ONLY the colors listed in MEASURED COLORS. Do not name any other color.
 - Refer ONLY to text that appears in DETECTED TEXT. Do not invent labels, headings, articles, footers, menu items, or button names that are not listed.
+- Text may quote feature names or task titles (e.g. "Implement login screen"); report them as the text present, but do NOT infer the crop IS that thing (e.g. do not call this a login form just because the word "login" appears).
 - Do NOT describe behavior you cannot see (hover effects, animations, page transitions, what happens on click).
 - If the crop is ambiguous, say so briefly rather than guessing.
 - Keep it to a few sentences. No JSON, no coordinates.
 
 `)
+	if pt := pageType; pt != "" && pt != "generic" {
+		b.WriteString(fmt.Sprintf("Context: this crop is part of a %q screen.\n", pt))
+	}
 	b.WriteString(fmt.Sprintf("This crop covers global pixel box %s of the full screenshot.\n", fbox(bbox)))
 
 	b.WriteString("\nDETECTED TEXT (OCR, verbatim — the only text you may reference):\n")
@@ -118,16 +130,21 @@ CROP DESCRIPTIONS (the only source you may use):
 
 // BuildPageSummaryPrompt condenses region summaries into a page summary.
 func BuildPageSummaryPrompt(regions []string, pageType string) string {
+	pt := pageType
+	if pt == "" {
+		pt = "generic"
+	}
 	p := `You are Refraict writing a page-level Markdown summary of a UI screenshot for another AI system. You are given per-region descriptions that were themselves grounded in measured facts.
 
+This page has been classified as a "` + pt + `" screen (from deterministic structural signals). Treat that classification as authoritative for describing WHAT KIND OF PAGE this is.
+
 Rules (strict):
+- Describe the page AS A "` + pt + `" screen. The region text may quote feature names, task titles, branch names, or descriptions (for example a task card titled "Implement login screen" or body text mentioning "login form" / "email/password"). Those are the CONTENT the page is ABOUT — they do NOT change what the page IS. Do NOT reclassify the page as a login page (or any other type) based on quoted content. Distinguish "a page ABOUT X" from "a page that IS X".
 - Summarize ONLY what the region descriptions below state. Compress and organize; do not add new facts.
 - Do NOT invent sections, articles, footers, menu items, CTAs, or component names not present in the region descriptions.
 - Do NOT name colors that are not mentioned in the region descriptions.
 - Do NOT describe behavior (hover, animation, transitions, click results) — a screenshot cannot show it.
 - If the regions are sparse or unclear, produce a short summary and say what is uncertain rather than filling gaps.
-
-Page type guess (heuristic, may be wrong): ` + pageType + `
 
 REGION DESCRIPTIONS (the only source you may use):
 `

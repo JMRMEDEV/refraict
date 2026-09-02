@@ -174,6 +174,12 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	writeArtifact(func() error { return ws.WriteJSON("evidence/ocr.json", map[string]any{"tokens": toks, "count": len(toks)}) })
 	stage("ocr", start)
 
+	// Classify the page type once, from OCR text, before the vision stage so it
+	// can frame the crop prompts (reducing content-driven mislabels, e.g. a
+	// task-detail view being described as a login page). Reused for the page
+	// summary below.
+	pageTypeHint := inferPageType(nil, toks)
+
 	// Crop plan.
 	planCfg := crop.CropPlanConfig{
 		CropLongSide:      cfg.Image.CropLongSide,
@@ -249,7 +255,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		go func() {
 			defer func() { <-sem }()
 			var vr *model.VisionResult
-			vKey := cache.Key(img.Sha256, cp.ID, "vision-v1", cfg.Vision.Model)
+			vKey := cache.Key(img.Sha256, cp.ID, "vision-v2", cfg.Vision.Model)
 			ok := false
 			if c.Has(vKey) {
 				ok, _ = c.Get(vKey, &vr)
@@ -272,7 +278,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 				OCRContext:    cropToks,
 				PromptVersion: prompt.CropAnalysisV1,
 				SchemaVersion: prompt.SchemaVersion,
-				Prompt:        prompt.BuildGroundedCropPrompt(cp.BBox, cropToks, cropColors),
+				Prompt:        prompt.BuildGroundedCropPromptTyped(cp.BBox, cropToks, cropColors, pageTypeHint),
 			})
 			if aerr != nil {
 				slog.Warn("crop analyze failed", "crop", cp.ID, "err", aerr)
@@ -363,7 +369,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		if cErr != nil {
 			slog.Warn("icon-label canonicalizer unavailable; skipping element labels", "err", cErr)
 		} else {
-			n := labelGraphicElements(ctx, vision, canon, img, merged,
+			n := labelGraphicElements(ctx, vision, canon, img, merged, toks,
 				cfg.Analysis.MaxElementLabels, cfg.Analysis.ElementLabelRuns,
 				cfg.Analysis.ElementLabelThreshold, elementPadFrac(cfg), cfg.Vision.Provider, cfg.Vision.Model)
 			slog.Info("labeled graphic elements (voted)", "count", n,
@@ -393,7 +399,16 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	pageSummary := ""
 	if !o.noSummary && !cfg.Analysis.NoSummary {
 		sum := summarize.New(buildTextBackend(cfg, o))
+		// gemma's whole-image (overview) description — the "original summary".
+		overviewDesc := ""
+		for _, r := range cropResults {
+			if r != nil && r.CropID == "ov" {
+				overviewDesc = strings.TrimSpace(r.Description)
+				break
+			}
+		}
 		regionMds := []string{}
+		sections := []summarize.Section{}
 		for _, cp := range plan.Crops {
 			if cp.ID == "ov" {
 				continue
@@ -411,8 +426,9 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 			regionSummary := crossRegionSummary(sum, ctx, cr)
 			writeArtifact(func() error { return ws.WriteText("regions/"+cp.ID+".md", regionSummary) })
 			regionMds = append(regionMds, regionSummary)
+			sections = append(sections, summarize.Section{ID: cp.ID, Description: regionSummary})
 		}
-		pageType := inferPageType(merged, toks)
+		pageType := pageTypeHint
 
 		// Decide whether to escalate the page-level aggregation to a stronger
 		// backend (M4) and, if so, whether it may leave local processing (M2).
@@ -426,39 +442,30 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		escalateToCloud := escalate.NeedsEscalation(signal, policy) &&
 			cfg.Cloud.AllowCloud && !cfg.Cloud.LocalOnly
 
-		aggBackend := buildAggregatorBackend(cfg)
-		textRegionMds := regionMds
-		if cfg.Cloud.RedactText {
-			textRegionMds = redactAll(regionMds)
-		}
-
-		var ps string
-		if escalateToCloud && aggBackend != nil {
-			agg := summarize.New(aggBackend)
-			var err error
-			ps, err = agg.PageSummary(ctx, textRegionMds, pageType)
-			if err != nil {
-				slog.Warn("cloud escalation failed; falling back to local", "err", err)
-				res, sErr := sum.PageSummary(ctx, regionMds, pageType)
-				if sErr == nil {
-					ps = res
-				}
-			} else {
-				slog.Info("escalated page aggregation to stronger backend", "policy", "cloud")
+		if escalateToCloud {
+			// Escalation path: use the stronger backend to genuinely synthesize
+			// across regions (the one case where a text model earns its cost).
+			aggBackend := buildAggregatorBackend(cfg)
+			textRegionMds := regionMds
+			if cfg.Cloud.RedactText {
+				textRegionMds = redactAll(regionMds)
 			}
-		} else {
-			// M4: even locally, prefer the aggregator backend when the primary
-			// summary backend is unavailable or the initial aggregation fails.
-			var sErr error
-			ps, sErr = sum.PageSummary(ctx, regionMds, pageType)
-			if sErr != nil && aggBackend != nil {
-				ps2, aggErr := summarize.New(aggBackend).PageSummary(ctx, regionMds, pageType)
-				if aggErr == nil {
-					ps = ps2
+			if aggBackend != nil {
+				if ps, err := summarize.New(aggBackend).PageSummary(ctx, textRegionMds, pageType); err == nil && ps != "" {
+					pageSummary = ps
+					slog.Info("escalated page aggregation to stronger backend", "policy", "cloud")
 				}
 			}
 		}
-		pageSummary = ps
+		// Default (and fallback): deterministic assembly of gemma's own grounded
+		// descriptions — the whole-image overview read first, then each section
+		// verbatim. No text model: a straight concatenation needs no summarizer,
+		// which removes the small text model's hallucination/latency from the
+		// default path. (The qwen PageSummary aggregation is retained only for the
+		// cloud-escalation case above, where cross-region synthesis is warranted.)
+		if pageSummary == "" {
+			pageSummary = summarize.AssemblePage(pageType, overviewDesc, sections)
+		}
 		if pageSummary != "" {
 			writeArtifact(func() error { return ws.WriteText("page.md", pageSummary) })
 		}

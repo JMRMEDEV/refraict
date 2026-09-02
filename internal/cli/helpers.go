@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/color"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -318,6 +319,59 @@ func cropDominantColors(img *imageproc.Image, b ir.BoundingBox) []ir.ColorFact {
 // isGraphicType reports whether a component type is a graphic/structural element
 // worth a Tier-2 VLM label (icon, logo, chart, image) — as opposed to text or
 // generic containers/cards which are already described by OCR + crop summaries.
+// regionTextCoverage returns the fraction of region b's area covered by OCR
+// token boxes (clamped to [0,1], using summed intersection area). Used to reject
+// chart-family labels on text-dominated regions (buttons, text rows) that a
+// small VLM mislabels as charts and that fool a naive bar-geometry projection.
+func regionTextCoverage(b ir.BoundingBox, toks []ir.OCRToken) float64 {
+	area := float64((b.X1 - b.X0) * (b.Y1 - b.Y0))
+	if area <= 0 {
+		return 0
+	}
+	var covered float64
+	for _, t := range toks {
+		tb := t.BBoxGlobal
+		ix0 := max2(b.X0, tb.X0)
+		iy0 := max2(b.Y0, tb.Y0)
+		ix1 := min2(b.X1, tb.X1)
+		iy1 := min2(b.Y1, tb.Y1)
+		if ix1 > ix0 && iy1 > iy0 {
+			covered += float64((ix1 - ix0) * (iy1 - iy0))
+		}
+	}
+	f := covered / area
+	if f > 1 {
+		f = 1
+	}
+	return f
+}
+
+func max2(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func min2(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// isChartLabel reports whether a voted concept is chart-family (chart, bar
+// chart, graph, histogram, etc.). Such labels are gated behind an actual
+// bar/axis geometry check because small VLMs over-emit them on non-charts.
+func isChartLabel(concept string) bool {
+	c := strings.ToLower(strings.TrimSpace(concept))
+	switch c {
+	case "chart", "bar chart", "chart bar", "graph", "histogram", "bar graph", "column chart":
+		return true
+	}
+	return strings.Contains(c, "chart") || strings.Contains(c, "histogram")
+}
+
 func isGraphicType(t string) bool {
 	switch t {
 	case "icon", "logo", "chart", "image":
@@ -335,7 +389,7 @@ func isGraphicType(t string) bool {
 // typed but unlabeled (honest "detected, not confidently identified"). Bounded
 // by max elements to keep model calls in check. A nil backend, nil canon,
 // max<=0, or runs<=0 is a no-op.
-func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon *iconlabel.Canonicalizer, img *imageproc.Image, comps []ir.Component, max, runs int, threshold, padFrac float64, provider, mdl string) int {
+func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon *iconlabel.Canonicalizer, img *imageproc.Image, comps []ir.Component, toks []ir.OCRToken, max, runs int, threshold, padFrac float64, provider, mdl string) int {
 	if vision == nil || canon == nil || max <= 0 || runs <= 0 {
 		return 0
 	}
@@ -358,6 +412,19 @@ func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon
 		// means the model has no stable answer for this element — withhold.
 		if vote.Concept == "" || vote.Ratio < threshold {
 			continue
+		}
+		// Chart-label gate: small VLMs confidently mislabel blocky graphics and
+		// text bands/buttons as "bar chart". Two deterministic conditions must
+		// BOTH hold to accept a chart-family label, else withhold it:
+		//   1. The region is NOT dominated by OCR text. A real chart contains
+		//      little/no text; a button or text row is full of it. (Text glyph
+		//      columns also fool a naive bar projection, so this is primary.)
+		//   2. The region actually shows bar/axis geometry.
+		if isChartLabel(vote.Concept) {
+			if regionTextCoverage(c.BBox, toks) > 0.10 ||
+				!imageproc.HasBarChartGeometry(img.AsImage(), c.BBox.X0, c.BBox.Y0, c.BBox.X1, c.BBox.Y1) {
+				continue
+			}
 		}
 		c.Semantic = &ir.ConstString{Value: vote.Concept, Source: "vlm_element_vote", Confidence: vote.Ratio}
 		c.Provenance = &ir.RunProvenance{Model: mdl, Provider: provider, PromptVersion: prompt.CropAnalysisV1, SchemaVersion: prompt.SchemaVersion}
@@ -424,12 +491,40 @@ func elementCropBytes(img *imageproc.Image, b ir.BoundingBox, padFrac float64) [
 }
 
 // inferPageType does a lightweight page-type classification from geometry/text.
+//
+// Structural container signals (a task-ID token like "PH-123", section headers
+// like CHECKLISTS/DUE DATE, kanban column headers) are weighted ABOVE content
+// keywords. This is deliberate: a task-detail view whose content happens to be
+// "Implement login screen / build the login form with email/password fields"
+// must classify as task_detail, not login. Content keywords alone cannot tell a
+// page that IS a login form from a page ABOUT login; the container signals can.
 func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 	text := ""
 	for _, t := range toks {
 		text += " " + t.Text
 	}
 	lt := strings.ToLower(text)
+
+	// Structural signals (high weight) — evidence of the page's container type,
+	// independent of the feature/task the content talks about.
+	structural := map[string][]string{
+		"task_detail": {"checklists", "due date", "labels", "assignee", "add a comment", "write a comment", "linked cards", "attachments", "branch name", "overdue"},
+		"kanban":      {"to do", "in progress", "in review", "backlog", "done", "sprint board"},
+		"settings":    {"danger zone", "deactivate account", "delete account", "preferences", "language", "theme"},
+		"invite":      {"invitation", "you have been invited", "accept invitation", "decline"},
+	}
+	structScore := map[string]int{}
+	for t, kw := range structural {
+		for _, k := range kw {
+			if strings.Contains(lt, k) {
+				structScore[t] += 2 // structural signals count double
+			}
+		}
+	}
+	// A task-ID token (e.g. "PH-123", "ABC-4521") is a strong task/card signal.
+	if hasTaskIDToken(toks) {
+		structScore["task_detail"]++
+	}
 	types := map[string][]string{
 		"login":     {"sign in", "signin", "login", "log in", "password", "username"},
 		"pricing":   {"pricing", "per month", "per year", "/mo", "subscribe", "free trial"},
@@ -449,6 +544,10 @@ func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 			}
 		}
 	}
+	// Fold in the higher-weight structural signals.
+	for t, s := range structScore {
+		score[t] += s
+	}
 	best, bs := "generic", 0
 	for t, s := range score {
 		if s > bs {
@@ -457,6 +556,19 @@ func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 	}
 	return best
 }
+
+// hasTaskIDToken reports whether any OCR token looks like a task/card ID
+// (e.g. "PH-123", "ABC-4521") — a strong signal the page is a task/card view.
+func hasTaskIDToken(toks []ir.OCRToken) bool {
+	for _, t := range toks {
+		if taskIDRe.MatchString(strings.TrimSpace(t.Text)) {
+			return true
+		}
+	}
+	return false
+}
+
+var taskIDRe = regexp.MustCompile(`^[A-Z]{2,5}-\d{1,6}$`)
 
 // probableDOM produces a simplified inferred DOM tree from the component graph.
 func probableDOM(comps []ir.Component) string {
@@ -506,13 +618,18 @@ func writeComponents(b *strings.Builder, comps []ir.Component) {
 	}
 }
 
-// crossRegionSummary condenses a single crop's raw description into a region
-// summary. It acts as a thin adapter so region files carry the same
-// "REGION ROLE / CONTENT" structure regardless of which condition produced
-// them.
+// crossRegionSummary produces the per-region text used to build the page
+// summary. gemma's grounded crop description is already a short, evidence-
+// constrained region description, so we pass it through verbatim rather than
+// asking the small text model to "summarize" a single already-short paragraph.
+// That round-trip added no compression (there is nothing to aggregate at the
+// single-crop level) while giving the text model room to editorialize and drift
+// off the measured evidence. The text model's aggregation role is applied once,
+// at the page level (PageSummary), where there are multiple regions to combine.
 func crossRegionSummary(s *summarize.Summarizer, ctx context.Context, cr *model.VisionResult) string {
-	out, _ := s.RegionSummary(ctx, []string{cr.Description})
-	return out
+	_ = s
+	_ = ctx
+	return strings.TrimSpace(cr.Description)
 }
 
 // inferPageGraph builds the semantic UI graph. It always starts from the
@@ -532,6 +649,7 @@ func inferPageGraph(ctx context.Context, comps []ir.Component, backend model.Tex
 	res, err := backend.Complete(ctx, model.TextRequest{
 		Prompt:        prompt.BuildGraphPrompt(comps, g.Relationships),
 		PromptVersion: prompt.UIGraphV1,
+		MaxTokens:     512,
 	})
 	if err != nil || res == nil || res.Output == "" {
 		return g

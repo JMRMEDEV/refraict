@@ -46,6 +46,48 @@ func TestInferPageTypeGenericFallback(t *testing.T) {
 	}
 }
 
+// TestInferPageTypeTaskOverLogin verifies a task-detail view whose CONTENT is
+// about a login feature classifies as task_detail (structural container signals
+// outweigh content keywords) — the "page about X vs page that is X" fix.
+func TestInferPageTypeTaskOverLogin(t *testing.T) {
+	toks := []ir.OCRToken{
+		{Text: "PH-123"}, {Text: "Implement"}, {Text: "login"}, {Text: "screen"},
+		{Text: "password"}, {Text: "email/password"}, // login content keywords
+		{Text: "MEMBERS"}, {Text: "DUE"}, {Text: "DATE"}, {Text: "CHECKLISTS"},
+		{Text: "Write"}, {Text: "a"}, {Text: "comment"}, {Text: "branch"}, {Text: "name"},
+	}
+	if got := inferPageType(nil, toks); got != "task_detail" {
+		t.Fatalf("expected task_detail (not login) for a login-titled task view, got %q", got)
+	}
+}
+
+// TestRegionTextCoverage verifies the OCR-coverage fraction used to gate chart
+// labels on text-dominated regions.
+func TestRegionTextCoverage(t *testing.T) {
+	region := ir.BoundingBox{X0: 0, Y0: 0, X1: 100, Y1: 100} // area 10000
+	toks := []ir.OCRToken{{Text: "x", BBoxGlobal: ir.BoundingBox{X0: 0, Y0: 0, X1: 50, Y1: 50}}}
+	if got := regionTextCoverage(region, toks); got < 0.24 || got > 0.26 {
+		t.Fatalf("expected ~0.25 coverage, got %f", got)
+	}
+	if got := regionTextCoverage(region, nil); got != 0 {
+		t.Fatalf("expected 0 coverage with no tokens, got %f", got)
+	}
+}
+
+// TestIsChartLabel verifies the chart-family label matcher.
+func TestIsChartLabel(t *testing.T) {
+	for _, c := range []string{"chart", "bar chart", "chart bar", "histogram", "column chart"} {
+		if !isChartLabel(c) {
+			t.Fatalf("expected %q to be a chart label", c)
+		}
+	}
+	for _, c := range []string{"search", "settings", "plus", "check", "folder", "arrow up"} {
+		if isChartLabel(c) {
+			t.Fatalf("did not expect %q to be a chart label", c)
+		}
+	}
+}
+
 type staticBackend struct{ out string }
 
 func (s *staticBackend) Complete(ctx context.Context, req model.TextRequest) (*model.TextResult, error) {
@@ -62,14 +104,20 @@ func TestCrossRegionSummaryNilBackend(t *testing.T) {
 	}
 }
 
-// TestCrossRegionSummaryBackend verifies the region-summary adapter forwards
-// to the configured text backend.
+// TestCrossRegionSummaryBackend verifies the per-crop region text is gemma's
+// grounded description passed through verbatim — the text backend is NOT invoked
+// per crop (aggregation happens once at the page level). A single crop has
+// nothing to aggregate, so the previous round-trip only added drift/latency.
 func TestCrossRegionSummaryBackend(t *testing.T) {
 	cr := &model.VisionResult{CropID: "c0001", Description: "a hero header"}
-	s := summarize.New(&staticBackend{out: "Condensed region."})
+	// A backend that would corrupt the output if (incorrectly) invoked.
+	s := summarize.New(&staticBackend{out: "SHOULD NOT APPEAR"})
 	out := crossRegionSummary(s, context.Background(), cr)
-	if !strings.Contains(out, "Condensed region.") {
-		t.Fatalf("expected backend output, got %q", out)
+	if out != "a hero header" {
+		t.Fatalf("expected verbatim crop description, got %q", out)
+	}
+	if strings.Contains(out, "SHOULD NOT APPEAR") {
+		t.Fatal("text backend must not be invoked per crop")
 	}
 }
 

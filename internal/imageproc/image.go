@@ -156,6 +156,144 @@ func (im *Image) CropRegion(x0, y0, x1, y1, maxLong int) image.Image {
 	return sub
 }
 
+// HasBarChartGeometry reports whether the region [x0,y0,x1,y1] of img exhibits a
+// bar-chart-like signal: several vertical columns of high foreground ink,
+// separated by low-ink gaps, sharing an approximate common baseline. It is a
+// deterministic gate used to reject a VLM's free-text "bar chart"/"chart" label
+// on graphics that are not actually charts (icons, logos, tiles) — a common
+// small-VLM failure mode. Conservative by design: it returns true only when the
+// bar signal is clear (>= minBars regular bars), so it rejects blobs/glyphs and
+// accepts genuine bar charts.
+//
+// Method: build a per-column foreground-ink projection over the region relative
+// to the region's dominant (background) color, threshold it into "ink columns",
+// group contiguous ink columns into bars separated by clear gaps, and require at
+// least minBars such bars with a shared bottom baseline.
+func HasBarChartGeometry(img image.Image, x0, y0, x1, y1 int) bool {
+	const minBars = 3
+	if x1-x0 < 12 || y1-y0 < 24 {
+		return false
+	}
+	w := x1 - x0
+	h := y1 - y0
+	// Reject wide, short bands (button rows, text lines): a bar chart is not
+	// dramatically wider than it is tall. Text rows produce many uniform-height
+	// ink columns that a naive projection mistakes for bars.
+	if w > h*6 {
+		return false
+	}
+	// Dominant color of the region approximates the background.
+	bgHex, _, _, _, ok := SampleRegion(img, x0, y0, x1, y1, 0.0)
+	if !ok {
+		return false
+	}
+	bg, err := HexToRGB(bgHex)
+	if err != nil {
+		return false
+	}
+	// Foreground mask: a pixel is "ink" if it differs enough from background.
+	const inkThresh = 48 // per-channel Manhattan distance floor
+	colInk := make([]int, w)         // ink pixel count per column
+	colMaxY := make([]int, w)        // lowest ink row per column (baseline probe)
+	for i := range colMaxY {
+		colMaxY[i] = -1
+	}
+	for cx := 0; cx < w; cx++ {
+		for cy := 0; cy < h; cy++ {
+			c := color.RGBAModel.Convert(img.At(x0+cx, y0+cy)).(color.RGBA)
+			d := abs(int(c.R)-bg[0]) + abs(int(c.G)-bg[1]) + abs(int(c.B)-bg[2])
+			if d >= inkThresh {
+				colInk[cx]++
+				if cy > colMaxY[cx] {
+					colMaxY[cx] = cy
+				}
+			}
+		}
+	}
+	// A column is "filled" if its ink height is a meaningful fraction of the
+	// region height (bars are tall vertical strokes, not stray pixels).
+	minColInk := h / 4
+	if minColInk < 3 {
+		minColInk = 3
+	}
+	// Group contiguous filled columns into bars, requiring a clear gap between.
+	bars := 0
+	baselines := []int{}
+	barHeights := []int{}
+	inBar := false
+	barMaxBase := -1
+	barMaxInk := 0
+	for cx := 0; cx < w; cx++ {
+		filled := colInk[cx] >= minColInk
+		if filled {
+			if colMaxY[cx] > barMaxBase {
+				barMaxBase = colMaxY[cx]
+			}
+			if colInk[cx] > barMaxInk {
+				barMaxInk = colInk[cx]
+			}
+			inBar = true
+		} else {
+			if inBar {
+				bars++
+				baselines = append(baselines, barMaxBase)
+				barHeights = append(barHeights, barMaxInk)
+				barMaxBase = -1
+				barMaxInk = 0
+			}
+			inBar = false
+		}
+	}
+	if inBar {
+		bars++
+		baselines = append(baselines, barMaxBase)
+		barHeights = append(barHeights, barMaxInk)
+	}
+	if bars < minBars {
+		return false
+	}
+	// Require bar-height VARIANCE. A real bar chart has bars of differing
+	// heights; a row of text or a set of equal UI ticks has near-uniform ink
+	// heights. Reject when the spread is negligible relative to the tallest bar.
+	maxH, minH := 0, 1<<30
+	for _, bh := range barHeights {
+		if bh > maxH {
+			maxH = bh
+		}
+		if bh < minH {
+			minH = bh
+		}
+	}
+	if maxH <= 0 || (maxH-minH)*100 < maxH*20 { // require >=20% height spread
+		return false
+	}
+	// Require a shared baseline: bar bottoms cluster near the region bottom.
+	base := 0
+	for _, b := range baselines {
+		base += b
+	}
+	base /= len(baselines)
+	near := 0
+	tol := h / 8
+	if tol < 4 {
+		tol = 4
+	}
+	for _, b := range baselines {
+		if abs(b-base) <= tol {
+			near++
+		}
+	}
+	// Most bars must share the baseline.
+	return near*2 >= len(baselines)*2-1 && near >= minBars
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
 // FitWithin computes target width/height for an image with the given source
 // dimensions so that the longest side does not exceed maxLong.
 func FitWithin(srcW, srcH, maxLong int) (int, int) {

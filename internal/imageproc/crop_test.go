@@ -50,6 +50,45 @@ func TestCropRegionResize(t *testing.T) {
 	}
 }
 
+func TestHasBarChartGeometry(t *testing.T) {
+	// Synthetic bar chart: light bg, 4 tall dark bars sharing a bottom baseline.
+	w, h := 120, 80
+	rgba := newRGBA(w, h, color.RGBA{240, 240, 240, 255})
+	bar := color.RGBA{20, 20, 20, 255}
+	barW := 12
+	gap := 18
+	heights := []int{60, 40, 55, 30}
+	x := 10
+	for _, bh := range heights {
+		for px := x; px < x+barW && px < w; px++ {
+			for py := h - 5 - bh; py < h-5; py++ {
+				rgba.SetRGBA(px, py, bar)
+			}
+		}
+		x += barW + gap
+	}
+	if !HasBarChartGeometry(rgba, 0, 0, w, h) {
+		t.Fatal("expected synthetic bar chart to pass geometry gate")
+	}
+
+	// Solid blob: not a chart.
+	blob := newRGBA(w, h, color.RGBA{240, 240, 240, 255})
+	for py := 20; py < 60; py++ {
+		for px := 40; px < 80; px++ {
+			blob.SetRGBA(px, py, color.RGBA{20, 20, 20, 255})
+		}
+	}
+	if HasBarChartGeometry(blob, 0, 0, w, h) {
+		t.Fatal("solid blob must not pass the bar-chart gate")
+	}
+
+	// Uniform region: not a chart.
+	uni := newRGBA(w, h, color.RGBA{128, 128, 128, 255})
+	if HasBarChartGeometry(uni, 0, 0, w, h) {
+		t.Fatal("uniform region must not pass the bar-chart gate")
+	}
+}
+
 func TestCropRegionClamp(t *testing.T) {
 	im := testImage(50, 50)
 	sub := im.CropRegion(-10, 0, 100, 50, 0)

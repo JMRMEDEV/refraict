@@ -4,6 +4,9 @@ e2e-test/*
 # Ignore .libreq directory contents (libreq tooling state — not part of the project)
 .libreq/
 
+# Kiro agent config (local tooling state — not part of the project)
+.kiro/
+
 # libreq chat logs
 libreq-chat-*.txt
 

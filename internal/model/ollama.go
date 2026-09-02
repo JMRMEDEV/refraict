@@ -25,6 +25,12 @@ type Ollama struct {
 	// true for backends known to support it (qwen2.5-coder, llama3.1+, etc.);
 	// many VLM models (qwen3-vl, moondream) return empty with it enabled.
 	StructuredOutput bool
+	// CallTimeout bounds a single generate call. A runaway/looping generation
+	// (observed on the graph/summary text calls) otherwise blocks the whole
+	// per-image pipeline until the transport timeout. On timeout the call
+	// returns an error and callers fall back to their deterministic path.
+	// Zero disables the per-call bound (transport Timeout still applies).
+	CallTimeout time.Duration
 }
 
 // NewOllama creates an Ollama backend. By default it frees the model
@@ -47,6 +53,10 @@ func NewOllamaKeepAlive(endpoint, model, keepAlive string) *Ollama {
 		Model:     model,
 		client:    &http.Client{Timeout: 10 * time.Minute},
 		KeepAlive: keepAlive,
+		// Default per-call bound: generous enough for legitimate crop/summary
+		// generations on a modest local model, short enough that a runaway
+		// generation degrades to the deterministic fallback in seconds.
+		CallTimeout: 90 * time.Second,
 	}
 }
 
@@ -62,6 +72,13 @@ type genRequest struct {
 	Stream    bool            `json:"stream"`
 	Format    json.RawMessage `json:"format,omitempty"`
 	KeepAlive string          `json:"keep_alive,omitempty"`
+	Options   *genOptions     `json:"options,omitempty"`
+}
+
+// genOptions carries Ollama generation options. NumPredict caps the generated
+// token count (the guard against runaway generations).
+type genOptions struct {
+	NumPredict int `json:"num_predict,omitempty"`
 }
 
 type genResponse struct {
@@ -74,6 +91,14 @@ func (o *Ollama) generate(ctx context.Context, req genRequest) (string, error) {
 	req.Model = o.Model
 	req.Stream = false
 	req.KeepAlive = o.KeepAlive
+	// Bound a single call so a runaway/looping generation degrades to the
+	// caller's deterministic fallback quickly rather than blocking the pipeline
+	// until the transport timeout.
+	if o.CallTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, o.CallTimeout)
+		defer cancel()
+	}
 	body, err := json.Marshal(req)
 	if err != nil {
 		return "", err
@@ -188,7 +213,11 @@ var _ TextBackend = (*Ollama)(nil)
 
 // Complete sends a text-only completion to the local text model.
 func (o *Ollama) Complete(ctx context.Context, req TextRequest) (*TextResult, error) {
-	out, err := o.generate(ctx, genRequest{Prompt: req.Prompt})
+	greq := genRequest{Prompt: req.Prompt}
+	if req.MaxTokens > 0 {
+		greq.Options = &genOptions{NumPredict: req.MaxTokens}
+	}
+	out, err := o.generate(ctx, greq)
 	if err != nil {
 		return nil, err
 	}

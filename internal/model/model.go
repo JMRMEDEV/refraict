@@ -68,6 +68,11 @@ type VisionBackend interface {
 type TextRequest struct {
 	Prompt        string
 	PromptVersion string
+	// MaxTokens caps the generated token count (Ollama num_predict). 0 uses the
+	// backend default. Bounding this prevents a small text model from running
+	// away into a degenerate long/looping generation (see graph/summary calls),
+	// which otherwise blocks the per-image pipeline until the transport timeout.
+	MaxTokens int
 }
 
 // TextResult is a completion plus optional structured payload.
