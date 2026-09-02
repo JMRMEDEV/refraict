@@ -479,6 +479,21 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	grounding := detect.CheckGrounding(pageSummary, colors, toks, resolveVisionProfile(cfg).StripHexInNumbers)
 	writeArtifact(func() error { return ws.WriteJSON("evidence/grounding.json", grounding) })
 
+	// Cross-check (Gap 7 first step): compare gemma's whole-image (overview)
+	// read against the deterministic measured evidence (OCR text, colors,
+	// detected components). This turns the two independent reads — the overview
+	// pass and the per-crop/measurement pipeline — into a mutual grounding
+	// signal. Passive/diagnostic: the agent decides whether to trust page.md.
+	ovDesc := ""
+	for _, r := range cropResults {
+		if r != nil && r.CropID == "ov" {
+			ovDesc = strings.TrimSpace(r.Description)
+			break
+		}
+	}
+	crosscheck := detect.CrossCheck(ovDesc, colors, toks, merged)
+	writeArtifact(func() error { return ws.WriteJSON("evidence/crosscheck.json", crosscheck) })
+
 	// DOM guess (probable DOM, clearly inferred).
 	dom := ""
 	if !o.noDOM && cfg.Analysis.GenerateDOMGuess {
@@ -499,6 +514,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		"relationships_elements": uiGraph.Relationships,
 		"summary":                pageSummary,
 		"grounding":              grounding,
+		"crosscheck":             crosscheck,
 		"provenance": map[string]any{
 			"vision":     cfg.Vision,
 			"summary":    cfg.Summary,

@@ -602,6 +602,64 @@ correct tradeoff (honest about measured evidence; fix is upstream OCR, not prose
 laundering). Unit-tested (`AssemblePage`: overview leads, sections verbatim,
 page-type label, empty case).
 
+### 2026-09-02 — Cross-check comparator: overview VLM read vs. measured evidence (Gap 7 step 1)
+
+Implemented the first step of the Gap 7 hybrid: `detect.CrossCheck` compares
+gemma's whole-image (overview `ov`) description against the deterministic
+measured evidence (OCR text, measured colors, detected components) and emits
+`evidence/crosscheck.json` (+ a `crosscheck` field in page.json). It reuses the
+grounding-guard primitives so the two reports stay consistent. Passive/
+diagnostic: agreement score + unsupported-claim list; the agent decides whether
+to trust page.md or fall back to a paid read. No model call. This turns the two
+independent reads (overview pass vs. crop/measurement pipeline) into a mutual
+grounding signal — the grounding guard generalized from a single summary to a
+second read.
+
+Empirical result across board/home/task images (the point of this first cut):
+the score discriminates real overview hallucinations from accurate reads.
+- board-dark 1.00, org-home-dark 1.00 — overview fully corroborated.
+- login-dark 0.62 — overview invented light colors (#FFFFFF, #F8F9FA) on a dark
+  login screen; measured palette rejected them.
+- voirel-task-detail 0.78 — overview asserted "5 tasks" (checklist is 2/5) and a
+  mis-parsed "123 is"; counts unbacked by components.
+- board-light 0.88 / project-home-light 0.95 — the recurring unmeasured "red"
+  color claim, flagged deterministically.
+
+Text and color checks are clean and high-value. Known weakness: the COUNT check
+is noisy — a `<number> <word>` regex catches OCR/parse artifacts ("123 is",
+"1 jd") as bogus count claims. Flagging them is not strictly wrong (they are
+unsupported), but the count sub-check should be tightened (noun whitelist) or
+demoted to advisory before counts are relied on. Unit-tested (supported text/
+color, unsupported color, count agree/overclaim, empty).
+
+Follow-up (same day): count check TIGHTENED — only verifiable container/element
+nouns (card/column/panel/section/icon/button/logo/image/chart/avatar) are
+checked; any other noun is ignored, not flagged. This killed the OCR/parse
+artifacts: count-claim flags across the full 25 dropped to 1 (a legitimate
+check). Then measured agreement across all 25 (fresh cache):
+
+  mean 0.93, median 1.00, range 0.60–1.00; 13/25 perfectly consistent.
+  Buckets: <0.7 → 3 images, <0.8 → 3, <0.9 → 5, <0.95 → 10.
+
+Findings: the 3 lowest (0.60–0.67) are all auth pages (login-dark/light,
+invite-light) where gemma's overview invented colors absent from the measured
+palette — exactly the pages to distrust the whole-image read on. Text agreement
+is near-1.0 on 23/25 (drops only on board-dark/invite-dark, tracing to OCR noise
+on dense/dark pages); failures are dominated by COLOR, mirroring the original
+grounding-guard result (small VLMs cite colors loosely).
+
+Threshold guidance (agent-side policy; refraict emits the breakdown, agent owns
+the verdict): the score is bimodal — a clean 1.0 cluster and a color-driven tail.
+Recommend flagging a possible direct-read fallback when `agreement < 0.80` OR
+`text_support < 0.90`. That catches the 3 drifted auth pages + board-dark's OCR
+issue without penalizing the 10 pages at 0.9–0.99 that are off only by a loose
+color word. Do NOT use `consistent == true` (agreement == 1.0) as the bar — it
+over-triggers (12/25) on trivial color nitpicks. Report already exposes separate
+text/color/count sub-scores so the agent can weight text mismatches above color.
+
+Next (Gap 7 step 2): the `--structure` overview prompt + deterministic kanban
+verifier.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses
