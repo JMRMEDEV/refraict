@@ -1,11 +1,11 @@
 # Local tests
 e2e-test/*
 
-# Ignore .libreq directory contents BY DEFAULT, but allow git to enter the folder
-.libreq/*
+# Ignore .libreq directory contents (libreq tooling state — not part of the project)
+.libreq/
 
-# Unignore the agents directory specifically
-!.libreq/agents/
+# libreq chat logs
+libreq-chat-*.txt
 
 # Cache
 .refraict-cache
@@ -33,3 +33,5 @@ dist/
 # Go coverage / profiling outputs
 *.out
 *.prof
+# Root-built binary from 'go build ./cmd/refraict'
+/refraict
