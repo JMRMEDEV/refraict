@@ -49,6 +49,19 @@ Plan:
 4. If Tesseract plateaus: swap to PaddleOCR/RapidOCR (ONNX, CPU, free) via the
    existing `ExternalEngine` env-var hook (drop-in).
 
+Follow-up (2026-09-02, from the Hermes stress test) — LOW-CONTRAST TEXT, not just
+dark theme. Tesseract missed the "GO TO DASHBOARD" button on access-denied-dark:
+light-teal text on a light-teal button (a low luminance-contrast pair, not a
+dark-on-dark/light-on-dark inversion case). The auto-invert (item 1) does not
+help because both fg and bg are mid-luminance. Consequences observed: (a) the
+button text is absent from OCR/summaries, and (b) with no OCR text in that
+region, the chart-label text-coverage gate (see 2026-09-02 fixes) cannot reject
+gemma's spurious "chart" label there — the OCR miss propagates into a
+element-label false positive. Candidate fixes: local contrast normalization
+(CLAHE) or adaptive thresholding before OCR on low-contrast regions; or per-
+region contrast-stretch using the measured fg/bg color pair. Deferred; the
+residual is a single hard case, but it is the clearest remaining Gap 1 item.
+
 ### Gap 2 — Semantic understanding (hardest, partially solvable)
 A 3B VLM lacks world knowledge to name product/page intent.
 
@@ -120,6 +133,78 @@ Tier 3 — OUT OF SCOPE (do not build; departs from local/cheap):
 
 Plan: (1) deterministic region typing into icon/logo/chart; (2) grounded VLM
 labeling of those typed regions behind the existing summary/guard flow.
+
+### Gap 7 — Structural assembly: containers & their attributes (high value, tractable, NOT started)
+
+Refraict emits correctly *positioned* components but does not *group* them into
+the semantic containers a human/vision-LLM reads directly. On the Hermes
+`board-dark` stress image, Refraict produced 103 correctly-placed components but
+never assembled them into "4 named kanban columns (TO DO/IN PROGRESS/IN
+REVIEW/DONE), each holding cards, each card having {label chip, assignee avatar,
+checklist progress, comment count}". A vision-LLM reports that structure because
+it reasons over the whole layout at once; a 3B VLM cannot, and asking it to emit
+the hierarchy (the current `BuildGraphPrompt` path) is exactly the unreliable
+step that hallucinates (and, before hardening, ran away — see 2026-09-02 stress
+test).
+
+The fix is HYBRID: a VLM whole-image structural hypothesis, VERIFIED and
+corrected against deterministic measured evidence. This is refraict's founding
+principle (AI + deterministic together), applied to structure. Neither half
+alone suffices: geometry finds columns/cards but cannot name the container
+("this is a kanban board with lanes"); the VLM names the container and its parts
+but drifts on placement and counts.
+
+Measured evidence (2026-09-02) — a SINGLE whole-image gemma3:4b call on the
+1280px `board-dark` downsample recovered the structure the crop pipeline never
+did: "Kanban board", all 4 columns by name (TO DO / IN PROGRESS / IN REVIEW /
+DONE), card counts (TO DO 4 ✓, IN PROGRESS 3 ✓), and most card titles. BUT it
+was ungrounded: it placed "Create dark mode color palette" in the wrong column,
+miscounted IN REVIEW (5 vs 2), hallucinated "Team: Red Mars" as a section, and
+mis-attributed the "3/5" checklist. So the VLM supplies a correct SCAFFOLD +
+NAMING and wrong FACTS — exactly the split refraict is built to reconcile.
+
+Recommended design (kanban as the first, highest-value pattern):
+1. **VLM structural hypothesis (naming/scaffold).** Reuse the overview (`ov`)
+   crop call the pipeline ALREADY makes; add a `--structure` prompt variant
+   asking gemma for the container type + column names + rough card counts. One
+   extra-cheap call, no new model resident. Treat the output as a HYPOTHESIS,
+   never as fact.
+2. **Deterministic verification/correction (placement/facts).** Column bands via
+   x-center clustering anchored by the OCR'd header tokens ("TO DO (4)"); card
+   rectangles from the OpenCV detector (Gap 3); assign each text/icon component
+   to its enclosing card by containment and each card to a column by x-band.
+   This CORRECTS the VLM's column membership and counts using measured geometry.
+3. **Per-card attributes from evidence, not the VLM:** label chip = short
+   uppercase token in a colored pill near the card top; assignee = 2-letter
+   avatar token bottom-right; checklist progress = "N/M"; comment count = number
+   adjacent to a speech-bubble icon (icon-labeler, Gap 6).
+4. **Grounding pass over the hypothesis.** Flag any VLM structural claim the
+   geometry cannot support (a named column with no matching x-band, a card count
+   that disagrees with detected cards) — the same treatment colors get today.
+   Emit a typed, provenance-tagged IR node (kanban_board → column[name,count] →
+   card[label,assignee,checklist,comments]), each field carrying source =
+   {vlm_hypothesis | measured | reconciled} and confidence.
+
+Architecture note (owner's steer, 2026-09-02): refraict was always intended as
+hybrid (AI + deterministic). A promising, lower-risk first step before a full
+`internal/assemble` package is a **cross-check / double-check pass**: run the
+existing whole-image (overview) VLM summary AND the crop-derived evidence, then
+COMPARE them programmatically — where the whole-image structural claims and the
+crop/OCR/region evidence agree, confidence is high; where they diverge, flag it
+(and prefer the measured side). This reuses artifacts the pipeline already
+produces (the `ov` crop description vs. the merged components / region summaries)
+and turns the two independent reads into a mutual grounding signal, rather than
+letting the text-model page summary be the single unchecked output. It is
+effectively the grounding guard generalized from colors/text to STRUCTURE, and a
+natural staging ground for the fuller hybrid assembler above.
+
+Generalizes to nav sidebars, settings rows, and card grids via the same
+containment+band approach. Staging: (1) the cross-check/double-check pass
+(reuses existing artifacts, lowest risk) → (2) the `--structure` overview prompt
++ deterministic kanban verifier → (3) a general `internal/assemble` package + IR
+types + tests. Should be spec'd before the full build. This is the largest
+remaining gap vs. a vision-LLM after text (Gap 1) and detection (Gaps 3/6) are
+addressed.
 
 ### Not a gap — comparison/verification stays with the agent
 
@@ -404,6 +489,118 @@ strip_hex_in_numbers, structured_output). `iconlabel.NewWithProfile` and
 of constants; the vision backend gets `StructuredOutput` from it too. Filters
 that are genuinely general keep sane defaults; model-specific tuning is now
 explicit and visible. Unit-tested (resolution + filter behavior).
+
+### 2026-09-02 — Hermes 25-image stress test (gemma3:4b + qwen2.5:3b, opencv build) + text-call hardening
+
+Ran a full stress test vs. an `fs_read` vision-LLM baseline over 25 native
+2560×2048 Hermes UI screenshots (auth flows, kanban, dashboards, settings, task
+detail/comments/attachments; dark+light). opencv build, Tesseract OCR wrapper,
+`label_elements` on. All 25 completed. Aggregates: mean 51 OCR tokens/image,
+mean 28 components (5–103), mean text_support 0.99, mean color_support 0.91,
+grounding-clean on 12/25; element-labeling fired (mean 2.6 voted labels/image,
+12 on the dense boards).
+
+Findings:
+- **Text/OCR is at/near parity** with the direct vision read on clean screens
+  (exact transcription of comments, filenames+sizes, invitation bodies,
+  verification text). Dark-theme OCR fix holds up. Confirms Gap 1 is effectively
+  closed for legible UI text.
+- **Deterministic geometry/detection scales** with real complexity (board 103/61
+  components). Grounding guard correctly flagged fabricated colors (e.g. a
+  `#FFFFFF` claim on login-dark).
+- **The small text model (qwen2.5:3b) is the weakest link, as designed-around
+  but not eliminated.** ROLE CHECK (traced in code): gemma3:4b does ALL image
+  description per crop (`BuildGroundedCropPrompt`) and the icon voting; qwen
+  never sees pixels — it only condenses gemma's text (`RegionSummary`/
+  `PageSummary`). Correct division of labor. But qwen still violates its
+  "compress only" instruction: it mislabeled a comments tab and a task-detail
+  modal as "login interface" (bleed from the "Implement login screen" task
+  title) and dropped salient content (settings DANGER ZONE). Colors in prose are
+  frequently wrong (the guard is what catches them). OCR also misread "32
+  Members" → "52 Members".
+- **No structural assembly** — the board's 103 components were never grouped into
+  named columns/cards with per-card attributes. See new Gap 7.
+
+Changes applied (this entry):
+- **Text-call hardening (robustness bug).** `inferPageGraph` made an unbounded,
+  un-timed text-model call; on `invite-dark` it ran away and burned the full
+  10-min Ollama HTTP timeout (516s vs. ~50s for the other 24) before falling
+  back to geometry. Fixed: added `TextRequest.MaxTokens` → Ollama
+  `options.num_predict` (graph=512, region=512, page=768) and a per-call
+  `Ollama.CallTimeout` (default 90s) so a runaway degrades to the deterministic
+  fallback in seconds. Re-ran the same image cold: 516s → **30s**, identical 14
+  components. Unit-tested (timeout degradation + num_predict wiring).
+- **Removed the per-crop RegionSummary round-trip.** `crossRegionSummary` was
+  asking qwen to "summarize" a single already-short gemma description — no
+  compression (nothing to aggregate at one crop) and a hallucination/latency
+  surface. Now passes gemma's grounded description through verbatim; the text
+  model's aggregation role is applied once, at the page level. Test updated to
+  the passthrough contract.
+
+### 2026-09-02 — Page-type grounding + chart-label gate (from stress-test findings)
+
+Two targeted fixes from the Hermes stress test, both deterministic (no model swap):
+
+- **Page-type grounding (Gap 2)** — fixed the "page ABOUT X described as the page
+  that IS X" failure (a task-detail view titled "Implement login screen" was
+  summarized as a login page). (1) `inferPageType` now weights STRUCTURAL
+  container signals (task-ID token `^[A-Z]{2,5}-\d+`, CHECKLISTS / DUE DATE /
+  MEMBERS, kanban headers, DANGER ZONE, invitation) above content keywords, and
+  added `task_detail`/`kanban`/`invite` types. (2) The page-summary prompt
+  (bumped `page-summary-v2`) is now authoritative about the type and carries an
+  explicit "distinguish a page ABOUT X from a page that IS X; do not reclassify
+  from quoted content" instruction. (3) The page type is computed early
+  (post-OCR) and fed into gemma's per-crop prompt too (vision cache bumped
+  `vision-v2`) to counter the mislabel at the source. Verified: task-detail →
+  "Task Detail" (was "Login Form"); settings-light → "Settings" and now surfaces
+  the DANGER ZONE it previously dropped.
+
+- **Chart-label gate (Gap 6)** — small VLMs confidently mislabel blocky graphics
+  and text buttons as "bar chart" (the label is free-text from gemma; there is
+  no deterministic chart TYPE — removed earlier as unreliable). Gated the
+  accepted chart-family label behind TWO deterministic conditions, both required:
+  (1) region not OCR-text-dominated (>10% token-area coverage → reject; primary,
+  since text-glyph columns fool a naive bar projection), and (2)
+  `imageproc.HasBarChartGeometry` (>=3 varied-height bars sharing a baseline in a
+  not-wide-thin region). Eliminated the false "chart bar" on 4 of 5 affected
+  regions (verify-email, task-detail, board-dark ×2, settings). Unit-tested
+  (bar-geometry pass/reject, text-coverage fraction, label matcher).
+
+  Residual (1 case): access-denied's "GO TO DASHBOARD" button survives because
+  Tesseract missed its low-contrast text (see Gap 1 follow-up), so the region has
+  zero OCR coverage AND its letterforms mimic bars — neither deterministic gate
+  can reject it without reading the text. Not over-fit; the real fix is upstream
+  OCR contrast handling (Gap 1).
+
+### 2026-09-02 — Deterministic page assembly (qwen removed from the default page composer)
+
+Extended the "aggregate, not summarize" principle to the page level. Previously
+qwen2.5:3b wrote `page.md` via `PageSummary` (condensing the region texts) — the
+weakest, most hallucination-prone step. Now `page.md` is composed
+DETERMINISTICALLY by `summarize.AssemblePage`: gemma's whole-image (overview `ov`
+crop) description first — the grounded "original summary" — followed by each
+focused section's gemma description verbatim under a header, with the
+deterministic `pageType` at the top. No text model on the default path.
+
+Rationale: a straight concatenation of already-grounded, already-short gemma
+descriptions has nothing for a summarizer to compress; invoking qwen only added
+drift and a dependency. qwen `PageSummary` is now retained ONLY for the opt-in
+cloud-escalation path, where a stronger backend does genuine cross-region
+synthesis (the one case a text model earns its cost). Net effects: removes a
+hallucination surface; the text model no longer needs to be resident for the
+page step (lower memory / one fewer model swap with keep-alive off); and — as a
+bonus — `page.md` now preserves BOTH the whole-image read and the per-section
+reads side by side, which is exactly the raw material the Gap 7 cross-check pass
+needs (two independent gemma reads to diff for a structural grounding signal).
+
+Verified on the worst prior hallucinator (voirel-task-detail): `page.md` now
+leads "This is a task detail screen" (was "Login Form") with the overview read,
+then the verbatim sections. Timing unchanged (dominated by vision + element-vote
+labeling, not the single page call). Honest tradeoff: raw OCR garbage in a crop
+now passes through into its section verbatim (no summarizer to smooth it) — the
+correct tradeoff (honest about measured evidence; fix is upstream OCR, not prose
+laundering). Unit-tested (`AssemblePage`: overview leads, sections verbatim,
+page-type label, empty case).
 
 ## References & third-party sources
 
