@@ -1,0 +1,11557 @@
+abacus
+abacus off
+abc
+ac unit
+academic cap
+access alarm
+access alarms
+access point
+access point off
+access time
+accessibility
+accessibility new
+accessible
+accessible forward
+accessible icon
+accessible off
+account balance
+account balance wallet
+account book
+account box
+account box2
+account circle
+account circle2
+account pin box
+account pin circle
+account tree
+accusoft
+acorn
+acquisitions incorporated
+acrobatic
+activity
+activity heartbeat
+ad
+ad circle
+ad circle off
+ad off
+ad units
+ad2
+adb
+add
+add alarm
+add alert
+add box
+add business
+add call
+add card
+add chart
+add circle
+add comment
+add home
+add home work
+add ic call
+add large
+add link
+add location
+add location alt
+add moderator
+add photo
+add photo alternate
+add reaction
+add road
+add shopping cart
+add task
+add to drive
+add to home screen
+add to photos
+add to queue
+addchart
+address book
+address book off
+address card
+adf scanner
+adjust
+adjustments
+adjustments alt
+adjustments bolt
+adjustments cancel
+adjustments check
+adjustments code
+adjustments cog
+adjustments dollar
+adjustments down
+adjustments exclamation
+adjustments heart
+adjustments horizontal
+adjustments minus
+adjustments off
+adjustments pause
+adjustments pin
+adjustments plus
+adjustments question
+adjustments search
+adjustments share
+adjustments spark
+adjustments star
+adjustments up
+adjustments vertical
+admin
+admin panel settings
+adn
+ads click
+adversal
+advertisement
+aed
+aed electrodes
+aerial lift
+affiliate
+affiliatetheme
+agriculture
+ai
+ai agent
+ai agents
+ai gateway
+ai generate
+ai generate text
+ai generate2
+ai generate3d
+aim
+air
+air balloon
+air conditioning
+air conditioning disabled
+air freshener
+air traffic control
+airbnb
+airline seat flat
+airline seat flat angled
+airline seat individual suite
+airline seat legroom extra
+airline seat legroom normal
+airline seat legroom reduced
+airline seat recline extra
+airline seat recline normal
+airline stops
+airlines
+airplane
+airplane engines
+airplane ticket
+airplanemode active
+airplanemode inactive
+airplay
+airport shuttle
+alarm
+alarm add
+alarm average
+alarm minus
+alarm off
+alarm on
+alarm plus
+alarm smoke
+alarm snooze
+alarm warning
+album
+album off
+albums
+alert
+alert circle
+alert circle off
+alert hexagon
+alert hexagon off
+alert octagon
+alert small
+alert small off
+alert square
+alert square off
+alert triangle
+alert triangle off
+alexa
+algolia
+alibaba
+alibaba cloud
+alien
+aliens
+align bottom
+align box bottom center
+align box bottom left
+align box bottom right
+align box center bottom
+align box center middle
+align box center stretch
+align box center top
+align box left bottom
+align box left middle
+align box left stretch
+align box left top
+align box right bottom
+align box right middle
+align box right stretch
+align box right top
+align box top center
+align box top left
+align box top right
+align center
+align end
+align horizontal center
+align horizontal left
+align horizontal right
+align item bottom
+align item horizontal center
+align item left
+align item right
+align item top
+align item vertical center
+align justified
+align justify
+align left
+align left2
+align middle
+align right
+align right2
+align start
+align top
+align vertical bottom
+align vertical center
+align vertical top
+align vertically
+alipay
+alipay circle
+alipay square
+aliwangwang
+aliyun
+all inbox
+all inclusive
+all out
+allergies
+alpha
+alphabet
+alphabet arabic
+alphabet bangla
+alphabet cyrillic
+alphabet greek
+alphabet hebrew
+alphabet korean
+alphabet latin
+alphabet polish
+alphabet runes
+alphabet thai
+alphabet uppercase
+alt
+alt route
+alternate email
+amazon
+amazon circle
+amazon pay
+amazon square
+ambulance
+amd
+american football
+american sign language interpreting
+amilia
+amp stories
+ampersand
+analytics
+analyze
+analyze off
+anchor
+anchor circle check
+anchor circle exclamation
+anchor circle xmark
+anchor lock
+anchor off
+ancient gate
+ancient pavilion
+and
+and beyond
+android
+android2
+angellist
+angle
+angle double down
+angle double left
+angle double right
+angle double up
+angle down
+angle left
+angle right
+angle up
+angles down
+angles left
+angles right
+angles up
+angry
+angrycreative
+angular
+angularjs
+animation
+ankh
+announcement
+ant cloud
+ant design
+antenna
+antenna bars off
+antenna bars1
+antenna bars2
+antenna bars3
+antenna bars4
+antenna bars5
+antenna off
+anthropic
+anticlockwise
+anticlockwise2
+aod
+apartment
+aperture
+aperture off
+api
+api app
+api app off
+api book
+api off
+app
+app blocking
+app indicator
+app registration
+app settings alt
+app shortcut
+app store
+app store ios
+app window
+apper
+apple
+apple alt
+apple music
+apple pay
+apple whole
+approval
+apps
+apps ai
+apps off
+apps outage
+apps2
+apps2 add
+apps2 ai
+appstore
+appstore add
+archery arrow
+architecture
+archive
+archive box
+archive box arrow down
+archive box mark
+archive drawer
+archive off
+archive stack
+archive2
+archway
+area chart
+armchair
+armchair off
+armchair2
+armchair2 off
+arrow alt circle down
+arrow alt circle left
+arrow alt circle right
+arrow alt circle up
+arrow autofit content
+arrow autofit down
+arrow autofit height
+arrow autofit left
+arrow autofit right
+arrow autofit up
+arrow autofit width
+arrow back
+arrow back circle
+arrow back ios
+arrow back ios new
+arrow back up
+arrow back up double
+arrow badge down
+arrow badge left
+arrow badge right
+arrow badge up
+arrow bar both
+arrow bar down
+arrow bar left
+arrow bar right
+arrow bar to down
+arrow bar to down dashed
+arrow bar to left
+arrow bar to left dashed
+arrow bar to right
+arrow bar to right dashed
+arrow bar to up
+arrow bar to up dashed
+arrow bar up
+arrow bear left
+arrow bear left2
+arrow bear right
+arrow bear right2
+arrow big down
+arrow big down lines
+arrow big left
+arrow big left lines
+arrow big right
+arrow big right lines
+arrow big up
+arrow big up lines
+arrow bounce
+arrow capsule
+arrow circle down
+arrow circle left
+arrow circle right
+arrow circle up
+arrow clockwise
+arrow counterclockwise
+arrow curve left
+arrow curve right
+arrow down
+arrow down bar
+arrow down box
+arrow down circle
+arrow down dashed
+arrow down double
+arrow down from arc
+arrow down left
+arrow down left circle
+arrow down left square
+arrow down long
+arrow down on square
+arrow down on square stack
+arrow down rhombus
+arrow down right
+arrow down right circle
+arrow down right square
+arrow down short
+arrow down short wide
+arrow down square
+arrow down tail
+arrow down to arc
+arrow down tray
+arrow down up
+arrow down up across
+arrow down up lock
+arrow down wide
+arrow down wide short
+arrow down19
+arrow down91
+arrow downward
+arrow drop down
+arrow drop down circle
+arrow drop left
+arrow drop right
+arrow drop up
+arrow elbow left
+arrow elbow right
+arrow fork
+arrow forward
+arrow forward circle
+arrow forward ios
+arrow forward up
+arrow forward up double
+arrow go back
+arrow go forward
+arrow guide
+arrow iteration
+arrow left
+arrow left bar
+arrow left box
+arrow left circle
+arrow left dashed
+arrow left double
+arrow left down
+arrow left down box
+arrow left down long
+arrow left end on rectangle
+arrow left from arc
+arrow left long
+arrow left on rectangle
+arrow left rhombus
+arrow left right
+arrow left short
+arrow left square
+arrow left start on rectangle
+arrow left tail
+arrow left to arc
+arrow left up
+arrow left up box
+arrow left up long
+arrow left wide
+arrow long down
+arrow long left
+arrow long right
+arrow long up
+arrow loop left
+arrow loop left2
+arrow loop right
+arrow loop right2
+arrow merge
+arrow merge alt left
+arrow merge alt right
+arrow merge both
+arrow merge left
+arrow merge right
+arrow move down
+arrow move left
+arrow move right
+arrow move up
+arrow narrow down
+arrow narrow down dashed
+arrow narrow left
+arrow narrow left dashed
+arrow narrow right
+arrow narrow right dashed
+arrow narrow up
+arrow narrow up dashed
+arrow outward
+arrow path
+arrow path square
+arrow pointer
+arrow ramp left
+arrow ramp left2
+arrow ramp left3
+arrow ramp right
+arrow ramp right2
+arrow ramp right3
+arrow redo
+arrow redo circle
+arrow repeat
+arrow return left
+arrow return right
+arrow right
+arrow right alt
+arrow right arrow left
+arrow right bar
+arrow right box
+arrow right circle
+arrow right dashed
+arrow right double
+arrow right down
+arrow right down box
+arrow right down long
+arrow right end on rectangle
+arrow right from arc
+arrow right from bracket
+arrow right long
+arrow right on rectangle
+arrow right rhombus
+arrow right short
+arrow right square
+arrow right start on rectangle
+arrow right tail
+arrow right to arc
+arrow right to bracket
+arrow right to city
+arrow right up
+arrow right up box
+arrow right up long
+arrow right wide
+arrow rotary first left
+arrow rotary first right
+arrow rotary last left
+arrow rotary last right
+arrow rotary left
+arrow rotary right
+arrow rotary straight
+arrow rotate left
+arrow rotate right
+arrow roundabout left
+arrow roundabout right
+arrow small down
+arrow small left
+arrow small right
+arrow small up
+arrow through heart
+arrow top right on square
+arrow trend down
+arrow trend up
+arrow trending down
+arrow trending up
+arrow turn back
+arrow turn down
+arrow turn down left
+arrow turn down right
+arrow turn forward
+arrow turn left
+arrow turn left down
+arrow turn left up
+arrow turn right
+arrow turn right down
+arrow turn right up
+arrow turn up
+arrow turn up left
+arrow turn up right
+arrow undo
+arrow undo circle
+arrow up
+arrow up bar
+arrow up box
+arrow up circle
+arrow up dashed
+arrow up double
+arrow up down
+arrow up from arc
+arrow up from bracket
+arrow up from ground water
+arrow up from water pump
+arrow up left
+arrow up left circle
+arrow up left square
+arrow up long
+arrow up on square
+arrow up on square stack
+arrow up rhombus
+arrow up right
+arrow up right circle
+arrow up right dots
+arrow up right from square
+arrow up right square
+arrow up short
+arrow up short wide
+arrow up square
+arrow up tail
+arrow up to arc
+arrow up tray
+arrow up wide
+arrow up wide short
+arrow up19
+arrow up91
+arrow upward
+arrow uturn down
+arrow uturn left
+arrow uturn right
+arrow uturn up
+arrow wave left down
+arrow wave left up
+arrow wave right down
+arrow wave right up
+arrow zig zag
+arrow90 deg down
+arrow90 deg left
+arrow90 deg right
+arrow90 deg up
+arrows
+arrows alt
+arrows angle contract
+arrows angle expand
+arrows collapse
+arrows collapse vertical
+arrows cross
+arrows diagonal
+arrows diagonal minimize
+arrows diagonal minimize2
+arrows diagonal2
+arrows diff
+arrows double ne sw
+arrows double nw se
+arrows double se nw
+arrows double sw ne
+arrows down
+arrows down to
+arrows down to people
+arrows down up
+arrows exchange
+arrows exchange2
+arrows expand
+arrows expand vertical
+arrows fullscreen
+arrows horizontal
+arrows join
+arrows join2
+arrows left
+arrows left down
+arrows left right
+arrows left right to
+arrows maximize
+arrows minimize
+arrows move
+arrows move horizontal
+arrows move vertical
+arrows pointing in
+arrows pointing out
+arrows random
+arrows right
+arrows right down
+arrows right left
+arrows rotate
+arrows shuffle
+arrows shuffle2
+arrows sort
+arrows spin
+arrows split
+arrows split up and left
+arrows split2
+arrows to circle
+arrows to dot
+arrows to eye
+arrows transfer down
+arrows transfer up
+arrows transfer up down
+arrows turn right
+arrows turn to dots
+arrows up
+arrows up down
+arrows up down left right
+arrows up left
+arrows up right
+arrows up to
+arrows vertical
+art track
+artboard
+artboard off
+artboard2
+article
+article off
+artstation
+aspect ratio
+aspect ratio off
+assembly
+assembly off
+assessment
+asset
+assignment
+assignment add
+assignment ind
+assignment late
+assignment return
+assignment returned
+assignment turned in
+assist walker
+assistant
+assistant direction
+assistant navigation
+assistant photo
+assistive listening systems
+assured workload
+asterisk
+asterisk simple
+asymmetrik
+at
+at circle
+at off
+at sign
+at symbol
+atlas
+atlassian
+atm
+atom
+atom off
+atom2
+attach
+attach email
+attach file
+attach money
+attachment
+attachment2
+attractions
+attribution
+auction
+audible
+audio
+audio description
+audio file
+audio muted
+audiotrack
+audit
+augmented reality
+augmented reality off
+augmented reality2
+austral sign
+auth2 fa
+auto awesome
+auto awesome mosaic
+auto awesome motion
+auto delete
+auto fix high
+auto fix normal
+auto fix off
+auto graph
+auto mode
+auto stories
+autofps select
+automatic gearbox
+automation
+autoprefixer
+autorenew
+av timer
+avianex
+aviato
+avocado
+award
+award off
+aws
+axe
+axis
+b2
+baby
+baby bottle
+baby carriage
+baby changing station
+back
+back hand
+background
+backhoe
+backpack
+backpack off
+backpack2
+backpack3
+backpack4
+backslash
+backspace
+backspace reverse
+backup
+backup table
+backward
+backward fast
+backward step
+bacon
+bacteria
+bacterium
+badge
+badge ad
+badge ad off
+badge ar
+badge cc
+badge hd
+badge off
+badge sd
+badge tm
+badge vo
+badge vr
+badge wc
+badge2
+badge3
+badge3d
+badge4
+badge4k
+badge5
+badge8
+badge8k
+badges
+badges off
+bag
+bag add
+bag check
+bag dash
+bag handle
+bag heart
+bag plus
+bag remove
+bag shopping
+baguette
+bahai
+baht sign
+baidu
+bakery dining
+balance
+balance scale
+balance scale left
+balance scale right
+balcony
+ball american football
+ball american football off
+ball baseball
+ball basketball
+ball bowling
+ball football
+ball football off
+ball pen
+ball tennis
+ball volleyball
+balloon
+balloon heart
+balloon off
+ballot
+ballpen
+ballpen off
+ban
+ban smoking
+banana
+band aid
+bandage
+bandage off
+bandaid
+bandcamp
+bangladeshi taka sign
+bank
+bank card
+bank card2
+bank2
+banknotes
+bar chart
+bar chart box
+bar chart box ai
+bar chart grouped
+bar chart horizontal
+bar chart steps
+bar chart2
+barbell
+barbell off
+barcode
+barcode box
+barcode off
+barcode reader
+bard
+barrel
+barrel off
+barricade
+barrier block
+barrier block off
+bars
+bars arrow down
+bars arrow up
+bars progress
+bars staggered
+bars2
+bars3
+bars3 bottom left
+bars3 bottom right
+bars3 center left
+bars4
+base station
+baseball
+baseball ball
+baseball bat ball
+baseline
+baseline density large
+baseline density medium
+baseline density small
+basket
+basket bolt
+basket cancel
+basket check
+basket code
+basket cog
+basket discount
+basket dollar
+basket down
+basket exclamation
+basket heart
+basket minus
+basket off
+basket pause
+basket pin
+basket plus
+basket question
+basket search
+basket share
+basket shopping
+basket star
+basket up
+basket2
+basket3
+basketball
+basketball ball
+bat
+batch prediction
+bath
+bath off
+bathroom
+bathtub
+battery
+battery alert
+battery automotive
+battery charge
+battery charging
+battery charging full
+battery charging2
+battery charging20
+battery charging30
+battery charging50
+battery charging60
+battery charging80
+battery charging90
+battery dead
+battery eco
+battery empty
+battery exclamation
+battery full
+battery half
+battery low
+battery off
+battery quarter
+battery saver
+battery share
+battery spark
+battery std
+battery three quarters
+battery unknown
+battery vertical
+battery vertical charging
+battery vertical charging2
+battery vertical eco
+battery vertical exclamation
+battery vertical off
+battery vertical1
+battery vertical2
+battery vertical3
+battery vertical4
+battery0
+battery0 bar
+battery1
+battery1 bar
+battery100
+battery2
+battery2 bar
+battery2 charge
+battery20
+battery3
+battery3 bar
+battery30
+battery4
+battery4 bar
+battery5 bar
+battery50
+battery6 bar
+battery60
+battery80
+battery90
+battle net
+beach
+beach access
+beach off
+beaker
+bear smile
+bed
+bed flat
+bed off
+bed pulse
+bedroom baby
+bedroom child
+bedroom parent
+bedtime
+bedtime off
+beenhere
+beer
+beer mug empty
+beer off
+behance
+behance circle
+behance square
+bell
+bell alert
+bell bolt
+bell cancel
+bell check
+bell code
+bell cog
+bell concierge
+bell dollar
+bell down
+bell exclamation
+bell heart
+bell minus
+bell off
+bell pause
+bell pin
+bell plus
+bell question
+bell ringing
+bell ringing2
+bell school
+bell search
+bell share
+bell slash
+bell snooze
+bell star
+bell up
+bento
+beta
+bezier
+bezier curve
+bezier2
+bg colors
+bible
+bicycle
+bike
+bike off
+bike scooter
+bike2
+biking
+bilibili
+bill
+billiards
+bimobject
+binary
+binary off
+binary tree
+binary tree2
+bing
+binoculars
+biohazard
+biohazard off
+biotech
+birthday cake
+bit coin
+bitbucket
+bitcoin
+bitcoin sign
+bity
+black tie
+blackberry
+blade
+blaze
+bleach
+bleach chlorine
+bleach no chlorine
+bleach off
+blend mode
+blender
+blender phone
+blind
+blinds
+blinds closed
+blob
+block
+block flipped
+blockquote
+blockquote left
+blockquote right
+blocks
+blog
+blogger
+bloodtype
+bluesky
+bluetooth
+bluetooth audio
+bluetooth connect
+bluetooth connected
+bluetooth disabled
+bluetooth drive
+bluetooth off
+bluetooth searching
+blur
+blur circular
+blur linear
+blur off
+blur on
+bmp
+bnb
+boat
+body
+body scan
+body text
+bold
+bold off
+bolt
+bolt lightning
+bolt off
+bolt slash
+bomb
+bone
+bone off
+bonfire
+bong
+bong off
+book
+book ai
+book atlas
+book bible
+book bookmark
+book dead
+book download
+book half
+book journal whills
+book marked
+book medical
+book off
+book online
+book open
+book open reader
+book quran
+book read
+book reader
+book shelf
+book skull
+book tanakh
+book upload
+book2
+book3
+booklet
+bookmark
+bookmark add
+bookmark added
+bookmark ai
+bookmark border
+bookmark check
+bookmark dash
+bookmark edit
+bookmark heart
+bookmark minus
+bookmark off
+bookmark plus
+bookmark question
+bookmark remove
+bookmark slash
+bookmark square
+bookmark star
+bookmark2
+bookmark3
+bookmarks
+bookmarks off
+books
+books off
+bookshelf
+boom
+boombox
+bootstrap
+bootstrap reboot
+border
+border all
+border bottom
+border bottom plus
+border center
+border clear
+border color
+border corner
+border corner ios
+border corner pill
+border corner square
+border corners
+border horizontal
+border inner
+border left
+border left plus
+border middle
+border none
+border outer
+border radius
+border right
+border right plus
+border sides
+border style
+border style2
+border top
+border top left
+border top plus
+border vertical
+border verticle
+border width
+borderless table
+bore hole
+bot id
+bots
+bottle
+bottle droplet
+bottle off
+bottle water
+bounce left
+bounce right
+bounding box
+bounding box circles
+bow
+bowl
+bowl chopsticks
+bowl food
+bowl rice
+bowl spoon
+bowling
+bowling ball
+box
+box align bottom
+box align bottom left
+box align bottom right
+box align left
+box align right
+box align top
+box align top left
+box align top right
+box archive
+box arrow down
+box arrow down left
+box arrow down right
+box arrow in down
+box arrow in down left
+box arrow in down right
+box arrow in left
+box arrow in right
+box arrow in up
+box arrow in up left
+box arrow in up right
+box arrow left
+box arrow right
+box arrow up
+box arrow up left
+box arrow up right
+box margin
+box model
+box model off
+box model2
+box model2 off
+box multiple
+box multiple0
+box multiple1
+box multiple2
+box multiple3
+box multiple4
+box multiple5
+box multiple6
+box multiple7
+box multiple8
+box multiple9
+box off
+box open
+box padding
+box plot
+box seam
+box tissue
+box1
+box2
+box2 heart
+box3
+boxes
+boxes packing
+boxes stacked
+boxing
+boy
+braces
+braces asterisk
+braces off
+brackets
+brackets angle
+brackets angle off
+brackets contain
+brackets contain end
+brackets contain start
+brackets off
+braille
+brain
+brain ai3
+brain2
+brain3
+brain4
+branches
+brand
+brand abstract
+brand adobe
+brand adobe after effect
+brand adobe illustrator
+brand adobe indesign
+brand adobe photoshop
+brand adobe premiere
+brand adobe xd
+brand adonis js
+brand airbnb
+brand airtable
+brand algolia
+brand alipay
+brand alpine js
+brand amazon
+brand amd
+brand amie
+brand amigo
+brand among us
+brand android
+brand angular
+brand ansible
+brand ao3
+brand appgallery
+brand apple
+brand apple arcade
+brand apple news
+brand apple podcast
+brand appstore
+brand arc
+brand asana
+brand astro
+brand audible
+brand auth0
+brand aws
+brand azure
+brand backbone
+brand badoo
+brand baidu
+brand bandcamp
+brand bandlab
+brand beats
+brand bebo
+brand behance
+brand bilibili
+brand binance
+brand bing
+brand bitbucket
+brand blackberry
+brand blender
+brand blogger
+brand bluesky
+brand booking
+brand bootstrap
+brand bulma
+brand bumble
+brand bunpo
+brand cake
+brand cakephp
+brand campaignmonitor
+brand carbon
+brand cashapp
+brand chrome
+brand cinema4
+brand citymapper
+brand cloudflare
+brand codecov
+brand codepen
+brand codesandbox
+brand cohost
+brand coinbase
+brand comedy central
+brand coreos
+brand couchdb
+brand couchsurfing
+brand cpp
+brand craft
+brand crunchbase
+brand css3
+brand ctemplar
+brand cucumber
+brand cupra
+brand cypress
+brand d3
+brand databricks
+brand days counter
+brand dcos
+brand debian
+brand deezer
+brand deliveroo
+brand deno
+brand denodo
+brand deviantart
+brand digg
+brand dingtalk
+brand discord
+brand disney
+brand disqus
+brand django
+brand docker
+brand doctrine
+brand dolby digital
+brand douban
+brand dribbble
+brand dropbox
+brand drops
+brand drupal
+brand edge
+brand elastic
+brand electronic arts
+brand ember
+brand envato
+brand etsy
+brand evernote
+brand facebook
+brand feedly
+brand figma
+brand filezilla
+brand finder
+brand firebase
+brand firefox
+brand fiverr
+brand flickr
+brand flightradar24
+brand flipboard
+brand flutter
+brand fortnite
+brand foursquare
+brand framer
+brand framer motion
+brand funimation
+brand gatsby
+brand git
+brand github
+brand github copilot
+brand gitlab
+brand gmail
+brand golang
+brand google
+brand google analytics
+brand google big query
+brand google drive
+brand google fit
+brand google home
+brand google maps
+brand google one
+brand google photos
+brand google play
+brand google podcasts
+brand grammarly
+brand graphql
+brand gravatar
+brand grindr
+brand guardian
+brand gumroad
+brand hackerrank
+brand hbo
+brand headlessui
+brand hexo
+brand hipchat
+brand html5
+brand inertia
+brand infakt
+brand instagram
+brand intercom
+brand itch
+brand javascript
+brand jira
+brand juejin
+brand kako talk
+brand kbin
+brand kick
+brand kickstarter
+brand kotlin
+brand laravel
+brand lastfm
+brand leetcode
+brand letterboxd
+brand linkedin
+brand linktree
+brand linqpad
+brand livewire
+brand loom
+brand mailgun
+brand mantine
+brand mastercard
+brand mastodon
+brand matrix
+brand mcdonalds
+brand medium
+brand meetup
+brand mercedes
+brand messenger
+brand meta
+brand metabrainz
+brand minecraft
+brand miniprogram
+brand mixpanel
+brand monday
+brand mongodb
+brand my oppo
+brand mysql
+brand national geographic
+brand nem
+brand netbeans
+brand netease music
+brand netflix
+brand nexo
+brand nextcloud
+brand nextjs
+brand nodejs
+brand nord vpn
+brand notion
+brand npm
+brand nuxt
+brand nytimes
+brand oauth
+brand office
+brand ok ru
+brand onedrive
+brand onlyfans
+brand open source
+brand openai
+brand openvpn
+brand opera
+brand pagekit
+brand parsinta
+brand patreon
+brand paypal
+brand paypay
+brand peanut
+brand pepsi
+brand php
+brand picsart
+brand pinterest
+brand planetscale
+brand pnpm
+brand pocket
+brand polymer
+brand powershell
+brand printables
+brand prisma
+brand producthunt
+brand pushbullet
+brand pushover
+brand python
+brand qq
+brand radix ui
+brand react
+brand react native
+brand reason
+brand reddit
+brand redhat
+brand redux
+brand revolut
+brand rumble
+brand rust
+brand safari
+brand samsungpass
+brand sass
+brand sentry
+brand sharik
+brand shazam
+brand shopee
+brand sketch
+brand skype
+brand slack
+brand snapchat
+brand snapseed
+brand snowflake
+brand socket io
+brand solidjs
+brand soundcloud
+brand spacehey
+brand speedtest
+brand spotify
+brand stackoverflow
+brand stackshare
+brand steam
+brand stellar
+brand stocktwits
+brand storj
+brand storybook
+brand storytel
+brand strava
+brand stripe
+brand sublime text
+brand sugarizer
+brand supabase
+brand superhuman
+brand supernova
+brand surfshark
+brand svelte
+brand swift
+brand symfony
+brand tabler
+brand tabnine
+brand tailwind
+brand taobao
+brand teams
+brand ted
+brand telegram
+brand terraform
+brand tesla
+brand tether
+brand thingiverse
+brand threads
+brand threejs
+brand tidal
+brand tiktok
+brand tinder
+brand topbuzz
+brand torchain
+brand toyota
+brand trello
+brand tripadvisor
+brand tumblr
+brand twilio
+brand twitch
+brand twitter
+brand typescript
+brand uber
+brand ubuntu
+brand unity
+brand unsplash
+brand upwork
+brand valorant
+brand vechain
+brand vercel
+brand vimeo
+brand vinted
+brand visa
+brand visual studio
+brand vite
+brand vivaldi
+brand vk
+brand vlc
+brand volkswagen
+brand vsco
+brand vscode
+brand vue
+brand walmart
+brand waze
+brand webflow
+brand wechat
+brand weibo
+brand whatsapp
+brand wikipedia
+brand windows
+brand windy
+brand wish
+brand wix
+brand wordpress
+brand xamarin
+brand xbox
+brand xdeep
+brand xing
+brand yahoo
+brand yandex
+brand yarn
+brand yatse
+brand ycombinator
+brand youtube
+brand youtube kids
+brand zalando
+brand zapier
+brand zeit
+brand zhihu
+brand zoom
+brand zulip
+brand zwift
+brand4 chan
+branding watermark
+brave
+brave reverse
+brazilian real sign
+bread
+bread off
+bread slice
+breakfast dining
+bricks
+bridge
+bridge circle check
+bridge circle exclamation
+bridge circle xmark
+bridge lock
+bridge water
+briefcase
+briefcase medical
+briefcase off
+briefcase2
+briefcase3
+briefcase4
+briefcase5
+brightness
+brightness alt high
+brightness alt low
+brightness auto
+brightness down
+brightness half
+brightness high
+brightness low
+brightness medium
+brightness off
+brightness up
+brightness1
+brightness2
+brightness3
+brightness4
+brightness5
+brightness6
+brightness7
+brilliance
+bring forward
+bring to front
+broadcast
+broadcast off
+broadcast on home
+broadcast on personal
+broadcast pin
+broadcast tower
+broken image
+broom
+broom ball
+browse gallery
+browser
+browser check
+browser chrome
+browser edge
+browser firefox
+browser maximize
+browser minus
+browser not supported
+browser off
+browser plus
+browser safari
+browser share
+browser updated
+browsers
+brunch dining
+brush
+brush ai
+brush ai3
+brush off
+brush2
+brush3
+brush4
+btc
+bubble
+bubble chart
+bubble minus
+bubble plus
+bubble tea
+bubble tea2
+bubble text
+bucket
+bucket droplet
+bucket off
+buffer
+bug
+bug ant
+bug off
+bug report
+bug slash
+bug2
+bugs
+build
+build circle
+building
+building add
+building airport
+building arch
+building bank
+building bridge
+building bridge2
+building broadcast tower
+building burj al arab
+building carousel
+building castle
+building check
+building church
+building circle arrow right
+building circle check
+building circle exclamation
+building circle xmark
+building circus
+building cog
+building columns
+building community
+building cottage
+building dash
+building down
+building eiffel tower
+building estate
+building exclamation
+building factory
+building factory2
+building flag
+building fortress
+building gear
+building hospital
+building library
+building lighthouse
+building lock
+building minus
+building monument
+building mosque
+building ngo
+building off
+building office
+building office2
+building pavilion
+building plus
+building shield
+building skyscraper
+building slash
+building stadium
+building store
+building storefront
+building tunnel
+building un
+building up
+building user
+building warehouse
+building wheat
+building wind turbine
+building2
+building3
+building4
+buildings
+bulb
+bulb off
+bulldozer
+bullhorn
+bullseye
+bungalow
+burger
+burn
+buromobelexperte
+burst
+burst mode
+bus
+bus alert
+bus alt
+bus front
+bus off
+bus simple
+bus stop
+bus wifi
+bus2
+business
+business center
+business time
+businessplan
+butterfly
+buy large
+buysellads
+cabin
+cable
+cable car
+cached
+cactus
+cactus off
+cafe
+cake
+cake candles
+cake off
+cake roll
+cake2
+cake3
+calculate
+calculator
+calculator off
+calendar
+calendar alt
+calendar bolt
+calendar cancel
+calendar check
+calendar clear
+calendar clock
+calendar close
+calendar code
+calendar cog
+calendar date
+calendar date range
+calendar day
+calendar days
+calendar dollar
+calendar dot
+calendar down
+calendar due
+calendar event
+calendar exclamation
+calendar heart
+calendar minus
+calendar month
+calendar number
+calendar off
+calendar pause
+calendar pin
+calendar plus
+calendar question
+calendar range
+calendar repeat
+calendar sad
+calendar schedule
+calendar search
+calendar share
+calendar smile
+calendar star
+calendar stats
+calendar time
+calendar times
+calendar today
+calendar todo
+calendar up
+calendar user
+calendar view
+calendar view day
+calendar view month
+calendar view week
+calendar week
+calendar xmark
+calendar2
+calendar2 check
+calendar2 date
+calendar2 day
+calendar2 event
+calendar2 heart
+calendar2 minus
+calendar2 month
+calendar2 plus
+calendar2 range
+calendar2 week
+calendar3
+calendar3 event
+calendar3 range
+calendar3 week
+calendar4
+calendar4 event
+calendar4 range
+calendar4 week
+call
+call end
+call made
+call merge
+call missed
+call missed outgoing
+call received
+call split
+call to action
+camera
+camera ai
+camera ai2
+camera alt
+camera bitcoin
+camera bolt
+camera cancel
+camera check
+camera code
+camera cog
+camera dollar
+camera down
+camera enhance
+camera exclamation
+camera front
+camera heart
+camera indoor
+camera lens
+camera lens ai
+camera minus
+camera moon
+camera off
+camera outdoor
+camera pause
+camera pin
+camera plus
+camera question
+camera rear
+camera reels
+camera retro
+camera reverse
+camera roll
+camera rotate
+camera search
+camera selfie
+camera share
+camera spark
+camera star
+camera switch
+camera up
+camera video
+camera video off
+camera2
+camera3
+camera4
+cameraswitch
+campaign
+camper
+campfire
+campground
+canadian maple leaf
+canary
+cancel
+cancel presentation
+cancel schedule send
+candle
+candlestick chart
+candy
+candy cane
+candy off
+cane
+cannabis
+cap
+cap projecting
+cap straight
+capslock
+capsule
+capsule horizontal
+capsule pill
+capsules
+capture
+capture off
+car
+car alt
+car battery
+car burst
+car crane
+car crash
+car door
+car fan
+car fan auto
+car fan1
+car fan2
+car fan3
+car front
+car garage
+car lifter
+car off
+car off road
+car on
+car rear
+car rental
+car repair
+car side
+car sport
+car suspension
+car suv
+car tunnel
+car turbine
+car washing
+car4 wd
+carambola
+caravan
+card
+card checklist
+card giftcard
+card heading
+card image
+card list
+card membership
+card text
+card travel
+cardboards
+cardboards off
+cards
+caret back
+caret back circle
+caret down
+caret down circle
+caret down square
+caret forward
+caret forward circle
+caret left
+caret left right
+caret left square
+caret right
+caret right square
+caret square down
+caret square left
+caret square right
+caret square up
+caret up
+caret up circle
+caret up down
+caret up square
+carousel horizontal
+carousel vertical
+carousel view
+carpenter
+carrot
+carrot off
+carry out
+cart
+cart arrow down
+cart check
+cart dash
+cart flatbed
+cart flatbed suitcase
+cart plus
+cart shopping
+cart2
+cart3
+cart4
+cases
+cash
+cash banknote
+cash banknote edit
+cash banknote heart
+cash banknote minus
+cash banknote move
+cash banknote move back
+cash banknote off
+cash banknote plus
+cash coin
+cash edit
+cash heart
+cash minus
+cash move
+cash move back
+cash off
+cash plus
+cash register
+cash stack
+casino
+cassette
+cast
+cast connected
+cast for education
+cast off
+castle
+cat
+catching pokemon
+category
+category minus
+category plus
+category2
+cc amazon pay
+cc amex
+cc apple pay
+cc circle
+cc diners club
+cc discover
+cc jcb
+cc mastercard
+cc paypal
+cc square
+cc stripe
+cc visa
+ce
+ce off
+cedi sign
+celebration
+cell
+cell signal off
+cell signal1
+cell signal2
+cell signal3
+cell signal4
+cell signal5
+cell tower
+cell wifi
+cellphone
+cellular
+celsius
+cent sign
+center focus strong
+center focus weak
+centercode
+centos
+certificate
+certificate off
+certificate2
+certificate2 off
+chair
+chair alt
+chair director
+chalet
+chalkboard
+chalkboard off
+chalkboard teacher
+chalkboard user
+champagne glasses
+change circle
+change history
+character recognition
+charging pile
+charging pile2
+charging station
+chart
+chart arcs
+chart arcs3
+chart area
+chart arrows
+chart arrows vertical
+chart bar
+chart bar off
+chart bar popular
+chart bar square
+chart bubble
+chart candle
+chart circles
+chart cohort
+chart column
+chart covariate
+chart diagram
+chart donut
+chart donut2
+chart donut3
+chart donut4
+chart dots
+chart dots2
+chart dots3
+chart funnel
+chart gantt
+chart grid dots
+chart histogram
+chart infographic
+chart pie
+chart pie off
+chart pie2
+chart pie3
+chart pie4
+chart ppf
+chart radar
+chart sankey
+chart scatter
+chart scatter3
+chart simple
+chart treemap
+chat
+chat ai
+chat ai2
+chat ai3
+chat ai4
+chat bubble
+chat bubble bottom center
+chat bubble bottom center text
+chat bubble left
+chat bubble left ellipsis
+chat bubble left right
+chat bubble oval left
+chat bubble oval left ellipsis
+chat check
+chat delete
+chat dots
+chat download
+chat follow up
+chat forward
+chat heart
+chat history
+chat left
+chat left dots
+chat left heart
+chat left quote
+chat left text
+chat new
+chat off
+chat poll
+chat private
+chat quote
+chat right
+chat right dots
+chat right heart
+chat right quote
+chat right text
+chat search
+chat settings
+chat smile
+chat smile ai
+chat smile ai3
+chat smile2
+chat smile3
+chat square
+chat square dots
+chat square heart
+chat square quote
+chat square text
+chat text
+chat thread
+chat unread
+chat upload
+chat voice
+chat voice ai
+chat1
+chat2
+chat3
+chat4
+chatbox
+chatbox ellipses
+chatbubble
+chatbubble ellipses
+chatbubbles
+check
+check all
+check badge
+check box
+check box blank
+check circle
+check double
+check lg
+check square
+check to slot
+check2
+check2 all
+check2 circle
+check2 square
+checkbox
+checkbox blank
+checkbox blank circle
+checkbox circle
+checkbox indeterminate
+checkbox multiple
+checkbox multiple blank
+checklist
+checklist rtl
+checkmark
+checkmark circle
+checkmark done
+checkmark done circle
+checkroom
+checks
+checkup list
+cheese
+chef hat
+chef hat off
+cherry
+chess
+chess bishop
+chess board
+chess king
+chess knight
+chess pawn
+chess queen
+chess rook
+chevron back
+chevron back circle
+chevron bar contract
+chevron bar down
+chevron bar expand
+chevron bar left
+chevron bar right
+chevron bar up
+chevron circle down
+chevron circle left
+chevron circle right
+chevron circle up
+chevron compact down
+chevron compact left
+chevron compact right
+chevron compact up
+chevron contract
+chevron double down
+chevron double left
+chevron double right
+chevron double up
+chevron down
+chevron down circle
+chevron down left
+chevron down right
+chevron expand
+chevron forward
+chevron forward circle
+chevron left
+chevron left pipe
+chevron right
+chevron right pipe
+chevron up
+chevron up circle
+chevron up down
+chevron up left
+chevron up right
+chevrons down
+chevrons down left
+chevrons down right
+chevrons left
+chevrons right
+chevrons up
+chevrons up left
+chevrons up right
+child
+child care
+child combatant
+child dress
+child friendly
+child reaching
+children
+china railway
+chisel
+chocolate
+christmas ball
+christmas tree
+christmas tree off
+chrome
+chrome reader mode
+chromecast
+church
+ci
+ci circle
+circle
+circle arrow down
+circle arrow down left
+circle arrow down right
+circle arrow left
+circle arrow right
+circle arrow up
+circle arrow up left
+circle arrow up right
+circle asterisk
+circle caret down
+circle caret left
+circle caret right
+circle caret up
+circle check
+circle chevron down
+circle chevron left
+circle chevron right
+circle chevron up
+circle chevrons down
+circle chevrons left
+circle chevrons right
+circle chevrons up
+circle dashed
+circle dashed check
+circle dashed letter
+circle dashed minus
+circle dashed number0
+circle dashed number1
+circle dashed number2
+circle dashed number3
+circle dashed number4
+circle dashed number5
+circle dashed number6
+circle dashed number7
+circle dashed number8
+circle dashed number9
+circle dashed percentage
+circle dashed plus
+circle dollar to slot
+circle dot
+circle dotted
+circle dotted letter
+circle down
+circle exclamation
+circle half
+circle half stroke
+circle half vertical
+circle half2
+circle info
+circle key
+circle left
+circle letter
+circle minus
+circle minus2
+circle nodes
+circle notch
+circle notifications
+circle number0
+circle number1
+circle number2
+circle number3
+circle number4
+circle number5
+circle number6
+circle number7
+circle number8
+circle number9
+circle off
+circle open arrow down
+circle open arrow left
+circle open arrow right
+circle open arrow up
+circle pause
+circle percentage
+circle play
+circle plus
+circle plus minus
+circle plus2
+circle question
+circle radiation
+circle rectangle
+circle rectangle off
+circle right
+circle square
+circle stack
+circle stop
+circle triangle
+circle up
+circle user
+circle xmark
+circles
+circles relation
+circuit ammeter
+circuit battery
+circuit bulb
+circuit capacitor
+circuit capacitor polarized
+circuit cell
+circuit cell plus
+circuit changeover
+circuit diode
+circuit diode zener
+circuit ground
+circuit ground digital
+circuit inductor
+circuit motor
+circuit pushbutton
+circuit resistor
+circuit switch closed
+circuit switch open
+circuit voltmeter
+city
+clapperboard
+clapperboard ai
+class
+claude
+clean hands
+cleaning services
+clear
+clear all
+clear formatting
+clef
+clef staff
+click
+cliff jumping
+clinic medical
+clipboard
+clipboard check
+clipboard copy
+clipboard data
+clipboard document
+clipboard document check
+clipboard document list
+clipboard heart
+clipboard list
+clipboard minus
+clipboard off
+clipboard plus
+clipboard pulse
+clipboard question
+clipboard search
+clipboard smile
+clipboard text
+clipboard typography
+clipboard user
+clipboard2
+clipboard2 check
+clipboard2 data
+clipboard2 heart
+clipboard2 minus
+clipboard2 plus
+clipboard2 pulse
+clock
+clock bitcoin
+clock bolt
+clock cancel
+clock check
+clock circle
+clock code
+clock cog
+clock dollar
+clock down
+clock edit
+clock exclamation
+clock heart
+clock history
+clock hour1
+clock hour10
+clock hour11
+clock hour12
+clock hour2
+clock hour3
+clock hour4
+clock hour5
+clock hour6
+clock hour7
+clock hour8
+clock hour9
+clock minus
+clock off
+clock pause
+clock pin
+clock play
+clock plus
+clock question
+clock record
+clock rotate left
+clock search
+clock share
+clock shield
+clock star
+clock stop
+clock up
+clock12
+clock2
+clock24
+clockwise
+clockwise2
+clone
+close
+close circle
+close fullscreen
+close large
+close square
+closed caption
+closed caption disabled
+closed caption off
+closed captioning
+closed captioning ai
+clothes rack
+clothes rack off
+cloud
+cloud arrow down
+cloud arrow up
+cloud bitcoin
+cloud bolt
+cloud cancel
+cloud check
+cloud circle
+cloud code
+cloud cog
+cloud computing
+cloud data connection
+cloud dollar
+cloud done
+cloud down
+cloud download
+cloud download alt
+cloud drizzle
+cloud exclamation
+cloud fog
+cloud fog2
+cloud hail
+cloud haze
+cloud haze2
+cloud heart
+cloud lightning
+cloud lightning rain
+cloud lock
+cloud lock open
+cloud meatball
+cloud minus
+cloud moon
+cloud moon rain
+cloud network
+cloud off
+cloud offline
+cloud pause
+cloud pin
+cloud plus
+cloud question
+cloud queue
+cloud rain
+cloud rain heavy
+cloud search
+cloud server
+cloud share
+cloud showers heavy
+cloud showers water
+cloud slash
+cloud sleet
+cloud snow
+cloud star
+cloud storm
+cloud sun
+cloud sun rain
+cloud sync
+cloud up
+cloud upload
+cloud upload alt
+cloud windy
+cloudflare
+clouds
+cloudscale
+cloudsmith
+cloudversify
+cloudy
+cloudy night
+cloudy snowing
+cloudy2
+clover
+clover2
+clubs
+cluster
+cmplid
+co present
+co2
+cocktail
+code
+code ai
+code asterisk
+code block
+code box
+code bracket
+code bracket square
+code branch
+code circle
+code circle2
+code commit
+code compare
+code dots
+code download
+code fork
+code merge
+code minus
+code off
+code plus
+code pull request
+code sandbox
+code sandbox circle
+code sandbox square
+code slash
+code square
+code variable
+code variable minus
+code variable plus
+code view
+code working
+codeblock
+codepen
+codepen circle
+codepen square
+codesandbox
+codiepie
+coffee
+coffee maker
+coffee off
+coffin
+cog
+cog6 tooth
+cog8 tooth
+cogs
+coin
+coin bitcoin
+coin euro
+coin monero
+coin off
+coin pound
+coin rupee
+coin taka
+coin yen
+coin yuan
+coins
+collage
+collapse diagonal
+collapse diagonal2
+collapse horizontal
+collapse vertical
+collection
+collection play
+collections
+collections bookmark
+colon sign
+color
+color filter
+color filter ai
+color lens
+color palette
+color picker
+color picker off
+color swatch
+color swatch off
+color wand
+colorize
+column height
+column insert left
+column insert right
+column remove
+column width
+columns
+columns gap
+columns off
+columns1
+columns2
+columns3
+combinator
+comet
+command
+command off
+comment
+comment alt
+comment bank
+comment dollar
+comment dots
+comment medical
+comment nodes
+comment slash
+comment sms
+comments
+comments disabled
+comments dollar
+commit
+community
+commute
+compact disc
+compare
+compare arrows
+compass
+compass calibration
+compass discover
+compass drafting
+compass off
+compass2
+compass3
+compass4
+compasses
+compasses2
+components
+components off
+compost
+compress
+compress alt
+compress arrows alt
+computer
+computer desktop
+computer mouse
+concierge bell
+cone
+cone off
+cone plus
+cone striped
+cone2
+confetti
+confetti off
+confirmation number
+confluence
+confucius
+congruent to
+connect without contact
+connectdevelop
+connected tv
+connecting airports
+connection
+connector
+console sql
+construct
+construction
+contact emergency
+contact mail
+contact page
+contact phone
+contact support
+contactless
+contacts
+contacts book
+contacts book upload
+contacts book2
+contacts book3
+container
+container off
+contao
+content copy
+content cut
+content paste
+content paste go
+content paste off
+content paste search
+contract
+contract left
+contract left right
+contract right
+contract up down
+contrast
+contrast drop
+contrast drop2
+contrast off
+contrast2
+contrast2 off
+control
+control camera
+control point
+control point duplicate
+controller
+conveyor belt
+cooker
+cookie
+cookie bite
+cookie man
+cookie off
+copilot
+copper coin
+copper diamond
+copy
+copy all
+copy check
+copy minus
+copy off
+copy plus
+copyleft
+copyleft off
+copyright
+copyright circle
+copyright off
+coreos
+corner
+corner down left
+corner down left double
+corner down right
+corner down right double
+corner left down
+corner left down double
+corner left up
+corner left up double
+corner right down
+corner right down double
+corner right up
+corner right up double
+corner up left
+corner up left double
+corner up right
+corner up right double
+coronavirus
+corporate fare
+cottage
+cotton bureau
+couch
+countertops
+coupon
+coupon2
+coupon3
+coupon4
+coupon5
+cow
+cpanel
+cpu
+cpu chip
+cpu off
+cpu2
+crane
+crane off
+create
+create new folder
+creative commons
+creative commons by
+creative commons nc
+creative commons nc eu
+creative commons nc jp
+creative commons nd
+creative commons off
+creative commons pd
+creative commons pd alt
+creative commons remix
+creative commons sa
+creative commons sampling
+creative commons sampling plus
+creative commons share
+creative commons zero
+credit card
+credit card hand
+credit card off
+credit card pay
+credit card refund
+credit card2 back
+credit card2 front
+credit score
+credits
+crib
+cricket
+criminal
+crisis alert
+critical role
+crop
+crop alt
+crop din
+crop free
+crop landscape
+crop original
+crop portrait
+crop rotate
+crop simple
+crop square
+crop11
+crop169
+crop2
+crop32
+crop54
+crop75
+cross
+cross off
+crosshair
+crosshair2
+crosshairs
+crow
+crown
+crown off
+cruelty free
+crutch
+crutches
+crutches off
+cruzeiro sign
+crystal ball
+css
+css3
+css3 alt
+csv
+cube
+cube off
+cube plus
+cube send
+cube spark
+cube transparent
+cube unfolded
+cube3d sphere
+cube3d sphere off
+cubes
+cubes stacked
+cup
+cup hot
+cup off
+cup straw
+curling
+curly loop
+currency
+currency afghani
+currency bahraini
+currency baht
+currency bangladeshi
+currency bitcoin
+currency cent
+currency dinar
+currency dirham
+currency dogecoin
+currency dollar
+currency dollar australian
+currency dollar brunei
+currency dollar canadian
+currency dollar guyanese
+currency dollar off
+currency dollar singapore
+currency dollar zimbabwean
+currency dong
+currency dram
+currency ethereum
+currency euro
+currency euro off
+currency exchange
+currency florin
+currency forint
+currency franc
+currency frank
+currency guarani
+currency hryvnia
+currency husd
+currency iranian rial
+currency kip
+currency krone czech
+currency krone danish
+currency krone swedish
+currency lari
+currency leu
+currency lira
+currency litecoin
+currency lyd
+currency manat
+currency monero
+currency naira
+currency nano
+currency off
+currency paanga
+currency peso
+currency pound
+currency pound off
+currency quetzal
+currency real
+currency renminbi
+currency ripple
+currency riyal
+currency rubel
+currency ruble
+currency rufiyaa
+currency rupee
+currency rupee nepalese
+currency shekel
+currency solana
+currency som
+currency taka
+currency tenge
+currency tether
+currency tugrik
+currency won
+currency xrp
+currency yen
+currency yen off
+currency yuan
+currency zcash
+currency zloty
+current location
+current location off
+cursor
+cursor ai
+cursor arrow rays
+cursor arrow ripple
+cursor hand
+cursor off
+cursor text
+curtains
+curtains closed
+custom size
+customer service
+customer service2
+cut
+cuttlefish
+cyclone
+cylinder
+cylinder off
+cylinder plus
+dailymotion
+dangerous
+dark mode
+dart lang
+dash
+dash circle
+dash circle dotted
+dash lg
+dash square
+dash square dotted
+dashboard
+dashboard customize
+dashboard horizontal
+dashboard off
+dashboard2
+dashboard3
+dashcube
+dashed
+data array
+data exploration
+data object
+data saver off
+data saver on
+data thresholding
+data usage
+database
+database add
+database check
+database cog
+database dash
+database dollar
+database down
+database edit
+database exclamation
+database export
+database gear
+database heart
+database import
+database leak
+database lock
+database minus
+database off
+database plus
+database search
+database share
+database slash
+database smile
+database star
+database up
+database2
+dataset
+dataset linked
+date range
+deaf
+debian
+deblur
+decimal
+deck
+deepseek
+deer
+deezer
+dehaze
+delete
+delete back
+delete back2
+delete bin
+delete bin2
+delete bin3
+delete bin4
+delete bin5
+delete bin6
+delete bin7
+delete column
+delete forever
+delete left
+delete row
+delete sweep
+delicious
+delivered procedure
+delivery dining
+delta
+democrat
+density large
+density medium
+density small
+dental
+dental broken
+dental off
+departure board
+deploydog
+deployment unit
+description
+deselect
+design services
+desk
+deskpro
+desktop
+desktop access disabled
+desktop mac
+desktop windows
+details
+details off
+dev
+developer board
+developer board off
+developer mode
+deviantart
+device
+device airpods
+device airpods case
+device airtag
+device analytics
+device audio tape
+device camera phone
+device cctv
+device cctv off
+device computer camera
+device computer camera off
+device computer camera2
+device desktop
+device desktop analytics
+device desktop bolt
+device desktop cancel
+device desktop check
+device desktop code
+device desktop cog
+device desktop dollar
+device desktop down
+device desktop exclamation
+device desktop heart
+device desktop minus
+device desktop off
+device desktop pause
+device desktop pin
+device desktop plus
+device desktop question
+device desktop search
+device desktop share
+device desktop star
+device desktop up
+device floppy
+device gamepad
+device gamepad2
+device gamepad3
+device hdd
+device heart monitor
+device hub
+device imac
+device imac bolt
+device imac cancel
+device imac check
+device imac code
+device imac cog
+device imac dollar
+device imac down
+device imac exclamation
+device imac heart
+device imac minus
+device imac off
+device imac pause
+device imac pin
+device imac plus
+device imac question
+device imac search
+device imac share
+device imac star
+device imac up
+device ipad
+device ipad bolt
+device ipad cancel
+device ipad check
+device ipad code
+device ipad cog
+device ipad dollar
+device ipad down
+device ipad exclamation
+device ipad heart
+device ipad horizontal
+device ipad horizontal bolt
+device ipad horizontal cancel
+device ipad horizontal check
+device ipad horizontal code
+device ipad horizontal cog
+device ipad horizontal dollar
+device ipad horizontal down
+device ipad horizontal exclamation
+device ipad horizontal heart
+device ipad horizontal minus
+device ipad horizontal off
+device ipad horizontal pause
+device ipad horizontal pin
+device ipad horizontal plus
+device ipad horizontal question
+device ipad horizontal search
+device ipad horizontal share
+device ipad horizontal star
+device ipad horizontal up
+device ipad minus
+device ipad off
+device ipad pause
+device ipad pin
+device ipad plus
+device ipad question
+device ipad search
+device ipad share
+device ipad star
+device ipad up
+device landline phone
+device laptop
+device laptop off
+device mobile
+device mobile bolt
+device mobile cancel
+device mobile charging
+device mobile check
+device mobile code
+device mobile cog
+device mobile dollar
+device mobile down
+device mobile exclamation
+device mobile heart
+device mobile message
+device mobile minus
+device mobile off
+device mobile pause
+device mobile pin
+device mobile plus
+device mobile question
+device mobile rotated
+device mobile search
+device mobile share
+device mobile star
+device mobile up
+device mobile vibration
+device nintendo
+device nintendo off
+device phone mobile
+device projector
+device recover
+device remote
+device screen
+device sd card
+device sim
+device sim1
+device sim2
+device sim3
+device speaker
+device speaker off
+device ssd
+device tablet
+device tablet bolt
+device tablet cancel
+device tablet check
+device tablet code
+device tablet cog
+device tablet dollar
+device tablet down
+device tablet exclamation
+device tablet heart
+device tablet minus
+device tablet off
+device tablet pause
+device tablet pin
+device tablet plus
+device tablet question
+device tablet search
+device tablet share
+device tablet star
+device tablet up
+device thermostat
+device tv
+device tv off
+device tv old
+device unknown
+device usb
+device vision pro
+device watch
+device watch bolt
+device watch cancel
+device watch check
+device watch code
+device watch cog
+device watch dollar
+device watch down
+device watch exclamation
+device watch heart
+device watch minus
+device watch off
+device watch pause
+device watch pin
+device watch plus
+device watch question
+device watch search
+device watch share
+device watch star
+device watch stats
+device watch stats2
+device watch up
+device3d camera
+device3d lens
+devices
+devices bolt
+devices cancel
+devices check
+devices code
+devices cog
+devices dollar
+devices down
+devices exclamation
+devices fold
+devices heart
+devices minus
+devices off
+devices other
+devices pause
+devices pc
+devices pc off
+devices pin
+devices plus
+devices question
+devices search
+devices share
+devices star
+devices up
+devices2
+dew point
+dharmachakra
+dhl
+diabolo
+diabolo off
+diabolo plus
+diagnoses
+diagram next
+diagram predecessor
+diagram project
+diagram successor
+diagram2
+diagram3
+dialer sip
+dialpad
+dialpad off
+diamond
+diamond half
+diamond off
+diamond ring
+diamond turn right
+diamonds
+diaper
+diaspora
+dice
+dice d20
+dice d6
+dice five
+dice four
+dice one
+dice six
+dice three
+dice1
+dice2
+dice3
+dice4
+dice5
+dice6
+diff
+difference
+digg
+digital ocean
+digital tachograph
+dimensions
+dingding
+dingtalk
+dingtalk circle
+dingtalk square
+dining
+dinner dining
+direction
+direction arrows
+direction horizontal
+direction sign
+direction sign off
+directions
+directions bike
+directions boat
+directions bus
+directions car
+directions off
+directions railway
+directions run
+directions subway
+directions transit
+directions walk
+dirty lens
+disabled
+disabled by default
+disabled off
+disabled visible
+disabled2
+disc
+disc full
+disc golf
+disc off
+disconnect
+discord
+discount
+discount off
+discount percent
+discourse
+discuss
+disease
+disk
+dislike
+display
+display settings
+displayport
+disqus
+distribute horizontal
+distribute vertical
+diversity1
+diversity2
+diversity3
+divide
+divide circle
+divide square
+dizzy
+dna
+dna off
+dna2
+dna2 off
+dns
+do disturb
+do disturb alt
+do disturb off
+do disturb on
+do not disturb
+do not disturb alt
+do not disturb off
+do not disturb on
+do not disturb on total silence
+do not step
+do not touch
+dochub
+dock
+docker
+document
+document arrow down
+document arrow up
+document attach
+document chart bar
+document check
+document currency bangladeshi
+document currency dollar
+document currency euro
+document currency pound
+document currency rupee
+document currency yen
+document duplicate
+document lock
+document magnifying glass
+document minus
+document plus
+document scanner
+document text
+documents
+dog
+dog bowl
+dollar
+dollar circle
+dollar sign
+dolly
+dolly flatbed
+domain
+domain add
+domain disabled
+domain verification
+donate
+done
+done all
+dong sign
+donut chart
+donut large
+donut small
+door
+door back
+door closed
+door enter
+door exit
+door front
+door hanger
+door lock
+door lock box
+door off
+door open
+door sliding
+doorbell
+dossier
+dot
+dot chart
+dot circle
+dot net
+dots
+dots circle horizontal
+dots diagonal
+dots diagonal2
+dots vertical
+dotted
+douban
+double arrow
+double left
+double quotes
+double right
+dove
+down
+down circle
+down left and up right to center
+down long
+down square
+downhill skiing
+download
+download cloud
+download cloud2
+download done
+download for offline
+download off
+download2
+downloading
+dpad
+draft
+draft2 digital
+drafting compass
+drafts
+drag
+drag drop
+drag drop2
+drag handle
+drag indicator
+drag move
+drag move2
+draggable
+dragon
+draw
+draw polygon
+dribbble
+dribbble circle
+dribbble square
+drinks
+drinks2
+drip
+drive
+drive eta
+drive file move
+drive file move rtl
+drive file rename
+drive folder upload
+drizzle
+drone
+drone off
+drop
+drop circle
+dropbox
+dropbox circle
+dropbox square
+dropdown list
+droplet
+droplet bolt
+droplet cancel
+droplet check
+droplet code
+droplet cog
+droplet dollar
+droplet down
+droplet exclamation
+droplet half
+droplet half2
+droplet heart
+droplet minus
+droplet off
+droplet pause
+droplet pin
+droplet plus
+droplet question
+droplet search
+droplet share
+droplet slash
+droplet star
+droplet up
+droplets
+dropper
+drum
+drum steelpan
+drumstick bite
+drupal
+dry
+dry cleaning
+dual screen
+dual sim1
+dual sim2
+duffle
+dumbbell
+dumpling
+dumpster
+dumpster fire
+dungeon
+duo
+duplicate
+dv
+dvd
+dvd ai
+dvr
+dyalog
+dynamic feed
+dynamic form
+ear
+ear deaf
+ear listen
+ear off
+ear scan
+earbuds
+earbuds battery
+earlybirds
+earphone bluetooth
+earth
+earth africa
+earth americas
+earth asia
+earth europe
+earth oceania
+earthquake
+ease in
+ease in control point
+ease in out
+ease in out control points
+ease out
+ease out control point
+easel
+easel2
+easel3
+east
+ebay
+eco
+edge
+edge legacy
+edge new
+edgesensor high
+edgesensor low
+edit
+edit attributes
+edit box
+edit calendar
+edit circle
+edit circle off
+edit document
+edit location
+edit location alt
+edit note
+edit notifications
+edit off
+edit road
+edit square
+edit2
+edit3
+egg
+egg alt
+egg cracked
+egg fried
+egg off
+eggs
+eject
+elderly
+elderly woman
+electric bike
+electric bolt
+electric car
+electric meter
+electric moped
+electric rickshaw
+electric scooter
+electrical services
+elementor
+elevator
+elevator off
+ellipse
+ellipsis
+ellipsis horizontal
+ellipsis horizontal circle
+ellipsis vertical
+ellipsis vertical circle
+ello
+email
+email stamp
+ember
+emergency
+emergency bed
+emergency recording
+emergency share
+emoji angry
+emoji astonished
+emoji dizzy
+emoji emotions
+emoji events
+emoji expressionless
+emoji flags
+emoji food beverage
+emoji frown
+emoji grimace
+emoji grin
+emoji heart eyes
+emoji kiss
+emoji laughing
+emoji nature
+emoji neutral
+emoji objects
+emoji people
+emoji smile
+emoji smile upside down
+emoji sticker
+emoji sunglasses
+emoji surprise
+emoji symbols
+emoji tear
+emoji transportation
+emoji wink
+emotion
+emotion add
+emotion happy
+emotion laugh
+emotion normal
+emotion sad
+emotion unhappy
+emotion2
+empathize
+empathize off
+emphasis
+emphasis cn
+empire
+energy savings leaf
+engine
+engine off
+engineering
+english input
+enhanced encryption
+enter
+envelope
+envelope arrow down
+envelope arrow up
+envelope at
+envelope check
+envelope circle check
+envelope dash
+envelope exclamation
+envelope heart
+envelope open
+envelope open heart
+envelope open text
+envelope paper
+envelope paper heart
+envelope plus
+envelope slash
+envelope square
+envelopes bulk
+envira
+environment
+equal
+equal double
+equal not
+equalizer
+equalizer2
+equalizer3
+equals
+eraser
+eraser off
+erlang
+error
+error warning
+error404
+error404 off
+escalator
+escalator down
+escalator up
+escalator warning
+escape
+eth
+ethereum
+ethernet
+etsy
+euro
+euro circle
+euro sign
+euro symbol
+ev front
+ev station
+event
+event available
+event busy
+event note
+event repeat
+event seat
+evernote
+exception
+exchange
+exchange alt
+exchange box
+exchange cny
+exchange dollar
+exchange funds
+exchange off
+exchange2
+exclamation
+exclamation circle
+exclamation diamond
+exclamation lg
+exclamation mark
+exclamation mark off
+exclamation octagon
+exclamation square
+exclamation triangle
+exclude
+exercise ball
+exit
+exit to app
+expand
+expand alt
+expand arrows alt
+expand circle down
+expand diagonal
+expand diagonal s2
+expand diagonal2
+expand height
+expand horizontal
+expand left
+expand left right
+expand less
+expand more
+expand right
+expand up down
+expand vertical
+expand width
+expeditedssl
+experiment
+explicit
+explicit off
+explore
+explore off
+explosion
+export
+exposure
+exposure minus1
+exposure minus2
+exposure neg1
+exposure neg2
+exposure off
+exposure plus1
+exposure plus2
+exposure zero
+exposure0
+extension
+extension off
+extension puzzle
+external link
+external link alt
+external link off
+external link square alt
+eye
+eye bitcoin
+eye bolt
+eye cancel
+eye check
+eye close
+eye closed
+eye code
+eye cog
+eye discount
+eye dollar
+eye dotted
+eye down
+eye dropper
+eye edit
+eye exclamation
+eye heart
+eye invisible
+eye low vision
+eye minus
+eye off
+eye pause
+eye pin
+eye plus
+eye question
+eye search
+eye share
+eye slash
+eye spark
+eye star
+eye table
+eye up
+eye2
+eyedrop
+eyedropper
+eyeglass
+eyeglass off
+eyeglass2
+eyeglasses
+face
+face angry
+face dizzy
+face flushed
+face frown
+face frown open
+face grimace
+face grin
+face grin beam
+face grin beam sweat
+face grin hearts
+face grin squint
+face grin squint tears
+face grin stars
+face grin tears
+face grin tongue
+face grin tongue squint
+face grin tongue wink
+face grin wide
+face grin wink
+face id
+face id error
+face kiss
+face kiss beam
+face kiss wink heart
+face laugh
+face laugh beam
+face laugh squint
+face laugh wink
+face mask
+face mask off
+face meh
+face meh blank
+face retouching natural
+face retouching off
+face rolling eyes
+face sad cry
+face sad tear
+face smile
+face smile beam
+face smile wink
+face surprise
+face tired
+face unlock
+face2
+face3
+face4
+face5
+face6
+facebook
+facebook box
+facebook circle
+facebook messenger
+facebook square
+fact check
+factory
+fahrenheit
+fall
+family restroom
+fan
+fantasy flight games
+fast backward
+fast food
+fast forward
+fast forward btn
+fast forward circle
+fast rewind
+fastfood
+faucet
+faucet drip
+favicon
+favorite
+favorite border
+fax
+feather
+feather alt
+feather off
+feather pointed
+feather2
+featured play list
+featured video
+fedex
+fediverse
+fedora
+feed
+feedback
+female
+fence
+fence off
+ferry
+festival
+fiber dvr
+fiber manual record
+fiber new
+fiber pin
+fiber smart record
+fidget spinner
+field binary
+field number
+field string
+field time
+fighter jet
+figma
+file
+file add
+file ai
+file ai2
+file alert
+file alt
+file analytics
+file archive
+file arrow down
+file arrow left
+file arrow right
+file arrow up
+file audio
+file bar graph
+file barcode
+file binary
+file bitcoin
+file break
+file broken
+file certificate
+file chart
+file chart2
+file check
+file circle check
+file circle exclamation
+file circle minus
+file circle plus
+file circle question
+file circle xmark
+file close
+file cloud
+file code
+file code2
+file contract
+file copy
+file copy2
+file csv
+file cv
+file damage
+file database
+file delta
+file description
+file diff
+file digit
+file dislike
+file dollar
+file done
+file dots
+file download
+file download done
+file download off
+file earmark
+file earmark arrow down
+file earmark arrow up
+file earmark bar graph
+file earmark binary
+file earmark break
+file earmark check
+file earmark code
+file earmark diff
+file earmark easel
+file earmark excel
+file earmark font
+file earmark image
+file earmark lock
+file earmark lock2
+file earmark medical
+file earmark minus
+file earmark music
+file earmark pdf
+file earmark person
+file earmark play
+file earmark plus
+file earmark post
+file earmark ppt
+file earmark richtext
+file earmark ruled
+file earmark slides
+file earmark spreadsheet
+file earmark text
+file earmark word
+file earmark zip
+file easel
+file edit
+file euro
+file excel
+file excel2
+file exclamation
+file export
+file font
+file forbid
+file fragment
+file function
+file gif
+file half dashed
+file history
+file horizontal
+file hwp
+file image
+file import
+file infinity
+file info
+file invoice
+file invoice dollar
+file isr
+file jpg
+file lambda
+file like
+file lines
+file list
+file list2
+file list3
+file lock
+file lock2
+file markdown
+file marked
+file medical
+file medical alt
+file minus
+file music
+file neutral
+file off
+file open
+file orientation
+file paper
+file paper2
+file pdf
+file pdf2
+file pen
+file pencil
+file percent
+file person
+file phone
+file play
+file plus
+file post
+file power
+file powerpoint
+file ppt
+file ppt2
+file prescription
+file present
+file protect
+file reduce
+file report
+file richtext
+file rss
+file ruled
+file sad
+file scan
+file scissors
+file search
+file settings
+file shield
+file shield2
+file shred
+file shredder
+file signal
+file signature
+file slides
+file smile
+file spark
+file spreadsheet
+file stack
+file star
+file symlink
+file sync
+file text
+file text ai
+file text shield
+file text spark
+file time
+file transfer
+file tray
+file tray full
+file tray stacked
+file type bmp
+file type css
+file type csv
+file type doc
+file type docx
+file type html
+file type jpg
+file type js
+file type jsx
+file type pdf
+file type php
+file type png
+file type ppt
+file type rs
+file type sql
+file type svg
+file type ts
+file type tsx
+file type txt
+file type vue
+file type xls
+file type xml
+file type zip
+file typography
+file unknow
+file unknown
+file upload
+file upload off
+file user
+file vector
+file video
+file warning
+file waveform
+file word
+file word2
+file zip
+file zipper
+file2
+file3
+file4
+files
+files alt
+files off
+files pinwheel
+filetype aac
+filetype ai
+filetype bmp
+filetype cs
+filetype css
+filetype csv
+filetype doc
+filetype docx
+filetype exe
+filetype gif
+filetype heic
+filetype html
+filetype java
+filetype jpg
+filetype js
+filetype json
+filetype jsx
+filetype key
+filetype m4
+filetype md
+filetype mdx
+filetype mov
+filetype mp3
+filetype mp4
+filetype otf
+filetype pdf
+filetype php
+filetype png
+filetype ppt
+filetype pptx
+filetype psd
+filetype py
+filetype raw
+filetype rb
+filetype sass
+filetype scss
+filetype sh
+filetype sql
+filetype svg
+filetype tiff
+filetype tsx
+filetype ttf
+filetype txt
+filetype wav
+filetype woff
+filetype xls
+filetype xlsx
+filetype xml
+filetype yml
+fill0 circle
+fill0 square
+fill1 circle
+fill1 square
+fill2 circle
+fill2 square
+fill3 circle
+fill3 square
+fill4 circle
+fill4 square
+fill5 circle
+fill5 square
+fill6 circle
+fill6 square
+fill7 circle
+fill7 square
+fill8 circle
+fill8 square
+fill9 circle
+fill9 square
+film
+film ai
+filter
+filter alt
+filter alt off
+filter and
+filter bolt
+filter cancel
+filter center focus
+filter check
+filter circle
+filter circle dollar
+filter circle xmark
+filter code
+filter cog
+filter discount
+filter dollar
+filter down
+filter drama
+filter edit
+filter exclamation
+filter frames
+filter hdr
+filter heart
+filter left
+filter list
+filter list alt
+filter list off
+filter minus
+filter none
+filter off
+filter pause
+filter pin
+filter plus
+filter question
+filter right
+filter search
+filter share
+filter spark
+filter square
+filter star
+filter tilt shift
+filter up
+filter vintage
+filter1
+filter2
+filter2 bolt
+filter2 cancel
+filter2 check
+filter2 code
+filter2 cog
+filter2 discount
+filter2 dollar
+filter2 down
+filter2 edit
+filter2 exclamation
+filter2 minus
+filter2 pause
+filter2 pin
+filter2 plus
+filter2 question
+filter2 search
+filter2 share
+filter2 spark
+filter2 up
+filter3
+filter4
+filter5
+filter6
+filter7
+filter8
+filter9
+filter9 plus
+filters
+find in page
+find replace
+finder
+finger print
+fingerprint
+fingerprint off
+fingerprint scan
+fingerprint2
+fire
+fire alt
+fire burner
+fire extinguisher
+fire flame curved
+fire flame simple
+fire hydrant
+fire hydrant alt
+fire hydrant off
+fire truck
+firebase
+firefox
+firefox browser
+fireplace
+firetruck
+firewall check
+firewall flame
+first aid
+first aid kit
+first aid kit off
+first order
+first order alt
+first page
+firstdraft
+fish
+fish bone
+fish christianity
+fish fins
+fish hook
+fish hook off
+fish off
+fist raised
+fit screen
+fitbit
+fitness
+fitness center
+fiverr
+flag
+flag bitcoin
+flag bolt
+flag cancel
+flag check
+flag checkered
+flag circle
+flag code
+flag cog
+flag discount
+flag dollar
+flag down
+flag exclamation
+flag heart
+flag minus
+flag off
+flag pause
+flag pin
+flag plus
+flag question
+flag search
+flag share
+flag spark
+flag star
+flag up
+flag usa
+flag2
+flag2 off
+flag3
+flaky
+flame
+flame off
+flare
+flash
+flash auto
+flash off
+flash on
+flashlight
+flashlight off
+flashlight on
+flask
+flask florence
+flask off
+flask vial
+flask2
+flask2 off
+flatware
+flickr
+flight
+flight class
+flight land
+flight takeoff
+flip
+flip camera android
+flip camera ios
+flip flops
+flip horizontal
+flip horizontal2
+flip to back
+flip to front
+flip vertical
+flip vertical2
+flipboard
+float center
+float left
+float none
+float right
+flood
+floppy
+floppy disk
+floppy2
+florin sign
+flourescent
+flow chart
+flower
+flower off
+flower1
+flower2
+flower3
+fluorescent
+flushed
+flutter
+flutter dash
+fly
+fmd bad
+fmd good
+focus
+focus auto
+focus centered
+focus mode
+focus2
+focus3
+foggy
+fold
+fold down
+fold up
+folder
+folder add
+folder arrow down
+folder bolt
+folder cancel
+folder chart
+folder chart2
+folder check
+folder close
+folder closed
+folder cloud
+folder code
+folder cog
+folder copy
+folder delete
+folder dollar
+folder down
+folder download
+folder exclamation
+folder forbid
+folder heart
+folder history
+folder image
+folder info
+folder keyhole
+folder lock
+folder minus
+folder music
+folder off
+folder open
+folder pause
+folder pin
+folder plus
+folder question
+folder received
+folder reduce
+folder root
+folder search
+folder settings
+folder share
+folder shared
+folder shield
+folder shield2
+folder special
+folder star
+folder symlink
+folder transfer
+folder tree
+folder unknow
+folder up
+folder upload
+folder user
+folder video
+folder view
+folder warning
+folder zip
+folder2
+folder2 open
+folder3
+folder4
+folder5
+folder6
+folders
+folders off
+follow the signs
+font
+font awesome
+font awesome alt
+font awesome flag
+font awesome logo full
+font color
+font colors
+font download
+font download off
+font family
+font mono
+font sans serif
+font serif
+font size
+font size ai
+font size2
+fonticons
+fonticons fi
+fonts
+food bank
+foodsteps
+football
+football ball
+footprint
+footsteps
+forbid
+forbid2
+forest
+fork
+fork knife
+fork left
+fork right
+forklift
+form
+format align center
+format align justify
+format align left
+format align right
+format bold
+format clear
+format color
+format color reset
+format color text
+format indent decrease
+format indent increase
+format italic
+format list bulleted
+format list bulleted add
+format list numbered
+format list numbered rtl
+format overline
+format paint
+format painter
+format quote
+format shapes
+format size
+format spacing
+format strikethrough
+format textdirection to
+format underlined
+forms
+formula
+fort
+fort awesome
+fort awesome alt
+forum
+forumbee
+forward
+forward end
+forward end mini
+forward fast
+forward step
+forward to inbox
+forward10
+forward15
+forward30
+forward5
+foundation
+fountain
+fountain off
+foursquare
+fps
+fps select
+frame
+frame off
+framer
+franc sign
+free breakfast
+free cancellation
+free code camp
+free rights
+freebsd
+freeze column
+freeze row
+freeze row column
+fridge
+fridge off
+friendica
+friends
+friends off
+frog
+front
+front hand
+front loader
+frown
+frown open
+frustum
+frustum off
+frustum plus
+ft apart
+fuel pump
+fuel pump diesel
+fulcrum
+fullscreen
+fullscreen exit
+function
+function add
+function ai
+function off
+functions
+fund
+fund projection screen
+fund view
+funds
+funds box
+funnel
+funnel dollar
+funnel plot
+futbol
+galactic republic
+galactic senate
+galaxy
+gallery
+gallery upload
+gallery view
+gallery view2
+game
+game controller
+game2
+gamepad
+games
+garage
+garden cart
+garden cart off
+gas meter
+gas pump
+gas station
+gas station off
+gateway
+gatsby
+gauge
+gauge high
+gauge off
+gauge simple
+gauge simple high
+gavel
+gear
+gear wide
+gear wide connected
+gears
+gem
+gemini
+gender agender
+gender ambiguous
+gender androgyne
+gender bigender
+gender demiboy
+gender demigirl
+gender epicene
+gender female
+gender femme
+gender genderfluid
+gender genderless
+gender genderqueer
+gender hermaphrodite
+gender intergender
+gender male
+gender neuter
+gender neutrois
+gender third
+gender trans
+gender transgender
+gender trasvesti
+genderless
+generating tokens
+geo
+geo alt
+geometry
+gesture
+get app
+get pocket
+gg
+gg circle
+ghost
+ghost off
+ghost smile
+ghost2
+ghost3
+ghost4
+gif
+gif box
+gift
+gift card
+gift off
+gift top
+gift2
+gifts
+girl
+git
+git alt
+git branch
+git branch deleted
+git cherry pick
+git close pull request
+git commit
+git compare
+git fork
+git merge
+git network
+git pr draft
+git pull request
+git pull request closed
+git pull request conflict
+git pull request draft
+git repository
+git repository commits
+git repository private
+git square
+gitbook
+gite
+gitee
+github
+github alt
+github square
+gitkraken
+gitlab
+gitter
+gizmo
+glass
+glass champagne
+glass cheers
+glass cocktail
+glass full
+glass gin
+glass martini
+glass martini alt
+glass off
+glass water
+glass water droplet
+glass whiskey
+glasses
+glasses2
+glide
+global
+global off
+globe
+globe africa
+globe alt
+globe americas
+globe asia
+globe asia australia
+globe central south asia
+globe europe
+globe europe africa
+globe off
+globe2
+go game
+goblet
+goblet broken
+goblet2
+gofore
+goggles
+golang
+gold
+golden
+golf
+golf ball
+golf ball tee
+golf course
+golf off
+goodreads
+google
+google circle
+google drive
+google pay
+google play
+google plus
+google plus circle
+google plus square
+google scholar
+google square
+google wallet
+gopuram
+government
+gpp bad
+gpp good
+gpp maybe
+gps
+gps fixed
+gps not fixed
+gps off
+gpu card
+grade
+gradient
+gradienter
+grading
+graduation cap
+grain
+grape
+graph
+graph down
+graph down arrow
+graph off
+graph up
+graph up arrow
+graphic eq
+grass
+gratipay
+grav
+grave
+grave2
+greater than
+greater than equal
+grid
+grid dots
+grid goldenratio
+grid off
+grid on
+grid pattern
+grid scan
+grid view
+grid1 x2
+grid3 x2
+grid3 x2 gap
+grid3 x3
+grid3 x3 gap
+grid4 x4
+grill
+grill fork
+grill off
+grill spatula
+grimace
+grin
+grin alt
+grin beam
+grin beam sweat
+grin hearts
+grin squint
+grin squint tears
+grin stars
+grin tears
+grin tongue
+grin tongue squint
+grin tongue wink
+grin wink
+grip
+grip horizontal
+grip lines
+grip lines vertical
+grip vertical
+gripfire
+grok ai
+group
+group add
+group arrows rotate
+group off
+group remove
+group work
+group2
+group3
+groups
+groups2
+groups3
+growth
+grunt
+guarani sign
+guide
+guilded
+guitar
+guitar pick
+gulp
+gun
+gymnastics
+h1
+h2
+h3
+h4
+h5
+h6
+hacker news
+hacker news square
+hackerrank
+hail
+hamburger
+hammer
+hammer drill
+hammer off
+hamsa
+hand
+hand back fist
+hand click
+hand click off
+hand coin
+hand dots
+hand finger
+hand finger down
+hand finger left
+hand finger off
+hand finger right
+hand fingers
+hand fist
+hand grab
+hand heart
+hand holding
+hand holding dollar
+hand holding droplet
+hand holding hand
+hand holding heart
+hand holding medical
+hand holding usd
+hand holding water
+hand index
+hand index thumb
+hand left
+hand little finger
+hand lizard
+hand love you
+hand middle finger
+hand move
+hand off
+hand paper
+hand peace
+hand point down
+hand point left
+hand point right
+hand point up
+hand pointer
+hand raised
+hand right
+hand ring finger
+hand rock
+hand sanitizer
+hand scissors
+hand sparkles
+hand spock
+hand stop
+hand three fingers
+hand thumb down
+hand thumb up
+hand thumbs down
+hand thumbs up
+hand2
+handbag
+handcuffs
+hands
+hands asl interpreting
+hands bound
+hands bubbles
+hands clapping
+hands helping
+hands holding
+hands holding child
+hands holding circle
+hands praying
+hands wash
+handshake
+handshake alt slash
+handshake angle
+handshake simple
+handshake simple slash
+handshake slash
+handyman
+hanger
+hanger off
+hanger2
+hanukiah
+happy
+hard drive
+hard drive2
+hard drive3
+hard hat
+hardware
+hardware chip
+harmony
+hash
+hashnode
+hashtag
+hat cowboy
+hat cowboy side
+hat wizard
+haze
+haze moon
+haze2
+hd
+hdd
+hdd network
+hdd rack
+hdd stack
+hdmi
+hdr
+hdr auto
+hdr auto select
+hdr enhanced select
+hdr off
+hdr off select
+hdr on
+hdr on select
+hdr plus
+hdr strong
+hdr weak
+head side cough
+head side cough slash
+head side mask
+head side virus
+heading
+heading off
+headphone
+headphones
+headphones alt
+headphones battery
+headphones off
+headphones simple
+headset
+headset mic
+headset off
+headset vr
+healing
+health and safety
+health book
+health recognition
+hearing
+hearing disabled
+heart
+heart add
+heart add2
+heart arrow
+heart bitcoin
+heart bolt
+heart broken
+heart cancel
+heart check
+heart circle
+heart circle bolt
+heart circle check
+heart circle exclamation
+heart circle minus
+heart circle plus
+heart circle xmark
+heart code
+heart cog
+heart crack
+heart discount
+heart dislike
+heart dislike circle
+heart dollar
+heart down
+heart exclamation
+heart half
+heart handshake
+heart minus
+heart off
+heart pause
+heart pin
+heart plus
+heart pulse
+heart question
+heart rate monitor
+heart search
+heart share
+heart spark
+heart star
+heart up
+heart2
+heart3
+heartbeat
+heartbreak
+hearts
+hearts off
+heat map
+heat pump
+heavy showers
+height
+height2
+helicopter
+helicopter landing
+helicopter symbol
+helmet
+helmet off
+helmet safety
+helmet un
+help
+help buoy
+help center
+help circle
+help hexagon
+help octagon
+help off
+help small
+help square
+help triangle
+hemisphere
+hemisphere off
+hemisphere plus
+heptagon
+heptagon half
+hevc
+hexagon
+hexagon asterisk
+hexagon half
+hexagon letter
+hexagon minus
+hexagon minus2
+hexagon nodes
+hexagon nodes bolt
+hexagon number0
+hexagon number1
+hexagon number2
+hexagon number3
+hexagon number4
+hexagon number5
+hexagon number6
+hexagon number7
+hexagon number8
+hexagon number9
+hexagon off
+hexagon plus
+hexagon plus2
+hexagon3
+hexagonal prism
+hexagonal prism off
+hexagonal prism plus
+hexagonal pyramid
+hexagonal pyramid off
+hexagonal pyramid plus
+hexagons
+hexagons off
+hide image
+hide source
+hierarchy
+hierarchy off
+hierarchy2
+hierarchy3
+high quality
+highlight
+highlight alt
+highlight off
+highlighter
+highlights
+hiking
+hill avalanche
+hill rockslide
+hippo
+hips
+hire helper
+history
+history edu
+history off
+history toggle
+history toggle off
+hive
+hls
+hls off
+hockey puck
+holder
+holiday village
+holly berry
+home
+home bitcoin
+home bolt
+home cancel
+home check
+home cog
+home dollar
+home dot
+home down
+home eco
+home edit
+home exclamation
+home gear
+home hand
+home heart
+home infinity
+home link
+home lock
+home max
+home mini
+home minus
+home modern
+home move
+home off
+home office
+home plus
+home question
+home repair service
+home ribbon
+home search
+home share
+home shield
+home signal
+home smile
+home smile2
+home spark
+home star
+home stats
+home up
+home wifi
+home work
+home2
+home3
+home4
+home5
+home6
+home7
+home8
+home9
+honor of kings
+honour
+hooli
+horizontal distribute
+horizontal rule
+horizontal split
+hornbill
+horse
+horse head
+horse toy
+horseshoe
+hospital
+hospital alt
+hospital circle
+hospital symbol
+hospital user
+hot tub
+hot tub person
+hotdog
+hotel
+hotel bed
+hotel class
+hotel service
+hotjar
+hotspot
+hourglass
+hourglass bottom
+hourglass disabled
+hourglass empty
+hourglass end
+hourglass full
+hourglass half
+hourglass high
+hourglass low
+hourglass off
+hourglass split
+hourglass start
+hourglass top
+hourglass2
+hours
+hours12
+hours24
+house
+house add
+house check
+house chimney
+house chimney crack
+house chimney medical
+house chimney user
+house chimney window
+house circle check
+house circle exclamation
+house circle xmark
+house crack
+house damage
+house dash
+house door
+house down
+house exclamation
+house fire
+house flag
+house flood water
+house flood water circle arrow right
+house gear
+house heart
+house laptop
+house lock
+house medical
+house medical circle check
+house medical circle exclamation
+house medical circle xmark
+house medical flag
+house siding
+house signal
+house slash
+house tsunami
+house up
+house user
+houseboat
+houses
+houzz
+how to reg
+how to vote
+hq
+hr
+hryvnia
+hryvnia sign
+html
+html5
+http
+http connect
+http connect off
+http delete
+http delete off
+http get
+http get off
+http head
+http head off
+http options
+http options off
+http patch
+http patch off
+http post
+http post off
+http put
+http put off
+http que
+http que off
+http trace
+http trace off
+https
+hub
+hubspot
+hula hoop
+hurricane
+hvac
+hypnotize
+ice cream
+ice cream off
+ice cream2
+ice skating
+iceberg
+icecream
+icicles
+icons
+icons off
+id
+id badge
+id badge off
+id badge2
+id card
+id card alt
+id card clip
+id off
+idcard
+ideal
+identification
+ie
+ie circle
+ie square
+igloo
+ikosaedr
+image
+image add
+image ai
+image alt
+image aspect ratio
+image circle
+image circle ai
+image download
+image edit
+image generation
+image in picture
+image not supported
+image portrait
+image search
+image upload
+image2
+images
+imagesearch roller
+imdb
+import
+import contacts
+import export
+important devices
+inbox
+inbox archive
+inbox arrow down
+inbox off
+inbox stack
+inbox unarchive
+inbox2
+inboxes
+incognito
+incomplete circle
+increase decrease
+indent
+indent decrease
+indent increase
+indeterminate check box
+indeterminate circle
+indian rupee sign
+industry
+infinite
+infinity
+infinity off
+infinity2
+info
+info card
+info circle
+info hexagon
+info lg
+info octagon
+info small
+info square
+info triangle
+information
+information circle
+information off
+information2
+infrared thermometer
+ink bottle
+inner shadow bottom
+inner shadow bottom left
+inner shadow bottom right
+inner shadow left
+inner shadow right
+inner shadow top
+inner shadow top left
+inner shadow top right
+innosoft
+input
+input ai
+input check
+input cursor
+input cursor move
+input cursor text
+input field
+input method
+input search
+input spark
+insert chart
+insert chart outlined
+insert column left
+insert column right
+insert comment
+insert drive file
+insert emoticon
+insert invitation
+insert link
+insert page break
+insert photo
+insert row above
+insert row below
+insert row bottom
+insert row left
+insert row right
+insert row top
+insights
+instagram
+instagram square
+install
+install desktop
+install mobile
+instalod
+instance
+insurance
+integration instructions
+interaction
+intercom
+interests
+internet explorer
+interpreter mode
+intersect
+inventory
+inventory2
+invert colors
+invert colors off
+invert mode
+invision
+invoice
+ios share
+ioxhost
+iron
+ironing
+ironing off
+ironing steam
+ironing steam off
+ironing1
+ironing2
+ironing3
+irregular polyhedron
+irregular polyhedron off
+irregular polyhedron plus
+iso
+issues
+issues close
+issues reopen
+italic
+itch io
+itunes
+itunes note
+jacket
+jar
+jar wheat
+java
+java script
+javascript
+jedi
+jedi order
+jenkins
+jet fighter
+jet fighter up
+jetpack
+jetski
+jewelry
+jewish star
+jira
+joget
+join
+join bevel
+join full
+join inner
+join left
+join right
+join straight
+joint
+joker
+joomla
+journal
+journal album
+journal arrow down
+journal arrow up
+journal bookmark
+journal check
+journal code
+journal medical
+journal minus
+journal plus
+journal richtext
+journal text
+journal whills
+journals
+joystick
+jpg
+js
+js square
+jsfiddle
+json
+jug detergent
+jump rope
+justify
+justify left
+justify right
+jxl
+kaaba
+kaggle
+kakao talk
+kanban
+kanban view
+kanban view2
+karate
+kayak
+kayaking
+kebab dining
+kerning
+key
+key off
+key2
+keybase
+keyboard
+keyboard alt
+keyboard arrow down
+keyboard arrow left
+keyboard arrow right
+keyboard arrow up
+keyboard backspace
+keyboard box
+keyboard capslock
+keyboard command key
+keyboard control key
+keyboard double arrow down
+keyboard double arrow left
+keyboard double arrow right
+keyboard double arrow up
+keyboard hide
+keyboard off
+keyboard option key
+keyboard return
+keyboard show
+keyboard tab
+keyboard voice
+keycdn
+keyframe
+keyframe align center
+keyframe align horizontal
+keyframe align vertical
+keyframes
+keynote
+keypad
+khanda
+kick
+kickstarter
+king bed
+kip sign
+kiss
+kiss beam
+kiss wink heart
+kit medical
+kitchen
+kitchen set
+kitesurfing
+kiwi bird
+knife
+knife blood
+korvue
+kubernetes
+label
+label important
+label off
+ladder
+ladder off
+ladle
+lambda
+lamp
+lamp off
+lamp2
+lan
+land mine on
+landmark
+landmark dome
+landmark flag
+landscape
+landscape ai
+landslide
+lane
+language
+language hiragana
+language katakana
+language off
+laptop
+laptop chromebook
+laptop code
+laptop file
+laptop house
+laptop mac
+laptop medical
+laptop windows
+laravel
+lari sign
+lasso
+lasso off
+lasso polygon
+last page
+lastfm
+lastfm square
+laugh
+laugh beam
+laugh squint
+laugh wink
+launch
+laurel wreath
+laurel wreath1
+laurel wreath2
+laurel wreath3
+lawn mower
+layer backward
+layer forward
+layer group
+layers
+layers clear
+layers difference
+layers half
+layers intersect
+layers intersect2
+layers linked
+layers off
+layers selected
+layers selected bottom
+layers subtract
+layers union
+layout
+layout align bottom
+layout align center
+layout align left
+layout align middle
+layout align right
+layout align top
+layout board
+layout board split
+layout bottom
+layout bottom2
+layout bottombar
+layout bottombar collapse
+layout bottombar expand
+layout bottombar inactive
+layout cards
+layout collage
+layout column
+layout columns
+layout dashboard
+layout distribute horizontal
+layout distribute vertical
+layout grid
+layout grid add
+layout grid remove
+layout grid2
+layout horizontal
+layout kanban
+layout left
+layout left2
+layout list
+layout masonry
+layout navbar
+layout navbar collapse
+layout navbar expand
+layout navbar inactive
+layout off
+layout right
+layout right2
+layout row
+layout rows
+layout sidebar
+layout sidebar inactive
+layout sidebar inset
+layout sidebar inset reverse
+layout sidebar left collapse
+layout sidebar left expand
+layout sidebar reverse
+layout sidebar right
+layout sidebar right collapse
+layout sidebar right expand
+layout sidebar right inactive
+layout split
+layout text sidebar
+layout text sidebar reverse
+layout text window
+layout text window reverse
+layout three columns
+layout top
+layout top2
+layout vertical
+layout wtf
+layout2
+layout3
+layout4
+layout5
+layout6
+leaderboard
+leaf
+leaf maple
+leaf off
+leaf2
+leak add
+leak remove
+leanpub
+left
+left circle
+left long
+left right
+left square
+legend toggle
+lego
+lego off
+lemon
+lemon2
+lens
+lens blur
+less
+less than
+less than equal
+letter
+letter case
+letter case lower
+letter case toggle
+letter case upper
+letter small
+letter spacing
+letter spacing2
+letterboxd
+level down alt
+level up alt
+lg
+library
+library add
+library add check
+library books
+library minus
+library music
+library photo
+library plus
+license
+license off
+life buoy
+life preserver
+life ring
+lifebuoy
+lifebuoy off
+light
+light bulb
+light mode
+lightbulb
+lightbulb ai
+lightbulb circle
+lightbulb flash
+lightbulb off
+lighter
+lightning
+lightning charge
+like
+linear scale
+lines leaning
+link
+link minus
+link off
+link plus
+link slash
+link unlink
+link2
+link45 deg
+linked camera
+linkedin
+linkedin box
+linkedin in
+links
+linode
+linux
+liquor
+lira sign
+list
+list alt
+list bullet
+list check
+list check2
+list check3
+list circle
+list columns
+list columns reverse
+list details
+list indefinite
+list letters
+list nested
+list numbers
+list ol
+list ordered
+list ordered2
+list radio
+list search
+list settings
+list stars
+list task
+list tree
+list ul
+list unordered
+list view
+litecoin sign
+live
+live help
+live photo
+live photo off
+live tv
+live view
+living
+load balancer
+loader
+loader quarter
+loader2
+loader3
+loader4
+loader5
+loading
+loading3 quarters
+local activity
+local airport
+local atm
+local bar
+local cafe
+local car wash
+local convenience store
+local dining
+local drink
+local fire department
+local florist
+local gas station
+local grocery store
+local hospital
+local hotel
+local laundry service
+local library
+local mall
+local movies
+local offer
+local parking
+local pharmacy
+local phone
+local pizza
+local play
+local police
+local post office
+local printshop
+local see
+local shipping
+local taxi
+locate
+location
+location arrow
+location bolt
+location broken
+location cancel
+location check
+location city
+location code
+location cog
+location crosshairs
+location disabled
+location discount
+location dollar
+location dot
+location down
+location exclamation
+location heart
+location minus
+location off
+location on
+location pause
+location pin
+location pin lock
+location plus
+location question
+location search
+location searching
+location share
+location star
+location up
+lock
+lock access
+lock access off
+lock bitcoin
+lock bolt
+lock cancel
+lock check
+lock clock
+lock closed
+lock code
+lock cog
+lock dollar
+lock down
+lock exclamation
+lock heart
+lock minus
+lock off
+lock open
+lock open off
+lock open2
+lock password
+lock pause
+lock person
+lock pin
+lock plus
+lock question
+lock reset
+lock search
+lock share
+lock square
+lock star
+lock unlock
+lock up
+lock2
+locust
+log in
+log out
+logic and
+logic buffer
+logic nand
+logic nor
+logic not
+logic or
+logic xnor
+logic xor
+login
+login box
+login circle
+login2
+logo alipay
+logo amazon
+logo amplify
+logo android
+logo angular
+logo apple
+logo apple appstore
+logo apple ar
+logo behance
+logo bitbucket
+logo bitcoin
+logo buffer
+logo capacitor
+logo chrome
+logo closed captioning
+logo codepen
+logo css3
+logo designernews
+logo dev
+logo deviantart
+logo discord
+logo docker
+logo dribbble
+logo dropbox
+logo edge
+logo electron
+logo euro
+logo facebook
+logo figma
+logo firebase
+logo firefox
+logo flickr
+logo foursquare
+logo github
+logo gitlab
+logo google
+logo google playstore
+logo hackernews
+logo html5
+logo instagram
+logo ionic
+logo ionitron
+logo javascript
+logo laravel
+logo linkedin
+logo markdown
+logo mastodon
+logo medium
+logo microsoft
+logo no smoking
+logo nodejs
+logo npm
+logo octocat
+logo paypal
+logo pinterest
+logo playstation
+logo pwa
+logo python
+logo react
+logo reddit
+logo rss
+logo sass
+logo skype
+logo slack
+logo snapchat
+logo soundcloud
+logo stackoverflow
+logo steam
+logo stencil
+logo tableau
+logo tiktok
+logo tumblr
+logo tux
+logo twitch
+logo twitter
+logo usd
+logo venmo
+logo vercel
+logo vimeo
+logo vk
+logo vue
+logo web component
+logo wechat
+logo whatsapp
+logo windows
+logo wordpress
+logo xbox
+logo xing
+logo yahoo
+logo yen
+logo youtube
+logout
+logout box
+logout circle
+logout2
+logs
+lollipop
+lollipop off
+long arrow alt down
+long arrow alt left
+long arrow alt right
+long arrow alt up
+looks
+looks one
+looks3
+looks4
+looks5
+looks6
+loop
+loop left
+loop left ai
+loop right
+loop right ai
+loupe
+low priority
+low vision
+loyalty
+lte mobiledata
+lte plus mobiledata
+luggage
+luggage cart
+luggage deposit
+luggage off
+lunch dining
+lungs
+lungs off
+lungs virus
+lyft
+lyrics
+mac
+mac command
+macbook
+macro
+macro off
+magento
+magic
+magnet
+magnet off
+magnetic
+magnifying glass
+magnifying glass arrow right
+magnifying glass chart
+magnifying glass circle
+magnifying glass dollar
+magnifying glass location
+magnifying glass minus
+magnifying glass plus
+mail
+mail add
+mail ai
+mail bitcoin
+mail bolt
+mail bulk
+mail cancel
+mail check
+mail close
+mail code
+mail cog
+mail dollar
+mail down
+mail download
+mail exclamation
+mail fast
+mail forbid
+mail forward
+mail heart
+mail lock
+mail minus
+mail off
+mail open
+mail opened
+mail pause
+mail pin
+mail plus
+mail question
+mail search
+mail send
+mail settings
+mail share
+mail spark
+mail star
+mail unread
+mail up
+mail volume
+mailbox
+mailbox flag
+mailbox off
+mailbox2
+mailbox2 flag
+mailchimp
+male
+male female
+man
+man2
+man3
+man4
+manage accounts
+manage history
+manage search
+manat sign
+mandalorian
+manual gearbox
+map
+map bolt
+map cancel
+map check
+map code
+map cog
+map discount
+map dollar
+map down
+map east
+map exclamation
+map heart
+map location
+map location dot
+map lock
+map marked
+map marked alt
+map marker
+map marker alt
+map minus
+map north
+map off
+map pause
+map pin
+map pin add
+map pin bolt
+map pin cancel
+map pin check
+map pin code
+map pin cog
+map pin dollar
+map pin down
+map pin exclamation
+map pin heart
+map pin minus
+map pin off
+map pin pause
+map pin pin
+map pin plus
+map pin question
+map pin range
+map pin search
+map pin share
+map pin star
+map pin time
+map pin up
+map pin user
+map pin2
+map pin3
+map pin4
+map pin5
+map pins
+map plus
+map question
+map route
+map search
+map share
+map shield
+map signs
+map south
+map star
+map up
+map west
+map2
+maps home work
+maps ugc
+margin
+mark
+mark as unread
+mark chat read
+mark chat unread
+mark email read
+mark email unread
+mark pen
+mark unread chat alt
+markdown
+markdown off
+marker
+marker tip
+markunread
+markunread mailbox
+markup
+marquee
+marquee off
+marquee2
+mars
+mars and venus
+mars and venus burst
+mars double
+mars stroke
+mars stroke right
+mars stroke up
+martini glass
+martini glass citrus
+martini glass empty
+mask
+mask face
+mask off
+mask ventilator
+masks
+masks theater
+masks theater off
+massage
+mastercard
+mastodon
+matchstick
+math
+math avg
+math cos
+math ctg
+math divide
+math divide y2
+math divide2
+math equal greater
+math equal lower
+math floor divide
+math function
+math function off
+math greater
+math integral
+math integrals
+math lower
+math max
+math max min
+math min
+math minus
+math not
+math off
+math pi
+math pi divide2
+math plus
+math sec
+math sin
+math symbols
+math tg
+math xy
+math1 divide2
+math1 divide3
+matrix
+mattress pillow
+maxcdn
+maximize
+maximize off
+maximize2
+mdb
+measuring cup
+meat
+meat off
+medal
+medal2
+medapps
+media bluetooth off
+media bluetooth on
+mediation
+medical
+medical cross
+medical cross circle
+medical cross off
+medical information
+medical services
+medication
+medication liquid
+medicine bottle
+medicine box
+medicine syrup
+medium
+medium circle
+medium square
+medium workmark
+medkit
+medrt
+meeple
+meeting room
+meetup
+megaphone
+megaphone2
+megaport
+meh
+meh blank
+meh rolling eyes
+melon
+memories
+memory
+men
+mendeley
+menorah
+mental health
+menu
+menu add
+menu app
+menu book
+menu button
+menu button wide
+menu deep
+menu down
+menu fold
+menu fold2
+menu fold3
+menu fold4
+menu open
+menu order
+menu search
+menu unfold
+menu unfold2
+menu unfold3
+menu unfold4
+menu up
+menu2
+menu3
+menu4
+menu5
+mercury
+merge
+merge cells
+merge cells horizontal
+merge cells vertical
+merge type
+mesh
+message
+message ai3
+message bolt
+message cancel
+message chatbot
+message check
+message circle
+message circle bolt
+message circle cancel
+message circle check
+message circle code
+message circle cog
+message circle dollar
+message circle down
+message circle exclamation
+message circle heart
+message circle minus
+message circle off
+message circle pause
+message circle pin
+message circle plus
+message circle question
+message circle search
+message circle share
+message circle star
+message circle up
+message circle user
+message code
+message cog
+message dollar
+message dots
+message down
+message exclamation
+message forward
+message heart
+message language
+message minus
+message off
+message pause
+message pin
+message plus
+message question
+message reply
+message report
+message search
+message share
+message square
+message star
+message up
+message user
+message2
+message2 bolt
+message2 cancel
+message2 check
+message2 code
+message2 cog
+message2 dollar
+message2 down
+message2 exclamation
+message2 heart
+message2 minus
+message2 off
+message2 pause
+message2 pin
+message2 plus
+message2 question
+message2 search
+message2 share
+message2 star
+message2 up
+message3
+messages
+messages off
+messenger
+meta
+meteor
+meteor off
+meter cube
+meter square
+metronome
+mic
+mic ai
+mic circle
+mic external off
+mic external on
+mic mute
+mic none
+mic off
+mic off circle
+mic2
+mic2 ai
+michelin bib gourmand
+michelin star
+michelin star green
+mickey
+microblog
+microchip
+microfrontends
+microphone
+microphone alt
+microphone alt slash
+microphone lines
+microphone lines slash
+microphone off
+microphone slash
+microphone2
+microphone2 off
+microscope
+microscope off
+microsoft
+microsoft copilot
+microsoft loop
+microsoft teams
+microwave
+microwave off
+middleware
+military award
+military rank
+military tech
+milk
+milk off
+milkshake
+mill sign
+mind map
+minecart
+minecart loaded
+mini academic cap
+mini adjustments horizontal
+mini adjustments vertical
+mini archive box
+mini archive box arrow down
+mini archive box mark
+mini arrow down
+mini arrow down circle
+mini arrow down left
+mini arrow down on square
+mini arrow down on square stack
+mini arrow down right
+mini arrow down tray
+mini arrow left
+mini arrow left circle
+mini arrow left end on rectangle
+mini arrow left on rectangle
+mini arrow left start on rectangle
+mini arrow long down
+mini arrow long left
+mini arrow long right
+mini arrow long up
+mini arrow path
+mini arrow path square
+mini arrow right
+mini arrow right circle
+mini arrow right end on rectangle
+mini arrow right on rectangle
+mini arrow right start on rectangle
+mini arrow small down
+mini arrow small left
+mini arrow small right
+mini arrow small up
+mini arrow top right on square
+mini arrow trending down
+mini arrow trending up
+mini arrow turn down left
+mini arrow turn down right
+mini arrow turn left down
+mini arrow turn left up
+mini arrow turn right down
+mini arrow turn right up
+mini arrow turn up left
+mini arrow turn up right
+mini arrow up
+mini arrow up circle
+mini arrow up left
+mini arrow up on square
+mini arrow up on square stack
+mini arrow up right
+mini arrow up tray
+mini arrow uturn down
+mini arrow uturn left
+mini arrow uturn right
+mini arrow uturn up
+mini arrows pointing in
+mini arrows pointing out
+mini arrows right left
+mini arrows up down
+mini at symbol
+mini backspace
+mini backward
+mini banknotes
+mini bars arrow down
+mini bars arrow up
+mini bars2
+mini bars3
+mini bars3 bottom left
+mini bars3 bottom right
+mini bars3 center left
+mini bars4
+mini battery0
+mini battery100
+mini battery50
+mini beaker
+mini bell
+mini bell alert
+mini bell slash
+mini bell snooze
+mini bold
+mini bolt
+mini bolt slash
+mini book open
+mini bookmark
+mini bookmark slash
+mini bookmark square
+mini briefcase
+mini bug ant
+mini building library
+mini building office
+mini building office2
+mini building storefront
+mini cake
+mini calculator
+mini calendar
+mini calendar date range
+mini calendar days
+mini camera
+mini chart bar
+mini chart bar square
+mini chart pie
+mini chat bubble bottom center
+mini chat bubble bottom center text
+mini chat bubble left
+mini chat bubble left ellipsis
+mini chat bubble left right
+mini chat bubble oval left
+mini chat bubble oval left ellipsis
+mini check
+mini check badge
+mini check circle
+mini chevron double down
+mini chevron double left
+mini chevron double right
+mini chevron double up
+mini chevron down
+mini chevron left
+mini chevron right
+mini chevron up
+mini chevron up down
+mini circle
+mini circle stack
+mini clipboard
+mini clipboard document
+mini clipboard document check
+mini clipboard document list
+mini clock
+mini cloud
+mini cloud arrow down
+mini cloud arrow up
+mini code bracket
+mini code bracket square
+mini cog
+mini cog6 tooth
+mini cog8 tooth
+mini command
+mini computer desktop
+mini cpu chip
+mini credit card
+mini cube
+mini cube transparent
+mini currency bangladeshi
+mini currency dollar
+mini currency euro
+mini currency pound
+mini currency rupee
+mini currency yen
+mini cursor arrow rays
+mini cursor arrow ripple
+mini device phone mobile
+mini device tablet
+mini divide
+mini document
+mini document arrow down
+mini document arrow up
+mini document chart bar
+mini document check
+mini document currency bangladeshi
+mini document currency dollar
+mini document currency euro
+mini document currency pound
+mini document currency rupee
+mini document currency yen
+mini document duplicate
+mini document magnifying glass
+mini document minus
+mini document plus
+mini document text
+mini ellipsis horizontal
+mini ellipsis horizontal circle
+mini ellipsis vertical
+mini envelope
+mini envelope open
+mini equals
+mini exclamation circle
+mini exclamation triangle
+mini eye
+mini eye dropper
+mini eye slash
+mini face frown
+mini face smile
+mini film
+mini finger print
+mini fire
+mini flag
+mini folder
+mini folder arrow down
+mini folder minus
+mini folder open
+mini folder plus
+mini forward
+mini funnel
+mini gif
+mini gift
+mini gift top
+mini globe alt
+mini globe americas
+mini globe asia australia
+mini globe europe africa
+mini h1
+mini h2
+mini h3
+mini hand raised
+mini hand thumb down
+mini hand thumb up
+mini hashtag
+mini heart
+mini home
+mini home modern
+mini identification
+mini inbox
+mini inbox arrow down
+mini inbox stack
+mini information circle
+mini italic
+mini key
+mini language
+mini lifebuoy
+mini light bulb
+mini link
+mini link slash
+mini list bullet
+mini lock closed
+mini lock open
+mini magnifying glass
+mini magnifying glass circle
+mini magnifying glass minus
+mini magnifying glass plus
+mini map
+mini map pin
+mini mark
+mini megaphone
+mini microphone
+mini minus
+mini minus circle
+mini minus small
+mini moon
+mini musical note
+mini newspaper
+mini no symbol
+mini numbered list
+mini paint brush
+mini paper airplane
+mini paper clip
+mini pause
+mini pause circle
+mini pencil
+mini pencil square
+mini percent badge
+mini phone
+mini phone arrow down left
+mini phone arrow up right
+mini phone mark
+mini photo
+mini play
+mini play circle
+mini play pause
+mini plus
+mini plus circle
+mini plus small
+mini power
+mini presentation chart
+mini presentation chart bar
+mini printer
+mini program
+mini puzzle piece
+mini qr code
+mini question mark circle
+mini queue list
+mini radio
+mini receipt percent
+mini receipt refund
+mini rectangle group
+mini rectangle stack
+mini rocket launch
+mini rss
+mini scale
+mini scissors
+mini server
+mini server stack
+mini share
+mini shield check
+mini shield exclamation
+mini shopping bag
+mini shopping cart
+mini signal
+mini signal slash
+mini slash
+mini sparkles
+mini speaker mark
+mini speaker wave
+mini square2 stack
+mini square3 stack3
+mini squares plus
+mini squares2 x2
+mini star
+mini stop
+mini stop circle
+mini strikethrough
+mini sun
+mini swatch
+mini table cells
+mini tag
+mini ticket
+mini trash
+mini trophy
+mini truck
+mini tv
+mini underline
+mini user
+mini user circle
+mini user group
+mini user minus
+mini user plus
+mini users
+mini variable
+mini video camera
+mini video camera slash
+mini view columns
+mini viewfinder circle
+mini wallet
+mini wifi
+mini window
+mini wrench
+mini wrench screwdriver
+minimize
+minimize2
+minor crash
+mintbit
+minus
+minus circle
+minus small
+minus square
+minus vertical
+miscellaneous services
+missed video call
+mist
+mist off
+mitten
+mix
+mixcloud
+mixer
+mixtral
+mizuni
+mms
+mobile
+mobile alt
+mobile button
+mobile download
+mobile friendly
+mobile off
+mobile retro
+mobile screen
+mobile screen button
+mobile screen share
+mobiledata
+mobiledata off
+mode
+mode comment
+mode edit
+mode fan off
+mode night
+mode of travel
+mode standby
+model training
+modem
+modx
+moisture
+monero
+monetization on
+money
+money bill
+money bill alt
+money bill transfer
+money bill trend up
+money bill wave
+money bill wave alt
+money bill wheat
+money bill1
+money bill1 wave
+money bills
+money check
+money check alt
+money check dollar
+money cny box
+money cny circle
+money collect
+money dollar box
+money dollar circle
+money euro box
+money euro circle
+money off
+money off csred
+money pound box
+money pound circle
+money rupee circle
+moneybag
+moneybag edit
+moneybag heart
+moneybag minus
+moneybag move
+moneybag move back
+moneybag plus
+monitor
+monitor heart
+monitor weight
+monkeybar
+monochrome photos
+monument
+mood
+mood angry
+mood annoyed
+mood annoyed2
+mood bad
+mood bitcoin
+mood boy
+mood check
+mood cog
+mood confuzed
+mood crazy happy
+mood cry
+mood dollar
+mood edit
+mood empty
+mood happy
+mood heart
+mood kid
+mood look down
+mood look left
+mood look right
+mood look up
+mood minus
+mood nerd
+mood nervous
+mood neutral
+mood off
+mood pin
+mood plus
+mood puzzled
+mood sad
+mood sad dizzy
+mood sad squint
+mood sad2
+mood search
+mood share
+mood sick
+mood silence
+mood sing
+mood smile
+mood smile beam
+mood smile dizzy
+mood spark
+mood surprised
+mood tongue
+mood tongue wink
+mood tongue wink2
+mood unamused
+mood up
+mood wink
+mood wink2
+mood wrrr
+mood xd
+moon
+moon clear
+moon cloudy
+moon foggy
+moon off
+moon stars
+moon2
+moped
+more
+more horiz
+more horizontal
+more time
+more vert
+more vertical
+more2
+mortar pestle
+mortarboard
+mosaic
+mosque
+mosquito
+mosquito net
+motherboard
+motion photos auto
+motion photos off
+motion photos on
+motion photos pause
+motion photos paused
+motorbike
+motorcycle
+mound
+mountain
+mountain city
+mountain off
+mountain sun
+mouse
+mouse off
+mouse pointer
+mouse2
+mouse3
+moustache
+move
+move down
+move to inbox
+move up
+movie
+movie ai
+movie creation
+movie edit
+movie filter
+movie off
+movie2
+movie2 ai
+moving
+mp
+mug
+mug hot
+mug off
+mug saucer
+multi image
+multiline chart
+multiple stop
+multiplier05
+multiplier1
+multiplier15
+multiplier2
+museum
+mushroom
+mushroom off
+music
+music ai
+music bolt
+music cancel
+music check
+music code
+music cog
+music discount
+music dollar
+music down
+music exclamation
+music heart
+music minus
+music note
+music note beamed
+music note list
+music off
+music pause
+music pin
+music player
+music plus
+music question
+music search
+music share
+music star
+music up
+music video
+music2
+musical note
+musical notes
+muted
+mv
+mv ai
+my location
+naira sign
+napster
+nat
+nature
+nature people
+navigate
+navigate before
+navigate circle
+navigate next
+navigation
+navigation bolt
+navigation cancel
+navigation check
+navigation code
+navigation cog
+navigation discount
+navigation dollar
+navigation down
+navigation east
+navigation exclamation
+navigation heart
+navigation minus
+navigation north
+navigation off
+navigation pause
+navigation pin
+navigation plus
+navigation question
+navigation search
+navigation share
+navigation south
+navigation star
+navigation top
+navigation up
+navigation west
+navigation2
+near me
+near me disabled
+nearby error
+nearby off
+needle
+needle thread
+neos
+nest cam wired stand
+netease cloud music
+netflix
+network
+network cell
+network check
+network error
+network locked
+network off
+network ping
+network wifi
+network wifi1 bar
+network wifi2 bar
+network wifi3 bar
+network wired
+neuter
+new label
+new releases
+new section
+news
+news off
+newspaper
+next plan
+next week
+nextjs
+nfc
+nfc directional
+nfc off
+nfc symbol
+nft
+night shelter
+nightlife
+nightlight
+nights stay
+nimblr
+nintendo switch
+no accounts
+no adult content
+no backpack
+no cell
+no copyright
+no crash
+no creative commons
+no credit card
+no derivatives
+no drinks
+no encryption
+no encryption gmailerrorred
+no flash
+no food
+no luggage
+no meals
+no meals ouline
+no meeting room
+no photography
+no sim
+no stroller
+no symbol
+no transfer
+node
+node collapse
+node expand
+node index
+node js
+node minus
+node plus
+node tree
+nodejs
+noise aware
+noise control off
+noise reduction
+nordic walking
+north
+north east
+north star
+north west
+not accessible
+not equal
+not interested
+not listed location
+not started
+notdef
+note
+note add
+note alt
+note off
+note sticky
+notebook
+notebook off
+notes
+notes medical
+notes off
+notification
+notification add
+notification badge
+notification important
+notification off
+notification snooze
+notification2
+notification3
+notification4
+notifications
+notifications active
+notifications circle
+notifications none
+notifications off
+notifications off circle
+notifications paused
+notion
+npm
+npmjs
+ns8
+nuclear
+number
+number0
+number0 small
+number1
+number1 small
+number10
+number10 small
+number100 small
+number11
+number11 small
+number12 small
+number123
+number13 small
+number14 small
+number15 small
+number16 small
+number17 small
+number18 small
+number19 small
+number2
+number2 small
+number20 small
+number21 small
+number22 small
+number23 small
+number24 small
+number25 small
+number26 small
+number27 small
+number28 small
+number29 small
+number3
+number3 small
+number30 small
+number31 small
+number32 small
+number33 small
+number34 small
+number35 small
+number36 small
+number37 small
+number38 small
+number39 small
+number4
+number4 small
+number40 small
+number41 small
+number42 small
+number43 small
+number44 small
+number45 small
+number46 small
+number47 small
+number48 small
+number49 small
+number5
+number5 small
+number50 small
+number51 small
+number52 small
+number53 small
+number54 small
+number55 small
+number56 small
+number57 small
+number58 small
+number59 small
+number6
+number6 small
+number60 small
+number61 small
+number62 small
+number63 small
+number64 small
+number65 small
+number66 small
+number67 small
+number68 small
+number69 small
+number7
+number7 small
+number70 small
+number71 small
+number72 small
+number73 small
+number74 small
+number75 small
+number76 small
+number77 small
+number78 small
+number79 small
+number8
+number8 small
+number80 small
+number81 small
+number82 small
+number83 small
+number84 small
+number85 small
+number86 small
+number87 small
+number88 small
+number89 small
+number9
+number9 small
+number90 small
+number91 small
+number92 small
+number93 small
+number94 small
+number95 small
+number96 small
+number97 small
+number98 small
+number99 small
+numbered list
+numbers
+nurse
+nut
+nutrition
+nutritionix
+nvidia
+nvme
+object group
+object scan
+object ungroup
+octagon
+octagon half
+octagon minus
+octagon minus2
+octagon off
+octagon plus
+octagon plus2
+octahedron
+octahedron off
+octahedron plus
+octopus deploy
+odnoklassniki
+odnoklassniki square
+odysee
+off
+offline bolt
+offline pin
+offline share
+oil
+oil barrel
+oil can
+oil well
+old
+old republic
+olympic torch
+olympics
+olympics off
+om
+omega
+on device training
+ondemand video
+one to one
+online prediction
+opacity
+open
+open arm
+open in browser
+open in full
+open in new
+open in new off
+open source
+open with
+openai
+openbase
+opencart
+opencollective
+openid
+opensuse
+opera
+optical audio
+optin monster
+option
+options
+orcid
+order play
+ordered list
+organization chart
+osi
+other houses
+otter
+outbond
+outbound
+outbox
+outdent
+outdoor grill
+outgoing mail
+outlet
+outlet2
+outline1
+outline10
+outline10 mp
+outline11 mp
+outline12 mp
+outline123
+outline13 mp
+outline14 mp
+outline15 mp
+outline16 mp
+outline17 mp
+outline18 mp
+outline18 up rating
+outline19 mp
+outline1k plus
+outline1x mobiledata
+outline2
+outline2 mp
+outline20 mp
+outline21 mp
+outline22 mp
+outline23 mp
+outline24 mp
+outline2k plus
+outline3
+outline3 mp
+outline30 fps
+outline30 fps select
+outline360
+outline3d rotation
+outline3g mobiledata
+outline3k plus
+outline4
+outline4 mp
+outline4g mobiledata
+outline4g plus mobiledata
+outline4k plus
+outline5
+outline5 mp
+outline5k plus
+outline6
+outline6 ft apart
+outline6 mp
+outline60 fps
+outline60 fps select
+outline6k plus
+outline7
+outline7 mp
+outline7k plus
+outline8
+outline8 mp
+outline8k plus
+outline9
+outline9 mp
+outline9k plus
+outlined flag
+output
+oval
+oval vertical
+overline
+p2p
+package
+package export
+package import
+package off
+packages
+pacman
+padding
+padlet
+page break
+page separator
+page4
+pagelines
+pager
+pages
+pageview
+paid
+paint
+paint brush
+paint bucket
+paint off
+paint roller
+paintbrush
+painting
+painting ai
+palette
+palette off
+palette2
+palfed
+pallet
+pan tool
+pan tool alt
+panorama
+panorama fish eye
+panorama horizontal
+panorama horizontal off
+panorama horizontal select
+panorama photosphere
+panorama photosphere select
+panorama vertical
+panorama vertical off
+panorama vertical select
+panorama wide angle
+panorama wide angle select
+pantone
+paper airplane
+paper bag
+paper bag off
+paper clip
+paper plane
+paperclip
+parachute
+parachute box
+parachute off
+paragliding
+paragraph
+parent
+parentheses
+parentheses off
+park
+parking
+parking box
+parking circle
+parking meter
+parking off
+partition
+partly sunny
+party mode
+pass
+pass expired
+pass pending
+pass valid
+passport
+password
+password fingerprint
+password mobile phone
+password user
+pastafarianism
+paste
+patch check
+patch exclamation
+patch minus
+patch plus
+patch question
+patreon
+pattern
+pause
+pause btn
+pause circle
+pause large
+pause mini
+pause presentation
+paw
+paw off
+pay circle
+payment
+payments
+paypal
+paywall
+pc
+pc display
+pc display horizontal
+pc horizontal
+pci card
+pci card network
+pci card sound
+pdf
+peace
+pedal bike
+pen
+pen alt
+pen clip
+pen fancy
+pen nib
+pen ruler
+pen square
+pen to square
+pen tool
+pencil
+pencil ai
+pencil ai2
+pencil alt
+pencil bolt
+pencil cancel
+pencil check
+pencil code
+pencil cog
+pencil discount
+pencil dollar
+pencil down
+pencil exclamation
+pencil heart
+pencil minus
+pencil off
+pencil pause
+pencil pin
+pencil plus
+pencil question
+pencil ruler
+pencil ruler2
+pencil search
+pencil share
+pencil square
+pencil star
+pencil up
+pending
+pending actions
+pendulum
+pennant
+pennant off
+pennant2
+penny arcade
+pentagon
+pentagon half
+pentagon minus
+pentagon number0
+pentagon number1
+pentagon number2
+pentagon number3
+pentagon number4
+pentagon number5
+pentagon number6
+pentagon number7
+pentagon number8
+pentagon number9
+pentagon off
+pentagon plus
+pentagram
+people
+people alt
+people arrows
+people carry
+people carry box
+people circle
+people group
+people pulling
+people robbery
+people roof
+pepper
+pepper hot
+pepper off
+perbyte
+percent
+percent badge
+percentage
+percentage0
+percentage10
+percentage100
+percentage20
+percentage25
+percentage30
+percentage33
+percentage40
+percentage50
+percentage60
+percentage66
+percentage70
+percentage75
+percentage80
+percentage90
+perfume
+periscope
+perm camera mic
+perm contact calendar
+perm data setting
+perm device information
+perm identity
+perm media
+perm phone msg
+perm scan wifi
+perplexity
+person
+person add
+person add alt
+person add alt1
+person add disabled
+person arms up
+person arrow down to
+person arrow up from
+person badge
+person biking
+person booth
+person bounding box
+person breastfeeding
+person burst
+person cane
+person chalkboard
+person check
+person circle
+person circle check
+person circle exclamation
+person circle minus
+person circle plus
+person circle question
+person circle xmark
+person dash
+person digging
+person dots from
+person down
+person dress
+person dress burst
+person drowning
+person exclamation
+person falling
+person falling burst
+person gear
+person half dress
+person harassing
+person heart
+person hearts
+person hiking
+person lines
+person lock
+person military pointing
+person military rifle
+person military to person
+person off
+person pin
+person pin circle
+person plus
+person praying
+person pregnant
+person raised hand
+person rays
+person remove
+person remove alt1
+person rifle
+person rolodex
+person running
+person search
+person shelter
+person skating
+person skiing
+person skiing nordic
+person slash
+person snowboarding
+person square
+person standing
+person standing dress
+person swimming
+person through window
+person up
+person vcard
+person video
+person video2
+person video3
+person walking
+person walking arrow loop left
+person walking arrow right
+person walking dashed arrow right
+person walking luggage
+person walking with cane
+person wheelchair
+person workspace
+person2
+person3
+person4
+personal injury
+personal video
+perspective
+perspective off
+peseta sign
+peso sign
+pest control
+pest control rodent
+pets
+phabricator
+phishing
+phoenix framework
+phoenix squadron
+phone
+phone alt
+phone android
+phone arrow down left
+phone arrow up right
+phone bluetooth speaker
+phone call
+phone callback
+phone calling
+phone camera
+phone check
+phone disabled
+phone done
+phone enabled
+phone end
+phone find
+phone flip
+phone forwarded
+phone in talk
+phone incoming
+phone iphone
+phone landscape
+phone lock
+phone locked
+phone mark
+phone missed
+phone off
+phone outgoing
+phone pause
+phone paused
+phone plus
+phone portrait
+phone ringing
+phone slash
+phone spark
+phone square
+phone square alt
+phone vibrate
+phone volume
+phonelink
+phonelink erase
+phonelink lock
+phonelink off
+phonelink ring
+phonelink setup
+photo
+photo ai
+photo album
+photo alt
+photo bitcoin
+photo bolt
+photo camera
+photo camera back
+photo camera front
+photo cancel
+photo check
+photo circle
+photo circle minus
+photo circle plus
+photo code
+photo cog
+photo dollar
+photo down
+photo edit
+photo exclamation
+photo film
+photo filter
+photo heart
+photo hexagon
+photo library
+photo minus
+photo off
+photo pause
+photo pentagon
+photo pin
+photo plus
+photo question
+photo scan
+photo search
+photo sensor
+photo sensor2
+photo sensor3
+photo share
+photo shield
+photo size select actual
+photo size select large
+photo size select small
+photo spark
+photo square
+photo star
+photo up
+photo video
+php
+physotherapist
+piano
+piano grand
+piano off
+pic center
+pic left
+pic right
+pick
+picnic table
+picture
+picture as pdf
+picture in picture
+picture in picture alt
+picture in picture exit
+picture in picture off
+picture in picture on
+picture in picture top
+picture in picture2
+pie chart
+pie chart box
+pie chart outlined
+pie chart2
+pied piper
+pied piper alt
+pied piper hat
+pied piper pp
+pied piper square
+pig
+pig money
+pig off
+piggy bank
+pilcrow
+pilcrow left
+pilcrow right
+pill
+pill off
+pillow
+pills
+pin
+pin angle
+pin distance
+pin drop
+pin end
+pin invoke
+pin map
+pinch
+ping pong
+pinned
+pinned off
+pint
+pinterest
+pinterest square
+pinyin input
+pip
+pipeline
+pivot table chart
+pix
+pixelfed
+pixiv
+pizza
+pizza off
+pizza slice
+place
+place of worship
+placeholder
+plagiarism
+plane
+plane arrival
+plane circle check
+plane circle exclamation
+plane circle xmark
+plane departure
+plane inflight
+plane lock
+plane off
+plane slash
+plane tilt
+plane up
+planet
+planet off
+plant
+plant off
+plant wilt
+plant2
+plant2 off
+plate wheat
+play
+play arrow
+play back
+play back circle
+play basketball
+play btn
+play card
+play card off
+play card star
+play card1
+play card10
+play card2
+play card3
+play card4
+play card5
+play card6
+play card7
+play card8
+play card9
+play circle
+play disabled
+play football
+play for work
+play forward
+play forward circle
+play handball
+play large
+play lesson
+play list
+play list add
+play list2
+play mini
+play pause
+play reverse
+play reverse large
+play reverse mini
+play skip back
+play skip back circle
+play skip forward
+play skip forward circle
+play square
+play volleyball
+player eject
+player pause
+player play
+player record
+player skip back
+player skip forward
+player stop
+player track next
+player track prev
+playlist
+playlist add
+playlist add check
+playlist add check circle
+playlist add circle
+playlist off
+playlist play
+playlist remove
+playstation
+playstation circle
+playstation square
+playstation triangle
+plug
+plug circle bolt
+plug circle check
+plug circle exclamation
+plug circle minus
+plug circle plus
+plug circle xmark
+plug connected
+plug off
+plug2
+plug3
+plugin
+plumbing
+plunger
+plus
+plus circle
+plus circle dotted
+plus equal
+plus lg
+plus minus
+plus mobiledata
+plus one
+plus slash minus
+plus small
+plus square
+plus square dotted
+png
+pocket
+podcast
+podcasts
+podium
+podium off
+point
+point of sale
+point off
+pointer
+pointer bolt
+pointer cancel
+pointer check
+pointer code
+pointer cog
+pointer collaboration
+pointer collaboration2
+pointer dollar
+pointer down
+pointer exclamation
+pointer heart
+pointer minus
+pointer off
+pointer pause
+pointer pin
+pointer plus
+pointer question
+pointer search
+pointer share
+pointer star
+pointer up
+pointer2
+pokeball
+pokeball off
+poker chip
+poker clubs
+poker diamonds
+poker hearts
+poker spades
+polaroid
+polaroid2
+police badge
+police car
+policy
+poll
+polygon
+polygon off
+polyline
+polymer
+poo
+poo storm
+pool
+pool off
+poop
+portable wifi off
+portrait
+post add
+postage
+postage heart
+postcard
+postcard heart
+pound
+pound circle
+pound sign
+power
+power input
+power off
+power settings new
+poweroff
+pray
+praying hands
+precision manufacturing
+pregnant woman
+premium rights
+prescription
+prescription bottle
+prescription bottle alt
+prescription bottle medical
+prescription2
+present to all
+presentation
+presentation analytics
+presentation chart
+presentation chart bar
+presentation off
+preview
+price change
+price check
+price tag
+price tag2
+price tag3
+pricetag
+pricetags
+print
+print disabled
+printer
+printer cloud
+printer off
+priority high
+prism
+prism light
+prism off
+prism plus
+prison
+privacy tip
+private connectivity
+procedures
+product
+product hunt
+production quantity limits
+profile
+progress
+progress alert
+progress bolt
+progress check
+progress down
+progress help
+progress1
+progress2
+progress3
+progress4
+progress5
+progress6
+progress7
+progress8
+prohibited
+prohibited2
+project
+project diagram
+projector
+projector2
+prompt
+prong
+propane
+propane tank
+propeller
+propeller off
+property safety
+protocol
+psychology
+psychology alt
+psychotherapy
+public
+public off
+publish
+published with changes
+pull request
+pulse
+pulse ai
+pump medical
+pump soap
+pumpkin scary
+punch clock
+push
+push pin
+pushed
+pushpin
+pushpin2
+puzzle
+puzzle off
+puzzle piece
+puzzle2
+px
+pyramid
+pyramid off
+pyramid plus
+python
+qq
+qq circle
+qq square
+qr code
+qr code scan
+qr code scanner
+qr code2
+qr scan
+qr scan ai
+qr scan2
+qrcode
+qrcode off
+query builder
+query stats
+question
+question answer
+question circle
+question diamond
+question lg
+question mark
+question mark circle
+question octagon
+question square
+questionnaire
+queue
+queue list
+queue music
+queue play next
+queue pop in
+queue pop out
+quickreply
+quidditch
+quill pen
+quill pen ai
+quinscape
+quiz
+quora
+quote
+quote left
+quote off
+quote open
+quote right
+quote text
+quotes
+quran
+qwen ai
+radar
+radar chart
+radar off
+radar2
+radiation
+radiation alt
+radio
+radio button
+radio button checked
+radio button off
+radio button on
+radio button unchecked
+radio off
+radio2
+radioactive
+radioactive off
+radius bottom left
+radius bottom right
+radius bottomleft
+radius bottomright
+radius setting
+radius top left
+radius top right
+radius upleft
+radius upright
+railway alert
+rainbow
+rainbow off
+rainy
+ram
+ram2
+ramen dining
+ramp left
+ramp right
+random
+ranking star
+raspberry pi
+rate review
+rating12 plus
+rating14 plus
+rating16 plus
+rating18 plus
+rating21 plus
+ravelry
+raw off
+raw on
+ray
+razor
+razor electric
+react
+reacteurope
+reactjs
+read
+read more
+reader
+readme
+real estate agent
+rebase edit
+rebel
+receipt
+receipt bitcoin
+receipt cutoff
+receipt dollar
+receipt euro
+receipt long
+receipt off
+receipt percent
+receipt pound
+receipt refund
+receipt rupee
+receipt tax
+receipt yen
+receipt yuan
+receipt2
+recent actors
+reception0
+reception1
+reception2
+reception3
+reception4
+recharging
+recommend
+reconciliation
+record
+record btn
+record circle
+record mail
+record mail off
+record vinyl
+record voice over
+record2
+recording
+rectangle
+rectangle ad
+rectangle bottom
+rectangle group
+rectangle list
+rectangle stack
+rectangle top
+rectangle vertical
+rectangle xmark
+rectangular prism
+rectangular prism off
+rectangular prism plus
+recycle
+recycle off
+recycling
+red envelope
+red packet
+red river
+reddit
+reddit alien
+reddit circle
+reddit square
+reddit2
+redeem
+redhat
+redo
+redo alt
+reduce capacity
+refresh
+refresh alert
+refresh ccw
+refresh circle
+refresh cw
+refresh dot
+refresh off
+refund
+refund2
+reg address book
+reg address card
+reg angry
+reg arrow alt circle down
+reg arrow alt circle left
+reg arrow alt circle right
+reg arrow alt circle up
+reg bell
+reg bell slash
+reg bookmark
+reg building
+reg calendar
+reg calendar alt
+reg calendar check
+reg calendar days
+reg calendar minus
+reg calendar plus
+reg calendar times
+reg calendar xmark
+reg caret square down
+reg caret square left
+reg caret square right
+reg caret square up
+reg chart bar
+reg check circle
+reg check square
+reg chess bishop
+reg chess king
+reg chess knight
+reg chess pawn
+reg chess queen
+reg chess rook
+reg circle
+reg circle check
+reg circle dot
+reg circle down
+reg circle left
+reg circle pause
+reg circle play
+reg circle question
+reg circle right
+reg circle stop
+reg circle up
+reg circle user
+reg circle xmark
+reg clipboard
+reg clock
+reg clone
+reg closed captioning
+reg comment
+reg comment alt
+reg comment dots
+reg comments
+reg compass
+reg copy
+reg copyright
+reg credit card
+reg dizzy
+reg dot circle
+reg edit
+reg envelope
+reg envelope open
+reg eye
+reg eye slash
+reg face angry
+reg face dizzy
+reg face flushed
+reg face frown
+reg face frown open
+reg face grimace
+reg face grin
+reg face grin beam
+reg face grin beam sweat
+reg face grin hearts
+reg face grin squint
+reg face grin squint tears
+reg face grin stars
+reg face grin tears
+reg face grin tongue
+reg face grin tongue squint
+reg face grin tongue wink
+reg face grin wide
+reg face grin wink
+reg face kiss
+reg face kiss beam
+reg face kiss wink heart
+reg face laugh
+reg face laugh beam
+reg face laugh squint
+reg face laugh wink
+reg face meh
+reg face meh blank
+reg face rolling eyes
+reg face sad cry
+reg face sad tear
+reg face smile
+reg face smile beam
+reg face smile wink
+reg face surprise
+reg face tired
+reg file
+reg file alt
+reg file archive
+reg file audio
+reg file code
+reg file excel
+reg file image
+reg file lines
+reg file pdf
+reg file powerpoint
+reg file video
+reg file word
+reg file zipper
+reg flag
+reg floppy disk
+reg flushed
+reg folder
+reg folder closed
+reg folder open
+reg font awesome
+reg font awesome logo full
+reg frown
+reg frown open
+reg futbol
+reg gem
+reg grimace
+reg grin
+reg grin alt
+reg grin beam
+reg grin beam sweat
+reg grin hearts
+reg grin squint
+reg grin squint tears
+reg grin stars
+reg grin tears
+reg grin tongue
+reg grin tongue squint
+reg grin tongue wink
+reg grin wink
+reg hand
+reg hand back fist
+reg hand lizard
+reg hand paper
+reg hand peace
+reg hand point down
+reg hand point left
+reg hand point right
+reg hand point up
+reg hand pointer
+reg hand rock
+reg hand scissors
+reg hand spock
+reg handshake
+reg hard drive
+reg hdd
+reg heart
+reg hospital
+reg hourglass
+reg hourglass half
+reg id badge
+reg id card
+reg image
+reg images
+reg keyboard
+reg kiss
+reg kiss beam
+reg kiss wink heart
+reg laugh
+reg laugh beam
+reg laugh squint
+reg laugh wink
+reg lemon
+reg life ring
+reg lightbulb
+reg list alt
+reg map
+reg meh
+reg meh blank
+reg meh rolling eyes
+reg message
+reg minus square
+reg money bill alt
+reg money bill1
+reg moon
+reg newspaper
+reg note sticky
+reg object group
+reg object ungroup
+reg paper plane
+reg paste
+reg pause circle
+reg pen to square
+reg play circle
+reg plus square
+reg question circle
+reg rectangle list
+reg rectangle xmark
+reg registered
+reg sad cry
+reg sad tear
+reg save
+reg share from square
+reg share square
+reg smile
+reg smile beam
+reg smile wink
+reg snowflake
+reg square
+reg square caret down
+reg square caret left
+reg square caret right
+reg square caret up
+reg square check
+reg square full
+reg square minus
+reg square plus
+reg star
+reg star half
+reg star half stroke
+reg sticky note
+reg stop circle
+reg sun
+reg surprise
+reg thumbs down
+reg thumbs up
+reg times circle
+reg tired
+reg trash alt
+reg trash can
+reg user
+reg user circle
+reg window close
+reg window maximize
+reg window minimize
+reg window restore
+regex
+regex off
+registered
+relation many to many
+relation one to many
+relation one to one
+reload
+reload circle
+remember me
+remix
+remix run
+remixicon
+remote control
+remote control2
+remove
+remove circle
+remove done
+remove format
+remove from queue
+remove moderator
+remove red eye
+remove road
+remove shopping cart
+renren
+reorder
+reorder four
+reorder three
+repartition
+repeat
+repeat off
+repeat on
+repeat once
+repeat one
+repeat one on
+repeat1
+repeat2
+replace
+replace off
+replace user
+replay
+replay circle
+replay10
+replay15
+replay30
+replay5
+reply
+reply all
+replyd
+report
+report analytics
+report gmailerrorred
+report medical
+report money
+report off
+report problem
+report search
+republican
+request page
+request quote
+researchgate
+reserved
+reset left
+reset right
+reset tv
+resize
+resolving
+rest
+rest time
+restart
+restart alt
+restaurant
+restaurant menu
+restaurant2
+restore
+restore from trash
+restore page
+restroom
+return down back
+return down forward
+return up back
+return up forward
+retweet
+rev
+reverse backspace reverse
+reverse layout sidebar inset reverse
+reverse layout sidebar reverse
+reverse layout text sidebar reverse
+reverse layout text window reverse
+reverse list columns reverse
+reviews
+rewind
+rewind backward10
+rewind backward15
+rewind backward20
+rewind backward30
+rewind backward40
+rewind backward5
+rewind backward50
+rewind backward60
+rewind btn
+rewind circle
+rewind forward10
+rewind forward15
+rewind forward20
+rewind forward30
+rewind forward40
+rewind forward5
+rewind forward50
+rewind forward60
+rewind mini
+rewind start
+rewind start mini
+rfid
+rhythm
+ribbon
+ribbon health
+rice bowl
+riding
+right
+right circle
+right from bracket
+right left
+right long
+right square
+right to bracket
+ring
+ring volume
+rings
+ripple
+ripple down
+ripple off
+ripple up
+rise
+road
+road barrier
+road bridge
+road circle check
+road circle exclamation
+road circle xmark
+road lock
+road map
+road off
+road sign
+road spikes
+roadster
+robot
+robot face
+robot off
+robot2
+robot3
+rocket
+rocket launch
+rocket off
+rocket takeoff
+rocket2
+rocketchat
+rockrms
+rollback
+roller shades
+roller shades closed
+roller skating
+rollercoaster
+rollercoaster off
+roofing
+room
+room preferences
+room service
+rose
+rosette
+rosette asterisk
+rosette discount
+rosette discount check
+rosette discount check off
+rosette discount off
+rosette number0
+rosette number1
+rosette number2
+rosette number3
+rosette number4
+rosette number5
+rosette number6
+rosette number7
+rosette number8
+rosette number9
+rotate
+rotate ccw
+rotate clockwise
+rotate clockwise2
+rotate cw
+rotate dot
+rotate left
+rotate lock
+rotate rectangle
+rotate right
+rotate2
+rotate3
+rotate360
+rotate90 degrees ccw
+rotate90 degrees cw
+rotation
+roulette
+roundabout left
+roundabout right
+route
+route alt left
+route alt right
+route off
+route scan
+route square
+route square2
+route x2
+route2
+router
+router off
+row insert bottom
+row insert top
+row remove
+rowing
+rss
+rss feed
+rss square
+rsvp
+rtt
+rubber stamp
+rubber stamp off
+ruble sign
+ruby
+rug
+rugby
+rule
+rule folder
+ruler
+ruler combined
+ruler horizontal
+ruler measure
+ruler measure2
+ruler off
+ruler vertical
+ruler2
+ruler2 off
+ruler3
+rulers
+run
+run circle
+running
+running with errors
+rupee sign
+rupiah sign
+rust
+rv hookup
+rv truck
+sack dollar
+sack xmark
+sad
+sad cry
+sad tear
+safari
+safe
+safe2
+safe3
+safety
+safety certificate
+safety check
+safety divider
+sailboat
+sailboat off
+sailboat2
+sailing
+salad
+salesforce
+salt
+sandbox
+sanitizer
+sass
+satellite
+satellite alt
+satellite dish
+satellite off
+sausage
+save
+save alt
+save as
+save2
+save3
+saved search
+savings
+scale
+scale balanced
+scale off
+scale unbalanced
+scale unbalanced flip
+scales
+scales2
+scales3
+scan
+scan circle
+scan cube
+scan eye
+scan letter
+scan position
+scan traces
+scan2
+scanner
+scatter plot
+schedule
+schedule send
+schema
+schema off
+schlix
+school
+school bell
+school circle check
+school circle exclamation
+school circle xmark
+school flag
+school lock
+school off
+science
+scissor
+scissors
+scissors cut
+scissors off
+scissors2
+scooter
+scooter electric
+score
+scoreboard
+screen lock landscape
+screen lock portrait
+screen lock rotation
+screen rotation
+screen rotation alt
+screen search desktop
+screen share
+screen share off
+screenpal
+screenshot
+screenshot monitor
+screenshot2
+screwdriver
+screwdriver wrench
+scribble
+scribble off
+scribd
+script
+script minus
+script plus
+scroll
+scroll to bottom
+scroll torah
+scuba diving
+scuba diving tank
+scuba mask
+scuba mask off
+sd
+sd card
+sd card alert
+sd card mini
+sd storage
+sdk
+search
+search ai
+search ai2
+search ai3
+search ai4
+search circle
+search dollar
+search eye
+search heart
+search location
+search minus
+search off
+search plus
+search2
+searchengin
+section
+section sign
+secure payment
+security
+security scan
+security update
+security update good
+security update warning
+seedling
+seedling off
+segment
+segmented nav
+segway
+select
+select all
+selector
+self improvement
+sell
+sellcast
+sellsy
+send
+send and archive
+send arrow down
+send arrow up
+send backward
+send check
+send dash
+send exclamation
+send ins
+send off
+send plane
+send plane2
+send plus
+send slash
+send time extension
+send to back
+send to mobile
+send2
+sensor
+sensor door
+sensor occupied
+sensor window
+sensors
+sensors off
+sentiment dissatisfied
+sentiment neutral
+sentiment satisfied
+sentiment satisfied alt
+sentiment very dissatisfied
+sentiment very satisfied
+seo
+separator
+separator horizontal
+separator vertical
+server
+server bolt
+server cog
+server off
+server spark
+server stack
+server2
+serverless
+service
+service bell
+servicemark
+servicestack
+set meal
+setting
+settings
+settings accessibility
+settings ai
+settings applications
+settings automation
+settings backup restore
+settings bluetooth
+settings bolt
+settings brightness
+settings cancel
+settings cell
+settings check
+settings code
+settings cog
+settings dollar
+settings down
+settings ethernet
+settings exclamation
+settings heart
+settings input antenna
+settings input component
+settings input composite
+settings input hdmi
+settings input svideo
+settings minus
+settings off
+settings overscan
+settings pause
+settings phone
+settings pin
+settings plus
+settings power
+settings question
+settings remote
+settings search
+settings share
+settings spark
+settings star
+settings suggest
+settings system daydream
+settings up
+settings voice
+settings2
+settings3
+settings4
+settings5
+settings6
+severe cold
+shadow
+shadow off
+shadows
+shake
+shake hands
+shape
+shape off
+shape2
+shape3
+shapes
+share
+share alt
+share alt square
+share box
+share circle
+share forward
+share forward box
+share forward2
+share from square
+share location
+share nodes
+share off
+share social
+share square
+share2
+share3
+shareplay
+sheet plastic
+shekel sign
+shelves
+shield
+shield alt
+shield bolt
+shield cancel
+shield cat
+shield check
+shield checkered
+shield checkmark
+shield chevron
+shield code
+shield cog
+shield cross
+shield dog
+shield dollar
+shield down
+shield exclamation
+shield flash
+shield half
+shield halved
+shield heart
+shield keyhole
+shield lock
+shield minus
+shield moon
+shield off
+shield pause
+shield pin
+shield plus
+shield question
+shield search
+shield shaded
+shield share
+shield slash
+shield star
+shield up
+shield user
+shield virus
+shift
+shining
+shining2
+ship
+ship off
+ship2
+shipping fast
+shirt
+shirt air
+shirt off
+shirt sport
+shirt2
+shirtsinbulk
+shoe
+shoe off
+shoe prints
+shoelace
+shop
+shop lock
+shop slash
+shop window
+shop2
+shopify
+shopping
+shopping bag
+shopping bag check
+shopping bag discount
+shopping bag edit
+shopping bag exclamation
+shopping bag heart
+shopping bag minus
+shopping bag plus
+shopping bag search
+shopping bag2
+shopping bag3
+shopping bag4
+shopping basket
+shopping basket2
+shopping cart
+shopping cart bolt
+shopping cart cancel
+shopping cart check
+shopping cart checkout
+shopping cart code
+shopping cart cog
+shopping cart copy
+shopping cart discount
+shopping cart dollar
+shopping cart down
+shopping cart exclamation
+shopping cart heart
+shopping cart minus
+shopping cart off
+shopping cart pause
+shopping cart pin
+shopping cart plus
+shopping cart question
+shopping cart search
+shopping cart share
+shopping cart star
+shopping cart up
+shopping cart2
+shopware
+short text
+shortcut
+shovel
+shovel pitchforks
+show chart
+shower
+showers
+shredder
+shrimp
+shrink
+shuffle
+shuffle on
+shut down
+shutter speed
+shuttle space
+shuttle van
+sick
+side bar
+sidebar
+sidebar fold
+sidebar unfold
+sign
+sign dead end
+sign do not enter
+sign hanging
+sign in alt
+sign intersection
+sign intersection side
+sign language
+sign left
+sign merge left
+sign merge right
+sign no left turn
+sign no parking
+sign no right turn
+sign out alt
+sign railroad
+sign right
+sign stop
+sign stop lights
+sign turn left
+sign turn right
+sign turn slight left
+sign turn slight right
+sign yield
+signal
+signal cellular alt
+signal cellular alt1 bar
+signal cellular alt2 bar
+signal cellular connected no internet0 bar
+signal cellular connected no internet1 bar
+signal cellular connected no internet2 bar
+signal cellular connected no internet3 bar
+signal cellular connected no internet4 bar
+signal cellular no sim
+signal cellular nodata
+signal cellular null
+signal cellular off
+signal cellular0 bar
+signal cellular1
+signal cellular1 bar
+signal cellular2
+signal cellular2 bar
+signal cellular3
+signal cellular3 bar
+signal cellular4 bar
+signal lte
+signal messenger
+signal plus
+signal slash
+signal tower
+signal wifi
+signal wifi bad
+signal wifi connected no internet0
+signal wifi connected no internet1
+signal wifi connected no internet2
+signal wifi connected no internet3
+signal wifi connected no internet4
+signal wifi error
+signal wifi off
+signal wifi statusbar connected no internet
+signal wifi statusbar connected no internet1
+signal wifi statusbar connected no internet2
+signal wifi statusbar connected no internet3
+signal wifi statusbar connected no internet4
+signal wifi statusbar not connected
+signal wifi statusbar null
+signal wifi statusbar1 bar
+signal wifi statusbar2 bar
+signal wifi statusbar3 bar
+signal wifi statusbar4 bar
+signal wifi0 bar
+signal wifi1
+signal wifi1 bar
+signal wifi1 bar lock
+signal wifi2
+signal wifi2 bar
+signal wifi2 bar lock
+signal wifi3
+signal wifi3 bar
+signal wifi3 bar lock
+signal wifi4 bar
+signal wifi4 bar lock
+signal2
+signal3
+signal4
+signal4g plus
+signal5
+signal6
+signature
+signature off
+signpost
+signpost split
+signpost2
+signs post
+sim
+sim card
+sim card alert
+sim card download
+sim card warning
+sim card2
+sim slash
+simplybuilt
+sina weibo
+single bed
+single quotes
+sink
+sip
+sisternode
+sistrix
+sitemap
+sitemap off
+sith
+sitrox
+skateboard
+skateboard off
+skateboarding
+skating
+sketch
+sketch circle
+sketch square
+sketching
+skew
+ski jumping
+skiing
+skiing nordic
+skin
+skip back
+skip back mini
+skip backward
+skip backward btn
+skip backward circle
+skip down
+skip end
+skip end btn
+skip end circle
+skip forward
+skip forward btn
+skip forward circle
+skip forward mini
+skip left
+skip next
+skip previous
+skip right
+skip start
+skip start btn
+skip start circle
+skip up
+skull
+skull crossbones
+skull2
+skyatlas
+skype
+slack
+slack circle
+slack hash
+slack square
+slash
+slash circle
+slash commands
+slash commands2
+slash lg
+slash square
+slashes
+sledding
+sleigh
+slice
+sliders
+sliders2
+sliders2 vertical
+slideshare
+slideshow
+slideshow view
+slideshow2
+slideshow3
+slideshow4
+slow down
+slow motion video
+small dash
+smart button
+smart display
+smart home
+smart home off
+smart screen
+smart toy
+smartphone
+smartwatch
+smile
+smile beam
+smile wink
+smog
+smoke free
+smoking
+smoking ban
+smoking no
+smoking rooms
+sms
+sms failed
+snapchat
+snapchat ghost
+snapchat square
+snippet folder
+snippets
+snooze
+snow
+snow2
+snow3
+snowboarding
+snowflake
+snowflake off
+snowing
+snowman
+snowmobile
+snowplow
+snowshoeing
+snowy
+soap
+soccer field
+social
+social distance
+social off
+sock
+socks
+sofa
+sofa off
+solar electricity
+solar panel
+solar panel2
+solar power
+solution
+sort
+sort alpha down
+sort alpha down alt
+sort alpha up
+sort alpha up alt
+sort alphabet asc
+sort alphabet desc
+sort amount down
+sort amount down alt
+sort amount up
+sort amount up alt
+sort asc
+sort ascending
+sort ascending letters
+sort ascending numbers
+sort ascending shapes
+sort ascending small big
+sort ascending2
+sort by alpha
+sort desc
+sort descending
+sort descending letters
+sort descending numbers
+sort descending shapes
+sort descending small big
+sort descending2
+sort down
+sort down alt
+sort number asc
+sort number desc
+sort numeric down
+sort numeric down alt
+sort numeric up
+sort numeric up alt
+sort up
+sort up alt
+sort09
+sort90
+sos
+sound
+sound module
+soundcloud
+soundwave
+soup
+soup kitchen
+soup off
+source
+source code
+sourceforge
+sourcetree
+south
+south america
+south east
+south west
+spa
+space
+space awesome
+space bar
+space dashboard
+space off
+space ship
+space ship2
+space shuttle
+spaces
+spacing horizontal
+spacing vertical
+spade
+spaghetti monster flying
+spam
+spam2
+spam3
+sparkle
+sparkle highlight
+sparkle2
+sparkles
+sparkles2
+sparkling
+sparkling2
+spatial audio
+spatial audio off
+spatial tracking
+speak
+speak ai
+speakap
+speaker
+speaker deck
+speaker group
+speaker mark
+speaker notes
+speaker notes off
+speaker phone
+speaker wave
+speaker2
+speaker3
+speakerphone
+spectrum
+speech to text
+speed
+speed mini
+speed up
+speedboat
+speedometer
+speedometer2
+spell check
+spellcheck
+sphere
+sphere off
+sphere plus
+sphere2
+spider
+spinner
+spiral
+spiral off
+split cells
+split cells horizontal
+split cells vertical
+splitscreen
+splotch
+spoke
+spoon
+sport billard
+sports
+sports bar
+sports baseball
+sports basketball
+sports cricket
+sports esports
+sports football
+sports golf
+sports gymnastics
+sports handball
+sports hockey
+sports kabaddi
+sports martial arts
+sports mma
+sports motorsports
+sports rugby
+sports score
+sports soccer
+sports tennis
+sports volleyball
+spotify
+spray
+spray can
+spray can sparkles
+spy
+spy off
+sql
+square
+square arrow down
+square arrow left
+square arrow right
+square arrow up
+square arrow up right
+square asterisk
+square behance
+square binary
+square bluesky
+square caret down
+square caret left
+square caret right
+square caret up
+square check
+square chevron down
+square chevron left
+square chevron right
+square chevron up
+square chevrons down
+square chevrons left
+square chevrons right
+square chevrons up
+square dashed
+square dot
+square dribbble
+square envelope
+square f0
+square f1
+square f2
+square f3
+square f4
+square f5
+square f6
+square f7
+square f8
+square f9
+square facebook
+square font awesome
+square font awesome stroke
+square foot
+square forbid
+square forbid2
+square full
+square git
+square github
+square gitlab
+square google plus
+square hacker news
+square half
+square instagram
+square js
+square key
+square lastfm
+square letter
+square letterboxd
+square minus
+square minus2
+square nfi
+square number0
+square number1
+square number2
+square number3
+square number4
+square number5
+square number6
+square number7
+square number8
+square number9
+square odnoklassniki
+square off
+square parking
+square pen
+square percentage
+square person confined
+square phone
+square phone flip
+square pied piper
+square pinterest
+square plus
+square plus2
+square poll horizontal
+square poll vertical
+square reddit
+square root
+square root alt
+square root variable
+square root2
+square rotated
+square rotated asterisk
+square rotated forbid
+square rotated forbid2
+square rotated off
+square rss
+square share nodes
+square snapchat
+square steam
+square threads
+square toggle
+square toggle horizontal
+square tumblr
+square twitter
+square up right
+square upwork
+square viadeo
+square vimeo
+square virus
+square web awesome
+square web awesome stroke
+square whatsapp
+square xing
+square xmark
+square youtube
+square2 stack
+square3 stack3
+squares
+squares diagonal
+squares plus
+squares selected
+squares2 x2
+squarespace
+ssid chart
+stack
+stack back
+stack backward
+stack exchange
+stack forward
+stack front
+stack middle
+stack overflow
+stack pop
+stack push
+stack2
+stack3
+stacked bar chart
+stacked chart
+stacked view
+stackpath
+stackshare
+stadium
+staff snake
+stairs
+stairs down
+stairs up
+stamp
+stapler
+star
+star and crescent
+star border
+star border purple500
+star half
+star half alt
+star half stroke
+star of david
+star of life
+star off
+star purple500
+star rate
+star smile
+stars
+stars off
+start
+stats chart
+status change
+stay current landscape
+stay current portrait
+stay primary landscape
+stay primary portrait
+staylinked
+steam
+steam square
+steam symbol
+steering
+steering wheel
+steering wheel off
+steering2
+step backward
+step forward
+step into
+step out
+stereo glasses
+sterling sign
+stethoscope
+stethoscope off
+sticker
+sticker mule
+sticker2
+stickies
+sticky
+sticky note
+sticky note add
+sticky note2
+stock
+stop
+stop btn
+stop circle
+stop large
+stop mini
+stop screen share
+stoplights
+stopwatch
+stopwatch20
+storage
+store
+store alt
+store alt slash
+store mall directory
+store slash
+store2
+store3
+storefront
+storm
+storm off
+straight
+straighten
+strava
+stream
+street view
+streetview
+stretching
+stretching2
+strikethrough
+strikethrough2
+stripe
+stroke curved
+stroke dynamic
+stroke straight
+stroller
+stroopwafel
+stubber
+studiovinari
+stumbleupon
+stumbleupon circle
+style
+subdirectory arrow left
+subdirectory arrow right
+subject
+submarine
+subnode
+subreddit
+subscript
+subscript2
+subscriptions
+substack
+subtask
+subtitles
+subtitles ai
+subtitles edit
+subtitles off
+subtract
+subway
+subway wifi
+suit club
+suit diamond
+suit heart
+suit spade
+suitcase
+suitcase lg
+suitcase medical
+suitcase rolling
+suitcase2
+suitcase3
+sum
+sum off
+summarize
+sun
+sun cloudy
+sun electricity
+sun foggy
+sun high
+sun low
+sun moon
+sun off
+sun plant wilt
+sun wind
+sunglasses
+sunny
+sunny snowing
+sunrise
+sunset
+sunset2
+supabase
+superpowers
+superscript
+superscript2
+supervised user circle
+supervisor account
+supple
+support
+support agent
+surfing
+surgical mask
+surprise
+surround sound
+survey
+suse
+svelte
+svg
+swap
+swap box
+swap calls
+swap horiz
+swap horizontal
+swap horizontal circle
+swap left
+swap right
+swap vert
+swap vertical
+swap vertical circle
+swap2
+swap3
+swatch
+swatchbook
+swift
+swimmer
+swimming
+swimming pool
+swipe
+swipe down
+swipe down alt
+swipe left
+swipe left alt
+swipe right
+swipe right alt
+swipe up
+swipe up alt
+swipe vertical
+switch
+switch access shortcut
+switch access shortcut add
+switch account
+switch camera
+switch horizontal
+switch left
+switch right
+switch vertical
+switch video
+switch2
+switch3
+switcher
+sword
+sword off
+swords
+symfony
+symmetry horizontal
+symmetry vertical
+synagogue
+sync
+sync alt
+sync circle
+sync disabled
+sync lock
+sync problem
+syringe
+system security update
+system security update good
+system security update warning
+system update
+system update alt
+tab
+tab unselected
+table
+table alias
+table alt
+table bar
+table cells
+table cells column lock
+table cells large
+table cells row lock
+table cells row unlock
+table chart
+table column
+table columns
+table dashed
+table down
+table export
+table heart
+table import
+table list
+table minus
+table off
+table options
+table plus
+table restaurant
+table row
+table rows
+table share
+table shortcut
+table spark
+table tennis
+table tennis paddle ball
+table view
+table2
+table3
+tablet
+tablet alt
+tablet android
+tablet button
+tablet landscape
+tablet mac
+tablet portrait
+tablet screen button
+tablets
+tachograph digital
+tachometer alt
+tag
+tag faces
+tag minus
+tag off
+tag plus
+tag starred
+tags
+tags off
+tailwind css
+taiwan dollar
+takeaway
+takeout dining
+tallymark1
+tallymark2
+tallymark3
+tallymark4
+tallymarks
+tank
+taobao
+taobao circle
+taobao square
+tap and play
+tapas
+tape
+target
+target arrow
+target off
+target2
+tarp
+tarp droplet
+task
+task alt
+tasks
+tax
+tax euro
+tax pound
+taxi
+taxi alert
+taxi front
+taxi wifi
+team
+teamspeak
+teapot
+teeth
+teeth open
+telegram
+telegram plane
+telegram2
+telephone
+telephone forward
+telephone inbound
+telephone minus
+telephone outbound
+telephone plus
+telescope
+telescope off
+temp cold
+temp hot
+temperature
+temperature arrow down
+temperature arrow up
+temperature celsius
+temperature empty
+temperature fahrenheit
+temperature full
+temperature half
+temperature high
+temperature low
+temperature minus
+temperature off
+temperature plus
+temperature quarter
+temperature snow
+temperature sun
+temperature three quarters
+template
+template off
+temple buddhist
+temple hindu
+tencent qq
+tencent weibo
+tenge
+tenge sign
+tennisball
+tent
+tent arrow down to
+tent arrow left right
+tent arrow turn left
+tent arrows down
+tent off
+tents
+terminal
+terminal box
+terminal dash
+terminal plus
+terminal split
+terminal window
+terminal2
+terrain
+test pipe
+test pipe off
+test pipe2
+test tube
+tex
+text
+text block
+text caption
+text center
+text color
+text decrease
+text direction
+text direction ltr
+text direction rtl
+text fields
+text format
+text grammar
+text height
+text increase
+text indent left
+text indent right
+text left
+text orientation
+text paragraph
+text plus
+text recognition
+text resize
+text right
+text rotate up
+text rotate vertical
+text rotation angledown
+text rotation angleup
+text rotation down
+text rotation none
+text scan ai
+text scan2
+text size
+text slash
+text snippet
+text spacing
+text spellcheck
+text to speech
+text width
+text wrap
+text wrap column
+text wrap disabled
+textarea
+textarea resize
+textsms
+texture
+th
+th large
+th list
+the red yeti
+theater
+theater comedy
+theater masks
+theaters
+themeco
+themeisle
+thermometer
+thermometer empty
+thermometer full
+thermometer half
+thermometer high
+thermometer low
+thermometer quarter
+thermometer snow
+thermometer sun
+thermometer three quarters
+thermostat
+thermostat auto
+think peaks
+threads
+three dots
+three dots vertical
+thumb down
+thumb down alt
+thumb down off
+thumb down off alt
+thumb up
+thumb up alt
+thumb up off
+thumb up off alt
+thumbs down
+thumbs up
+thumbs up down
+thumbtack
+thumbtack slash
+thunderbolt
+thunderstorm
+thunderstorms
+tic tac
+ticket
+ticket alt
+ticket detailed
+ticket off
+ticket perforated
+ticket simple
+ticket2
+tie
+tik tok
+tiktok
+tilde
+tilt shift
+tilt shift off
+time
+time duration off
+time duration0
+time duration10
+time duration15
+time duration30
+time duration45
+time duration5
+time duration60
+time duration90
+time to leave
+time zone
+timelapse
+timeline
+timeline event
+timeline event exclamation
+timeline event minus
+timeline event plus
+timeline event text
+timeline view
+timer
+timer flash
+timer off
+timer10
+timer10 select
+timer2
+timer3
+timer3 select
+times
+times circle
+timezone
+tint
+tint slash
+tip jar
+tip jar euro
+tip jar pound
+tips and updates
+tir
+tire repair
+tired
+title
+to top
+toc
+today
+todo
+toggle
+toggle left
+toggle off
+toggle on
+toggle right
+toggle2 off
+toggle2 on
+toggles
+toggles2
+toilet
+toilet paper
+toilet paper off
+toilet paper slash
+toilet portable
+toilets portable
+token
+token swap
+toll
+toml
+tonality
+tool
+toolbox
+tools
+tools kitchen
+tools kitchen off
+tools kitchen2
+tools kitchen2 off
+tools kitchen3
+tools off
+tooltip
+tooth
+topic
+topology bus
+topology complex
+topology full
+topology full hierarchy
+topology ring
+topology ring2
+topology ring3
+topology star
+topology star ring
+topology star ring2
+topology star ring3
+topology star2
+topology star3
+torah
+torii
+torii gate
+tornado
+touch app
+tour
+tournament
+tower
+tower broadcast
+tower cell
+tower observation
+tower off
+toys
+track
+track changes
+tractor
+trade federation
+trademark
+trademark circle
+traffic
+traffic cone
+traffic cone off
+traffic light
+traffic lights
+traffic lights off
+trail sign
+trailer
+train
+train freight front
+train front
+train lightrail front
+train subway
+train tram
+train wifi
+tram
+transaction
+transaction bitcoin
+transaction dollar
+transaction euro
+transaction pound
+transaction rupee
+transaction yen
+transaction yuan
+transcribe
+transfer
+transfer in
+transfer out
+transfer vertical
+transfer within station
+transform
+transform point
+transform point bottom left
+transform point bottom right
+transform point top left
+transform point top right
+transgender
+transgender alt
+transit enterexit
+transition bottom
+transition left
+transition right
+transition top
+translate
+translate ai
+translate ai2
+translate2
+translation
+transparency
+trash
+trash alt
+trash arrow up
+trash bin
+trash can
+trash can arrow up
+trash off
+trash restore
+trash restore alt
+trash2
+trash3
+travel explore
+travesti
+treadmill
+treasure map
+tree
+tree city
+trees
+trekking
+trello
+trending down
+trending down2
+trending down3
+trending flat
+trending up
+trending up down
+trending up2
+trending up3
+triangle
+triangle exclamation
+triangle half
+triangle inverted
+triangle minus
+triangle minus2
+triangle off
+triangle plus
+triangle plus2
+triangle square circle
+triangles
+triangular flag
+trident
+trip origin
+tripadvisor
+trolley
+trophy
+trophy off
+tropical storm
+troubleshoot
+trowel
+trowel bricks
+truck
+truck arrow right
+truck delivery
+truck droplet
+truck fast
+truck field
+truck field un
+truck flatbed
+truck front
+truck loading
+truck medical
+truck monster
+truck moving
+truck off
+truck pickup
+truck plane
+truck ramp box
+truck return
+try
+tshirt
+tsunami
+tty
+tumblr
+tumblr square
+tune
+tungsten
+turkish lira sign
+turn down
+turn left
+turn right
+turn slight left
+turn slight right
+turn up
+turned in
+turned in not
+tux
+tv
+tv off
+tv2
+twitch
+twitter
+twitter circle
+twitter square
+twotone account book
+twotone alert
+twotone api
+twotone appstore
+twotone audio
+twotone bank
+twotone bell
+twotone book
+twotone box plot
+twotone bug
+twotone build
+twotone bulb
+twotone calculator
+twotone calendar
+twotone camera
+twotone car
+twotone carry out
+twotone check circle
+twotone check square
+twotone ci
+twotone ci circle
+twotone clock circle
+twotone close circle
+twotone close square
+twotone cloud
+twotone code
+twotone compass
+twotone contacts
+twotone container
+twotone control
+twotone copy
+twotone copyright
+twotone copyright circle
+twotone credit card
+twotone crown
+twotone customer service
+twotone dashboard
+twotone database
+twotone delete
+twotone diff
+twotone dislike
+twotone dollar
+twotone dollar circle
+twotone down circle
+twotone down square
+twotone edit
+twotone environment
+twotone euro
+twotone euro circle
+twotone exclamation circle
+twotone experiment
+twotone eye
+twotone eye invisible
+twotone file
+twotone file add
+twotone file excel
+twotone file exclamation
+twotone file image
+twotone file markdown
+twotone file pdf
+twotone file ppt
+twotone file text
+twotone file unknown
+twotone file word
+twotone file zip
+twotone filter
+twotone fire
+twotone flag
+twotone folder
+twotone folder add
+twotone folder open
+twotone frown
+twotone fund
+twotone funnel plot
+twotone gift
+twotone gold
+twotone hdd
+twotone heart
+twotone highlight
+twotone home
+twotone hourglass
+twotone html5
+twotone idcard
+twotone info circle
+twotone insurance
+twotone interaction
+twotone layout
+twotone left circle
+twotone left square
+twotone like
+twotone lock
+twotone mail
+twotone medicine box
+twotone meh
+twotone message
+twotone minus circle
+twotone minus square
+twotone mobile
+twotone money collect
+twotone notification
+twotone pause circle
+twotone phone
+twotone picture
+twotone pie chart
+twotone play circle
+twotone play square
+twotone plus circle
+twotone plus square
+twotone pound circle
+twotone printer
+twotone profile
+twotone project
+twotone property safety
+twotone pushpin
+twotone question circle
+twotone reconciliation
+twotone red envelope
+twotone rest
+twotone right circle
+twotone right square
+twotone rocket
+twotone safety certificate
+twotone save
+twotone schedule
+twotone security scan
+twotone setting
+twotone shop
+twotone shopping
+twotone skin
+twotone sliders
+twotone smile
+twotone snippets
+twotone sound
+twotone star
+twotone stop
+twotone switcher
+twotone tablet
+twotone tag
+twotone tags
+twotone thunderbolt
+twotone tool
+twotone trademark circle
+twotone trophy
+twotone unlock
+twotone up circle
+twotone up square
+twotone usb
+twotone video camera
+twotone wallet
+twotone warning
+txt
+type
+type bold
+type h1
+type h2
+type h3
+type h4
+type h5
+type h6
+type italic
+type specimen
+type strikethrough
+type underline
+typeface
+typescript
+typhoon
+typo3
+typography
+typography off
+uber
+ubuntu
+ufo
+ufo off
+uhd
+ui checks
+ui checks grid
+ui radios
+ui radios grid
+uikit
+umbraco
+umbrella
+umbrella beach
+umbrella closed
+umbrella closed2
+umbrella off
+umbrella2
+unarchive
+uncharted
+underline
+undo
+undo alt
+unfold less
+unfold less double
+unfold more
+unfold more double
+ungroup
+unicycle
+unindent
+uninstall
+union
+uniregistry
+unity
+universal access
+universal access circle
+universe
+university
+unlink
+unlock
+unlock alt
+unlock keyhole
+unlock2
+unordered list
+unpin
+unpublished
+unsplash
+unsubscribe
+untappd
+up
+up circle
+up down
+up down left right
+up long
+up rating
+up right and down left from center
+up right from square
+up square
+upc
+upc scan
+upcoming
+update
+update disabled
+upgrade
+upload
+upload cloud
+upload cloud2
+upload file
+upload2
+ups
+upwork
+urgent
+usb
+usb drive
+usb micro
+usb mini
+usb off
+usb plug
+usb symbol
+user
+user add
+user alt
+user alt slash
+user astronaut
+user bitcoin
+user bolt
+user cancel
+user check
+user circle
+user clock
+user code
+user cog
+user community
+user delete
+user doctor
+user dollar
+user down
+user edit
+user exclamation
+user follow
+user forbid
+user friends
+user gear
+user graduate
+user group
+user heart
+user hexagon
+user injured
+user key
+user large
+user large slash
+user location
+user lock
+user md
+user minus
+user ninja
+user nurse
+user off
+user pause
+user pen
+user pentagon
+user pin
+user plus
+user question
+user received
+user received2
+user scan
+user screen
+user search
+user secret
+user settings
+user share
+user shared
+user shared2
+user shield
+user slash
+user smile
+user square
+user star
+user switch
+user tag
+user tie
+user times
+user unfollow
+user up
+user voice
+user xmark
+user2
+user3
+user4
+user5
+user6
+usergroup add
+usergroup delete
+users
+users between lines
+users cog
+users gear
+users group
+users minus
+users plus
+users rays
+users rectangle
+users slash
+users viewfinder
+usps
+ussunnah
+utensil spoon
+utensils
+uv index
+ux circle
+vaadin
+vaccine
+vaccine bottle
+vaccine bottle off
+vaccine off
+vaccines
+vacuum cleaner
+valentine
+valentine2
+van shuttle
+vape free
+vaping rooms
+variable
+variable minus
+variable off
+variable plus
+vault
+vector
+vector bezier
+vector bezier arc
+vector bezier circle
+vector bezier2
+vector off
+vector pen
+vector spline
+vector square
+vector triangle
+vector triangle off
+venus
+venus double
+venus mars
+vercel
+verified
+verified badge
+verified user
+versions
+versions off
+vertical align bottom
+vertical align center
+vertical align middle
+vertical align top
+vertical distribute
+vertical left
+vertical right
+vertical shades
+vertical shades closed
+vertical split
+vest
+vest patches
+viacoin
+viadeo
+viadeo square
+vial
+vial circle check
+vial virus
+vials
+viber
+vibration
+video
+video add
+video ai
+video call
+video camera
+video camera add
+video camera back
+video camera front
+video camera slash
+video chat
+video download
+video file
+video label
+video library
+video minus
+video off
+video on
+video on ai
+video plus
+video settings
+video slash
+video stable
+video upload
+videocam
+videocam off
+videogame asset
+videogame asset off
+vidicon
+vidicon2
+view agenda
+view array
+view carousel
+view column
+view columns
+view comfy
+view comfy alt
+view compact
+view compact alt
+view cozy
+view day
+view headline
+view in ar
+view kanban
+view list
+view module
+view quilt
+view sidebar
+view stacked
+view stream
+view timeline
+view week
+view360
+view360 arrow
+view360 number
+view360 off
+viewfinder
+viewfinder circle
+viewfinder off
+viewport narrow
+viewport short
+viewport tall
+viewport wide
+vignette
+vihara
+villa
+vimeo
+vimeo square
+vine
+vinyl
+vip
+vip crown
+vip crown2
+vip diamond
+vip off
+vip2
+virus
+virus covid
+virus covid slash
+virus off
+virus search
+virus slash
+virus2
+viruses
+visa
+visibility
+visibility off
+vk
+vnv
+vocabulary
+vocabulary off
+voice ai
+voice chat
+voice over off
+voice recognition
+voicemail
+voiceprint
+volcano
+volleyball
+volleyball ball
+volume
+volume down
+volume down alt
+volume high
+volume low
+volume medium
+volume mute
+volume off
+volume off vibrate
+volume up
+volume vibrate
+volume xmark
+volume1
+volume2
+volume3
+volume4
+volunteer activism
+vote yea
+vpn key
+vpn key off
+vpn lock
+vr
+vr cardboard
+vrpano
+vs
+vuejs
+walk
+walkie talkie
+walking
+wall
+wall off
+wallet
+wallet off
+wallet2
+wallet3
+wallpaper
+wallpaper off
+wand
+wand magic
+wand magic sparkles
+wand off
+wand sparkles
+warehouse
+warning
+warning amber
+wash
+wash dry
+wash dry dip
+wash dry flat
+wash dry hang
+wash dry off
+wash dry shade
+wash dry1
+wash dry2
+wash dry3
+wash dryclean
+wash dryclean off
+wash eco
+wash gentle
+wash hand
+wash machine
+wash off
+wash press
+wash temperature1
+wash temperature2
+wash temperature3
+wash temperature4
+wash temperature5
+wash temperature6
+wash tumble dry
+wash tumble off
+watch
+watch later
+watch off
+watchman monitoring
+water
+water damage
+water drop
+water flash
+water ladder
+water percent
+waterfall chart
+waterpolo
+wave saw tool
+wave sine
+wave square
+waves
+waves electricity
+waving hand
+waze
+wb auto
+wb cloudy
+wb incandescent
+wb iridescent
+wb shade
+wb sunny
+wb twighlight
+wb twilight
+wc
+web
+web asset
+web asset off
+web awesome
+web stories
+webcam
+webflow
+webhook
+webhook off
+wechat
+wechat channels
+wechat pay
+wechat work
+wechat2
+weebly
+weekend
+weibo
+weibo circle
+weibo square
+weight
+weight hanging
+weight scale
+weixin
+west
+whats app
+whatsapp
+whatsapp square
+whatshot
+wheat
+wheat awn
+wheat awn circle exclamation
+wheat off
+wheel
+wheelchair
+wheelchair move
+wheelchair off
+wheelchair pickup
+wheeler
+where to vote
+whirl
+whisk
+whiskey glass
+whmcs
+widgets
+width full
+width normal
+width wide
+wifi
+wifi calling
+wifi calling1
+wifi calling2
+wifi calling3
+wifi channel
+wifi find
+wifi lock
+wifi off
+wifi password
+wifi protected setup
+wifi tethering
+wifi tethering error
+wifi tethering off
+wifi0
+wifi1
+wifi1 bar
+wifi2
+wifi2 bar
+wikipedia
+wind
+wind electricity
+wind off
+wind power
+windmill
+windmill off
+window
+window close
+window dash
+window desktop
+window dock
+window fullscreen
+window maximize
+window minimize
+window off
+window plus
+window restore
+window sidebar
+window split
+window stack
+window2
+windows
+windsock
+windy
+wine
+wine bar
+wine bottle
+wine glass
+wine glass alt
+wine glass empty
+wiper
+wiper wash
+wireless charging
+wirsindhandwerk
+wix
+wizards of the coast
+wodu
+wolf pack battalion
+woman
+woman2
+women
+won sign
+wood
+wordpress
+wordpress simple
+work
+work history
+work off
+workspace premium
+workspaces
+world
+world bolt
+world cancel
+world check
+world code
+world cog
+world dollar
+world down
+world download
+world exclamation
+world heart
+world latitude
+world longitude
+world map
+world minus
+world off
+world pause
+world pin
+world plus
+world question
+world search
+world share
+world star
+world up
+world upload
+world www
+worm
+wpbeginner
+wpexplorer
+wpforms
+wpressr
+wrap text
+wrecking ball
+wrench
+wrench adjustable
+wrench adjustable circle
+wrench screwdriver
+writing
+writing off
+writing sign
+writing sign off
+wrong location
+wubi input
+wysiwyg
+xbox
+xd
+xing
+xing square
+xmark
+xmarks lines
+xrp
+xtz
+xxx
+yahoo
+yammer
+yandex
+yandex international
+yard
+yarn
+yelp
+yen sign
+yin yang
+yoast
+yoga
+youtube
+youtube searched for
+youtube square
+yuque
+zap
+zap off
+zcool
+zeppelin
+zeppelin off
+zero config
+zhihu
+zhihu circle
+zhihu square
+zhipu ai
+zip
+zodiac aquarius
+zodiac aries
+zodiac cancer
+zodiac capricorn
+zodiac gemini
+zodiac leo
+zodiac libra
+zodiac pisces
+zodiac sagittarius
+zodiac scorpio
+zodiac taurus
+zodiac virgo
+zoom
+zoom cancel
+zoom check
+zoom code
+zoom exclamation
+zoom in
+zoom in area
+zoom in map
+zoom money
+zoom out
+zoom out area
+zoom out map
+zoom pan
+zoom question
+zoom replace
+zoom reset
+zoom scan
+zzz
+zzz off
