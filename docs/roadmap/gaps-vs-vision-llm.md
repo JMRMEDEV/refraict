@@ -90,15 +90,59 @@ Plan:
 Exact hex colors, pixel-precise bboxes, spatial relationship graph, determinism,
 and zero cost. Keep leaning into these; they are the reason the tool exists.
 
+### Gap 6 — Visual element typing & labeling: icons, logos, charts (needed overall)
+
+Refraict detects non-text regions (Gap 3) but does not yet say *what* they are:
+icons, brand logos, and charts currently appear as anonymous boxes (or, for
+text, as OCR tokens). Any thorough UI analysis needs these element categories.
+
+Approach — split by how well it fits the deterministic/local/cheap identity:
+
+Tier 1 — Deterministic typing (do first; fits perfectly):
+- Icon detection: classify small, compact, non-text regions (~16–32px, low
+  fill of OCR text) as `icon`. Uses existing region + OCR data; rule-based.
+- Logo/image detection: larger non-text graphic regions (often header/top-left)
+  typed as `image`/`logo` (position + size + OCR-emptiness heuristic).
+- Chart detection: type a region as `chart` via a bar/axis pattern — regular
+  vertical/horizontal filled runs (column/row projection) or axis-line detection.
+
+Tier 2 — Grounded VLM labeling (reuses existing grounded-crop machinery, opt-in):
+- For regions typed icon/logo/chart, run a short grounded VLM description on the
+  sub-crop to get a human-usable label ("search icon", "brand wordmark",
+  "bar chart, values trending up"). Marked as inference and passed through the
+  grounding guard, exactly like crop/page descriptions.
+
+Tier 3 — OUT OF SCOPE (do not build; departs from local/cheap):
+- Brand/logo *recognition* ("this is the Stripe logo") — needs a brand database
+  or a large model. The calling agent, which has brand context, is better placed.
+- Reading precise chart data values ("bar 5 = 0.52") — fragile CV; defer or
+  leave to a heavier external tool.
+
+Plan: (1) deterministic region typing into icon/logo/chart; (2) grounded VLM
+labeling of those typed regions behind the existing summary/guard flow.
+
+### Not a gap — comparison/verification stays with the agent
+
+An earlier idea to add a `compare`/`verify` command was considered and rejected.
+Refraict's role is to extract trustworthy *facts* from a rendered screenshot;
+the calling AI agent already holds the "expected" side (it wrote the code and
+knows the requirements) and is the better reasoner for the actual comparison.
+Building spec-matching/assertions into Refraict would be redundant, invite a
+brittle "spec format", and cause scope creep. Refraict emits facts; the agent
+owns the verdict.
+
 ## Prioritized order (highest leverage first)
 
-1. Auto-invert + upscale OCR (proven fix; closes most of Gap 1). ← DONE (2026-09-01)
-2. Expand deterministic page-type/semantic hints from clean OCR (Gap 2).
-3. Connected-components non-text detector (Gap 3 — biggest structural gap).
-4. Harden the grounding guard: color naming + OCR-confidence + numeric-claim
-   checks (Gap 4). New evidence: summary misread chart y-axis "0.8" as
-   "$0.8 per month"; guard did not catch this numeric misinterpretation.
-5. Optional: PaddleOCR/RapidOCR swap if Tesseract plateaus (Gap 1). Residual
+1. Auto-invert + upscale OCR (Gap 1). ← DONE (2026-09-01)
+2. Expand deterministic page-type/semantic hints from clean OCR (Gap 2). ← DONE (2026-09-01)
+3. Connected-components / OpenCV non-text detector (Gap 3). ← DONE narrow case (2026-09-01)
+4. Harden the grounding guard: color naming + numeric-claim + quoted-text checks
+   (Gap 4). ← DONE (2026-09-01)
+5. Visual element typing — Tier 1 deterministic: classify detected regions as
+   icon / logo(image) / chart (Gap 6). ← NEXT
+6. Visual element labeling — Tier 2 grounded VLM description of icon/logo/chart
+   sub-crops, guard-checked (Gap 6).
+7. Optional: PaddleOCR/RapidOCR swap if Tesseract plateaus (Gap 1). Residual
    Tesseract errors after invert+upscale: "usp"/"uso" (USD), "deepseck",
    "APli keys".
 
