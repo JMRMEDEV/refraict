@@ -271,9 +271,86 @@ geometry/colors remain the source of truth, and labels are best-effort
 inference the guard keeps clean. Bigger VLMs (or the opencv-only path with
 larger crops) would raise recall; not pursued to preserve the local/cheap model.
 
+### 2026-09-02 — Icon-label reliability investigation (PoCs; scripts in dev/vec-poc/)
+
+Explored making the Tier-2 icon labels more reliable. Measured, not assumed:
+
+- Repetition voting (run the VLM N times, group answers, take the mode) is a
+  real, model-agnostic reliability win. Baseline crops + lexical grouping +
+  over-long-run filter: ~4/5 icons correct at 10 runs, and the agreement level
+  (e.g. 8/10 vs 4/10) is itself a usable confidence signal (withhold labels
+  below a threshold). RECOMMENDED technique.
+
+- Vectorization (vtracer color trace, bg-removed and bg-kept variants) → REJECTED.
+  Averaged 4-run majority voting: baseline upscale was the MOST self-consistent
+  (2.6/4); bg-removed hurt most (1.2/4). Crisp vector art is further from the
+  VLM's training distribution than a natural-looking blur, and bg-removal strips
+  context. Not worth the vtracer + ImageMagick deps.
+
+- Heavy lexical infra (Snowball stemming + WordNet via wnram + react-icons
+  vocabulary) → REJECTED. 10-run Go PoC: mean agreement 4.2/10 and 1/5 correct,
+  WORSE than a tiny curated synonym map (6.0/10, 4/5). WordNet lacks UI-icon
+  metaphors (magnifier≠search in a dictionary), stemming fragmented votes, and
+  the broad vocab admitted noise tokens. Reverted the package + 22MB data + both
+  deps.
+
+- KEY FINDING — the right icon-name→concept source: icon libraries that ship
+  per-icon keyword/tag metadata. Lucide `icons/*.json` has e.g. search.json
+  tags=[find, scan, magnifier, magnifying glass, lens, locate, explore, ...] —
+  a real, maintained, community-curated alias→concept map that captures exactly
+  the UI metaphors WordNet missed. RECOMMENDED replacement for both WordNet and
+  the hand map: build an alias→canonical dict from Lucide tags (~1600 icons) and
+  canonicalize votes against it. (Not yet implemented.)
+
 ## Target end state
 
 Refraict will not out-understand the vision read, but with items 1 and 3 it can
 match it on presence/position/color/text — deterministically and for free — and
 use the grounding guard to trigger a paid vision read only when uncertain. That
 is the cost-saving cross-check pattern this tool is built to enable.
+
+## References & third-party sources
+
+Tools, libraries, datasets, and papers used across this work, with licenses
+(verified for anything we embed/redistribute).
+
+Runtime dependencies (in the shipped tool):
+- bild (github.com/anthonynsimon/bild) — pure-Go image processing (edges,
+  morphology, threshold). MIT.
+- gocv (gocv.io/x/gocv) — OpenCV 4.x bindings, OPTIONAL behind `-tags opencv`
+  (Canny + findContours for low-contrast region detection). Apache-2.0; requires
+  system OpenCV 4.x (BSD/Apache). Not in the default static build.
+- Ollama — local model runtime (VLM + text models). Optional; the deterministic
+  pipeline runs without it.
+- Tesseract — OCR engine, invoked via the external OCR wrapper. Apache-2.0.
+
+Icon-label reliability investigation (PoC only; scripts in dev/vec-poc/):
+- vtracer (visioncortex) — color raster→vector tracer. Evaluated for icon
+  crisping, REJECTED (did not improve 3B-VLM labeling). MIT. Not adopted.
+- WordNet via wnram (github.com/lloyd/wnram) — lexical database. Evaluated for
+  synonym grouping, REJECTED (missed UI-icon metaphors). WordNet license
+  (BSD-like). Reverted; not a dependency.
+- Snowball stemmer (github.com/kljensen/snowball) — evaluated with WordNet,
+  reverted. MIT. Not a dependency.
+- react-icons — icon-name vocabulary source (evaluated). MIT. Not adopted (the
+  broad vocabulary diluted grouping).
+- Lucide (lucide-icons/lucide, lucide-static `tags.json`) — RECOMMENDED source
+  for the icon-name→concept alias map (per-icon keyword/tag metadata).
+  License: ISC (Lucide) + MIT for the Feather-derived subset — both permissive
+  and allow embedding/redistribution provided the copyright + permission notice
+  is included. If the TF-IDF Lucide map is productionized, bundle the Lucide ISC
+  and Feather MIT notices (see THIRD_PARTY_LICENSES). ~1792 icons.
+
+Techniques referenced:
+- TF-IDF term weighting (Spärck Jones, 1972) — used to down-weight common/
+  ambiguous icon-tag tokens; the winning refinement of the Lucide alias map.
+- Suzuki–Abe border following (1985) — the algorithm behind OpenCV findContours
+  (used via gocv, not reimplemented).
+- Two-pass connected-components labeling (union-find) — implemented from the
+  standard published method in internal/detect (pure-Go detector).
+- Majority-vote / self-consistency over repeated model samples — the validated
+  reliability technique for VLM element labeling (agreement = confidence).
+
+Licensing note: everything embedded or shipped is permissively licensed
+(MIT/ISC/Apache/BSD). The only attribution obligation for a productionized
+Lucide map is including the Lucide ISC + Feather MIT notices.
