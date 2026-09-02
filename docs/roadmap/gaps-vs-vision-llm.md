@@ -220,6 +220,29 @@ Remaining (medium case, deferred): tune pure-Go detector or accept OpenCV for
 low-contrast; genuine child-element detection inside containers; chart bar
 detection via projection.
 
+### 2026-09-02 — Gap 6 Tier 1: deterministic visual-element typing
+
+Added `classifyRegion(RegionBox, RegionSignals)`: types detected regions as
+`icon` (text-empty, <=48px, compact, no children), `logo` (text-empty, header
+band, non-solid), plus `container`/`card`/`panel`/`image`/`region` fallbacks.
+OCR-awareness via `ocrOverlapFrac`; `RegionComponents`/`RegionComponentsOpenCV`
+now take OCR tokens (threaded through the pipeline). Unit-tested
+(`typing_test.go`), build+vet clean both configs.
+
+Chart typing — evaluated and REMOVED. A deterministic bar/axis column-projection
+was implemented, then measured on the reference image:
+- real chart region: peak column-ink 0.09, 0 runs (bars are short and sparse);
+- a KPI card with large "$1.58" text: peak 0.37, 3 runs (tall glyph columns).
+So the heuristic false-positived a text card as a chart and missed the real
+chart. It was removed rather than tuned; chart identification is deferred to
+Tier 2 (grounded VLM), which can recognize a chart visually.
+
+Honest limitation: on the reference screenshot no `icon`/`logo` was emitted
+end-to-end, because the region detector's `MinSidePx` filter drops small icons
+upstream and the logo was not isolated as a clean box. The typing rules are
+correct and unit-tested; surfacing icons/logos end-to-end needs a detector
+retuning pass (retain smaller regions) — tracked as a follow-up.
+
 ## Target end state
 
 Refraict will not out-understand the vision read, but with items 1 and 3 it can

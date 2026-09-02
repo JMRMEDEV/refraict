@@ -75,7 +75,7 @@ func TestRegionComponentsTyping(t *testing.T) {
 	opts := DefaultRegionOptions()
 	opts.DownscaleLongSide = 0
 	opts.MinAreaFrac = 0.01
-	comps := RegionComponents(img, opts)
+	comps := RegionComponents(img, opts, nil)
 	if len(comps) < 2 {
 		t.Fatalf("expected >=2 region components, got %d", len(comps))
 	}

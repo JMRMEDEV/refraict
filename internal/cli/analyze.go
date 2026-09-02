@@ -339,7 +339,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// components merge with OCR/VLM components in the reconciler by overlap.
 	var regionComps []ir.Component
 	if cfg.Analysis.DetectRegions {
-		regionComps = detectRegionComponents(img.AsImage())
+		regionComps = detectRegionComponents(img.AsImage(), toks)
 		cropComponents = append(cropComponents, regionComps...)
 		slog.Info("detected non-text regions", "region_components", len(regionComps))
 	}

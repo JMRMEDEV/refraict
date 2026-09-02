@@ -241,14 +241,20 @@ func minInt(a, b int) int {
 }
 
 // RegionComponentsOpenCV runs the OpenCV detector and types the boxes using the
-// same conservative rules as the pure-Go path.
-func RegionComponentsOpenCV(img image.Image, opts OpenCVRegionOptions) ([]ir.Component, error) {
+// same rules as the pure-Go path, including OCR-aware element typing
+// (icon/logo/chart). Pass nil toks to skip OCR-aware typing.
+func RegionComponentsOpenCV(img image.Image, opts OpenCVRegionOptions, toks []ir.OCRToken) ([]ir.Component, error) {
 	boxes, err := DetectRegionsOpenCV(img, opts)
 	if err != nil {
 		return nil, err
 	}
 	if len(boxes) == 0 {
 		return nil, nil
+	}
+	var imgW, imgH int
+	if img != nil {
+		b := img.Bounds()
+		imgW, imgH = b.Dx(), b.Dy()
 	}
 	encloses := make([]int, len(boxes))
 	for i := range boxes {
@@ -263,7 +269,8 @@ func RegionComponentsOpenCV(img image.Image, opts OpenCVRegionOptions) ([]ir.Com
 	}
 	comps := make([]ir.Component, 0, len(boxes))
 	for i, rb := range boxes {
-		typ := regionType(rb, encloses[i])
+		sig := regionSignals(img, rb, encloses[i], imgW, imgH, toks)
+		typ := classifyRegion(rb, sig)
 		conf := regionConfidence(rb, encloses[i])
 		comps = append(comps, ir.Component{
 			ID:         regionID(i),

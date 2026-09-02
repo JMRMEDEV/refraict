@@ -10,7 +10,7 @@ import (
 )
 
 func detectComponents(img image.Image) []ir.Component {
-	comps, err := detect.RegionComponentsOpenCV(img, detect.DefaultOpenCVRegionOptions())
+	comps, err := detect.RegionComponentsOpenCV(img, detect.DefaultOpenCVRegionOptions(), nil)
 	if err != nil {
 		panic(err)
 	}

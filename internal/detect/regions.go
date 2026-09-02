@@ -63,19 +63,27 @@ type RegionBox struct {
 }
 
 // RegionComponents runs DetectRegions and converts the boxes into typed
-// ir.Component values (Source "cv_region"). Typing is conservative and derived
-// only from geometry and containment:
+// ir.Component values (Source "cv_region"). Typing is deterministic and derived
+// from geometry, containment, OCR-emptiness, and a bar/axis pattern check:
 //
-//   - a region that encloses two or more other regions => "container"
-//   - a large solid region (high fill) => "card"/"panel"
-//   - otherwise => "region"
+//   - chart:     region with a regular bar/axis pattern
+//   - icon:      small, compact, text-empty graphic
+//   - logo:      text-empty graphic in the header band
+//   - container: encloses two or more other regions
+//   - card/panel/image/region: fallbacks by fill/size/text-emptiness
 //
-// Text is intentionally not attached here; the pipeline's reconciler merges
+// toks are OCR tokens (global coords) used to measure text-emptiness; pass nil
+// to skip OCR-aware typing. Text is not attached here — the reconciler merges
 // these boxes with OCR-derived text components by overlap.
-func RegionComponents(img image.Image, opts RegionOptions) []ir.Component {
+func RegionComponents(img image.Image, opts RegionOptions, toks []ir.OCRToken) []ir.Component {
 	boxes := DetectRegions(img, opts)
 	if len(boxes) == 0 {
 		return nil
+	}
+	var imgW, imgH int
+	if img != nil {
+		b := img.Bounds()
+		imgW, imgH = b.Dx(), b.Dy()
 	}
 	// Precompute containment counts.
 	encloses := make([]int, len(boxes))
@@ -92,7 +100,8 @@ func RegionComponents(img image.Image, opts RegionOptions) []ir.Component {
 
 	comps := make([]ir.Component, 0, len(boxes))
 	for i, rb := range boxes {
-		typ := regionType(rb, encloses[i])
+		sig := regionSignals(img, rb, encloses[i], imgW, imgH, toks)
+		typ := classifyRegion(rb, sig)
 		conf := regionConfidence(rb, encloses[i])
 		comps = append(comps, ir.Component{
 			ID:   regionID(i),
@@ -106,18 +115,130 @@ func RegionComponents(img image.Image, opts RegionOptions) []ir.Component {
 	return comps
 }
 
-func regionType(rb RegionBox, encloses int) string {
+// regionSignals computes the deterministic element-typing signals for a region.
+func regionSignals(img image.Image, rb RegionBox, encloses, imgW, imgH int, toks []ir.OCRToken) RegionSignals {
+	w := rb.BBox.Width()
+	h := rb.BBox.Height()
+	maxSide, minSide := w, h
+	if h > w {
+		maxSide, minSide = h, w
+	}
+	aspect := 1.0
+	if minSide > 0 {
+		aspect = float64(maxSide) / float64(minSide)
+	}
+	headerBand := false
+	if imgH > 0 {
+		// Header band = region's vertical center in the top 15% of the page.
+		cy := (rb.BBox.Y0 + rb.BBox.Y1) / 2
+		headerBand = float64(cy) <= 0.15*float64(imgH)
+	}
+	return RegionSignals{
+		Encloses:    encloses,
+		OCROverlap:  ocrOverlapFrac(rb.BBox, toks),
+		MaxSidePx:   maxSide,
+		MinSidePx:   minSide,
+		AspectRatio: aspect,
+		HeaderBand:  headerBand,
+	}
+}
+
+// ocrOverlapFrac returns the fraction of the region's area covered by OCR
+// token boxes (clamped to 1.0). Used to measure text-emptiness.
+func ocrOverlapFrac(region ir.BoundingBox, toks []ir.OCRToken) float64 {
+	area := region.Area()
+	if area <= 0 || len(toks) == 0 {
+		return 0
+	}
+	covered := 0
+	for _, t := range toks {
+		covered += intersectionAreaInt(region, t.BBoxGlobal)
+	}
+	f := float64(covered) / float64(area)
+	if f > 1 {
+		f = 1
+	}
+	return f
+}
+
+func intersectionAreaInt(a, b ir.BoundingBox) int {
+	x0 := a.X0
+	if b.X0 > x0 {
+		x0 = b.X0
+	}
+	y0 := a.Y0
+	if b.Y0 > y0 {
+		y0 = b.Y0
+	}
+	x1 := a.X1
+	if b.X1 < x1 {
+		x1 = b.X1
+	}
+	y1 := a.Y1
+	if b.Y1 < y1 {
+		y1 = b.Y1
+	}
+	if x1 <= x0 || y1 <= y0 {
+		return 0
+	}
+	return (x1 - x0) * (y1 - y0)
+}
+
+
+// RegionSignals carries the deterministic signals used to type a detected
+// region into a visual element. All fields are computed from measured data
+// (geometry + OCR overlap) so classification is testable without an image.
+type RegionSignals struct {
+	Encloses    int     // number of other regions this one contains
+	OCROverlap  float64 // fraction of the region's area covered by OCR text (0..1)
+	MaxSidePx   int     // longest side of the region in original pixels
+	MinSidePx   int     // shortest side of the region in original pixels
+	AspectRatio float64 // MaxSide/MinSide (>=1)
+	HeaderBand  bool    // region sits in the top band of the page (logo-likely)
+}
+
+// classifyRegion assigns a visual-element type from deterministic signals.
+// Order matters: more specific element types are checked before generic
+// container/card fallbacks.
+//
+//   - icon:      small, compact, text-empty graphic.
+//   - logo:      text-empty graphic in the header band (brand mark area).
+//   - container: encloses two or more other regions.
+//   - card:      solid, sizeable block.
+//   - panel:     sizeable region.
+//   - image:     any other text-empty graphic.
+//   - region:    generic fallback.
+//
+// NOTE: deterministic chart typing (bar/axis projection) was evaluated and
+// removed: real bar charts have short, sparse bars (low column ink) while large
+// text produces tall high-ink columns, so a projection heuristic both misses
+// real charts and false-positives on text cards. Chart identification is
+// deferred to Tier-2 grounded VLM labeling, which can recognize a chart
+// visually. See docs/roadmap/gaps-vs-vision-llm.md (Gap 6).
+func classifyRegion(rb RegionBox, s RegionSignals) string {
+	textEmpty := s.OCROverlap < 0.05
 	switch {
-	case encloses >= 2:
+	case textEmpty && s.MaxSidePx > 0 && s.MaxSidePx <= 48 && s.AspectRatio <= 1.6 && s.Encloses == 0:
+		return "icon"
+	case textEmpty && s.HeaderBand && s.Encloses == 0 && rb.FillRatio < 0.85:
+		return "logo"
+	case s.Encloses >= 2:
 		return "container"
 	case rb.FillRatio >= 0.85 && rb.AreaFrac >= 0.02:
-		// Solid, sizeable block: a card/panel.
 		return "card"
 	case rb.AreaFrac >= 0.02:
 		return "panel"
+	case textEmpty && s.Encloses == 0:
+		return "image"
 	default:
 		return "region"
 	}
+}
+
+// regionType is the geometry-only fallback classifier retained for callers/tests
+// that do not supply element signals.
+func regionType(rb RegionBox, encloses int) string {
+	return classifyRegion(rb, RegionSignals{Encloses: encloses})
 }
 
 func regionConfidence(rb RegionBox, encloses int) float64 {
