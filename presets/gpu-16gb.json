@@ -1,0 +1,52 @@
+{
+  "vision": {
+    "provider": "ollama",
+    "model": "qwen2.5-vl:7b",
+    "endpoint": "http://localhost:11434",
+    "workers": 1,
+    "batch_size": 1
+  },
+  "summary": {
+    "provider": "ollama",
+    "model": "qwen2.5:7b",
+    "endpoint": "http://localhost:11434"
+  },
+  "aggregator": {
+    "provider": "ollama",
+    "model": "qwen2.5:7b",
+    "endpoint": "http://localhost:11434"
+  },
+  "models": {
+    "keep_alive": "5m"
+  },
+  "image": {
+    "overview_width": 1200,
+    "crop_long_side": 1280,
+    "crop_overlap": 0.2,
+    "minimum_text_height_after_resize": 12,
+    "detail_long_side": 1280,
+    "crop_strategy": "grid",
+    "grid_rows": 3,
+    "grid_cols": 2
+  },
+  "analysis": {
+    "confidence_threshold": 0.80,
+    "generate_dom_guess": true,
+    "detect_regions": true,
+    "label_elements": true,
+    "max_element_labels": 24,
+    "element_label_runs": 10,
+    "element_label_threshold": 0.6,
+    "element_label_pad_frac": 0.15
+  },
+  "cache": {
+    "enabled": true,
+    "dir": "./.refraict-cache"
+  },
+  "cloud": {
+    "enabled": false,
+    "local_only": true,
+    "allow_cloud": false,
+    "redact_text_before_cloud": true
+  }
+}

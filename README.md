@@ -337,6 +337,11 @@ Print the version.
 
 Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields fall back to built-in defaults. Example:
 
+> **Hardware presets:** ready-made configs for common hardware live in
+> [`presets/`](presets/) — `gpu-8gb.json` (recommended default), `gpu-4gb.json`,
+> `gpu-16gb.json`, and `cpu-only.json`. Use one with
+> `--config presets/gpu-8gb.json`. See [`presets/README.md`](presets/README.md).
+
 ```json
 {
   "vision": {
