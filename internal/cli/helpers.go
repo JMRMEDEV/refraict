@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"image/color"
 	"os"
 	"sort"
 	"strings"
@@ -86,6 +87,47 @@ func buildVisionBackend(cfg *config.Config, o *analysisOptions) (model.VisionBac
 		return model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, resolveKeepAlive(cfg, o)), nil
 	}
 	return nil, fmt.Errorf("unsupported vision provider %q", provider)
+}
+
+// buildVisionBackendKeepAlive builds the vision adapter with an explicit
+// keep-alive override (empty = config/default). Used by commands without an
+// analysisOptions.
+func buildVisionBackendKeepAlive(cfg *config.Config, keepWarm string) (model.VisionBackend, error) {
+	provider := cfg.Vision.Provider
+	if provider == "" || provider == "ollama" {
+		ka := keepWarm
+		if ka == "" {
+			ka = cfg.Models.KeepAlive
+		}
+		return model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, ka), nil
+	}
+	return nil, fmt.Errorf("unsupported vision provider %q", provider)
+}
+
+// voteRawLabels samples the vision backend `runs` times on the given crop image
+// with the element-label prompt, returning the raw description strings for
+// canonicalization + voting. Shared by the analyze pipeline and the `icons`
+// command.
+func voteRawLabels(ctx context.Context, vision model.VisionBackend, cropData []byte, c ir.Component, runs int) []string {
+	if vision == nil || len(cropData) == 0 || runs <= 0 {
+		return nil
+	}
+	raw := make([]string, 0, runs)
+	for r := 0; r < runs; r++ {
+		res, err := vision.Analyze(ctx, model.VisionRequest{
+			ImageData:     cropData,
+			ImageMIME:     "image/png",
+			CropID:        c.ID,
+			BBoxGlobal:    c.BBox,
+			PromptVersion: prompt.CropAnalysisV1,
+			SchemaVersion: prompt.SchemaVersion,
+			Prompt:        prompt.BuildElementLabelPrompt(c.Type.Value),
+		})
+		if err == nil && res != nil {
+			raw = append(raw, res.Description)
+		}
+	}
+	return raw
 }
 
 // buildTextBackend constructs the text adapter for the summary backend.
@@ -283,25 +325,11 @@ func labelGraphicElements(ctx context.Context, vision model.VisionBackend, canon
 		if !isGraphicType(c.Type.Value) {
 			continue
 		}
-		data := cropBytes(img, crop.Crop{ID: c.ID, BBox: paddedBBox(c.BBox, img, 0.6)})
+		data := elementCropBytes(img, c.BBox)
 		if len(data) == 0 {
 			continue
 		}
-		raw := make([]string, 0, runs)
-		for r := 0; r < runs; r++ {
-			res, err := vision.Analyze(ctx, model.VisionRequest{
-				ImageData:     data,
-				ImageMIME:     "image/png",
-				CropID:        c.ID,
-				BBoxGlobal:    c.BBox,
-				PromptVersion: prompt.CropAnalysisV1,
-				SchemaVersion: prompt.SchemaVersion,
-				Prompt:        prompt.BuildElementLabelPrompt(c.Type.Value),
-			})
-			if err == nil && res != nil {
-				raw = append(raw, res.Description)
-			}
-		}
+		raw := voteRawLabels(ctx, vision, data, *c, runs)
 		vote := canon.Vote(raw)
 		// Only accept a label with sufficient self-consistency. Low agreement
 		// means the model has no stable answer for this element — withhold.
@@ -339,6 +367,28 @@ func paddedBBox(b ir.BoundingBox, img *imageproc.Image, frac float64) ir.Boundin
 		y1 = h
 	}
 	return ir.BoundingBox{X0: x0, Y0: y0, X1: x1, Y1: y1}
+}
+
+// elementCropBytes renders a graphic element crop for the VLM: the region is
+// padded for context, then UPSCALED so the element fills a fixed square canvas
+// (via imageproc.ElementCropPNG). Filling the frame is what matters — an
+// earlier version left tiny icons as a ~5%-of-canvas speck (CropRegion only
+// downscaled), which the `refraict icons --dump-crops` inspection revealed. The
+// fix (upscale small crops to the inner margin) lifted measured vote agreement
+// materially, e.g. "search" 3/10 -> 7/10 and "x" 5/10 -> 8/10. The canvas
+// background is the region's dominant color so the padding blends.
+func elementCropBytes(img *imageproc.Image, b ir.BoundingBox) []byte {
+	if b.Empty() {
+		return nil
+	}
+	const canvas = 512
+	const inner = 448 // element occupies most of the canvas, small margin
+	pb := paddedBBox(b, img, 0.6)
+	bg := color.RGBA{0, 0, 0, 255}
+	if cols := cropDominantColors(img, pb); len(cols) > 0 {
+		bg = color.RGBA{uint8(cols[0].RGB[0]), uint8(cols[0].RGB[1]), uint8(cols[0].RGB[2]), 255}
+	}
+	return img.ElementCropPNG(pb.X0, pb.Y0, pb.X1, pb.Y1, canvas, inner, bg)
 }
 
 // inferPageType does a lightweight page-type classification from geometry/text.

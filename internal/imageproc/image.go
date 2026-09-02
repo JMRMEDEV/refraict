@@ -170,6 +170,82 @@ func FitWithin(srcW, srcH, maxLong int) (int, int) {
 	return int(float64(srcW) * scale), int(float64(srcH) * scale)
 }
 
+// PadBox expands a box [x0,y0,x1,y1] by frac of its size on each side, clamped
+// to the given image dimensions (w,h). Used to give a small VLM visual context
+// around a tiny element before cropping.
+func PadBox(x0, y0, x1, y1, w, h int, frac float64) (int, int, int, int) {
+	padX := int(float64(x1-x0) * frac)
+	padY := int(float64(y1-y0) * frac)
+	nx0, ny0, nx1, ny1 := x0-padX, y0-padY, x1+padX, y1+padY
+	if nx0 < 0 {
+		nx0 = 0
+	}
+	if ny0 < 0 {
+		ny0 = 0
+	}
+	if nx1 > w {
+		nx1 = w
+	}
+	if ny1 > h {
+		ny1 = h
+	}
+	return nx0, ny0, nx1, ny1
+}
+
+// ElementCropPNG renders a graphic element for a small VLM: it crops the region
+// [x0,y0,x1,y1], resizes so the longest side fits within `inner`, and CENTERS
+// it on a square `canvas`×`canvas` image filled with bg (so padding blends
+// rather than adding a hard edge). Consistent centered framing measured better
+// for small-VLM icon recognition than a raw variable-size crop. Returns PNG
+// bytes, or nil on empty/degenerate input.
+func (im *Image) ElementCropPNG(x0, y0, x1, y1, canvas, inner int, bg color.RGBA) []byte {
+	if x1 <= x0 || y1 <= y0 || canvas <= 0 || inner <= 0 {
+		return nil
+	}
+	// Extract the raw crop at native resolution (no cap).
+	sub := im.CropRegion(x0, y0, x1, y1, 0)
+	if sub == nil {
+		return nil
+	}
+	sb := sub.Bounds()
+	sw, sh := sb.Dx(), sb.Dy()
+	if sw == 0 || sh == 0 {
+		return nil
+	}
+	// Scale the crop so its LONGEST side == inner (upscale small icons; the
+	// prior cap-only path left tiny icons as specks on the canvas). Preserve
+	// aspect ratio.
+	long := sw
+	if sh > long {
+		long = sh
+	}
+	scale := float64(inner) / float64(long)
+	nw, nh := int(float64(sw)*scale), int(float64(sh)*scale)
+	if nw < 1 {
+		nw = 1
+	}
+	if nh < 1 {
+		nh = 1
+	}
+	scaled := image.NewRGBA(image.Rect(0, 0, nw, nh))
+	draw.CatmullRom.Scale(scaled, scaled.Bounds(), sub, sb, draw.Over, nil)
+
+	dst := image.NewRGBA(image.Rect(0, 0, canvas, canvas))
+	for y := 0; y < canvas; y++ {
+		for x := 0; x < canvas; x++ {
+			dst.SetRGBA(x, y, bg)
+		}
+	}
+	offX := (canvas - nw) / 2
+	offY := (canvas - nh) / 2
+	draw.Draw(dst, image.Rect(offX, offY, offX+nw, offY+nh), scaled, scaled.Bounds().Min, draw.Src)
+	data, err := EncodePNG(dst)
+	if err != nil {
+		return nil
+	}
+	return data
+}
+
 // EncodePNG encodes an image as PNG.
 func EncodePNG(img image.Image) ([]byte, error) {
 	var buf bytes.Buffer
