@@ -19,7 +19,7 @@ import (
 // with non-empty IDs.
 func TestBrokenVLMOutputDoesNotCollapse(t *testing.T) {
 	cropBox := ir.BoundingBox{X0: 0, Y0: 0, X1: 640, Y1: 480}
-	toks := []ir.ORCToken{
+	toks := []ir.OCRToken{
 		{Text: "Sign in", BBoxGlobal: ir.BoundingBox{X0: 40, Y0: 50, X1: 140, Y1: 80}},
 		{Text: "Top up", BBoxGlobal: ir.BoundingBox{X0: 240, Y0: 90, X1: 320, Y1: 120}},
 	}

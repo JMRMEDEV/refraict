@@ -14,6 +14,7 @@ import (
 	"github.com/refraict/refraict/internal/imageproc"
 	"github.com/refraict/refraict/internal/ir"
 	"github.com/refraict/refraict/internal/ocr"
+	"github.com/refraict/refraict/internal/prompt"
 	"github.com/refraict/refraict/internal/summarize"
 )
 
@@ -81,17 +82,44 @@ func buildOCREngine() (ocr.Engine, error) {
 func buildVisionBackend(cfg *config.Config, o *analysisOptions) (model.VisionBackend, error) {
 	provider := cfg.Vision.Provider
 	if provider == "" || provider == "ollama" {
-		return model.NewOllama(cfg.Vision.Endpoint, cfg.Vision.Model), nil
+		return model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, resolveKeepAlive(cfg, o)), nil
 	}
 	return nil, fmt.Errorf("unsupported vision provider %q", provider)
 }
 
-// buildTextBackend constructs the text adapter.
+// buildTextBackend constructs the text adapter for the summary backend.
 func buildTextBackend(cfg *config.Config, o *analysisOptions) model.TextBackend {
-	if cfg.Summary.Provider == "" || cfg.Summary.Provider == "ollama" {
-		return model.NewOllama(cfg.Summary.Endpoint, cfg.Summary.Model)
+	return buildBackendFor(cfg.Summary.Provider, cfg.Summary.Endpoint, cfg.Summary.Model, resolveKeepAlive(cfg, o))
+}
+
+// buildAggregatorBackend constructs the text adapter used for the aggregator /
+// escalation stage (M4). Aggregation runs over the already-produced region
+// summaries with an (optionally stronger) model to synthesize the final page
+// narrative and resolve low-confidence conditions.
+func buildAggregatorBackend(cfg *config.Config) model.TextBackend {
+	return buildBackendFor(cfg.Aggregator.Provider, cfg.Aggregator.Endpoint, cfg.Aggregator.Model, cfg.Models.KeepAlive)
+}
+
+// buildBackendFor resolves a provider string to a TextBackend, defaulting to
+// the local Ollama adapter when unset.
+func buildBackendFor(provider, endpoint, mdl, keepAlive string) model.TextBackend {
+	if provider == "" || provider == "ollama" {
+		return model.NewOllamaKeepAlive(endpoint, mdl, keepAlive)
 	}
 	return nil
+}
+
+// resolveKeepAlive returns the effective Ollama keep_alive: the --keep-warm
+// flag override when set, otherwise the configured Models.KeepAlive (default
+// "0" = free immediately).
+func resolveKeepAlive(cfg *config.Config, o *analysisOptions) string {
+	if o != nil && o.keepWarm != "" {
+		return o.keepWarm
+	}
+	if cfg.Models.KeepAlive != "" {
+		return cfg.Models.KeepAlive
+	}
+	return "0"
 }
 
 // cropBytes renders a crop PNG for the given region. The crop is extracted
@@ -128,8 +156,7 @@ func imgResizedPNG(img *imageproc.Image) []byte {
 }
 
 // tokensIn returns OCR tokens intersecting the given box.
-func tokensIn(b ir.BoundingBox, toks []ir.ORCToken) []ir.ORCToken {
-	var out []ir.ORCToken
+func tokensIn(b ir.BoundingBox, toks []ir.OCRToken) []ir.OCRToken {	var out []ir.OCRToken
 	for _, t := range toks {
 		if t.BBoxGlobal.Overlaps(b) {
 			out = append(out, t)
@@ -163,20 +190,82 @@ func sampleColors(img *imageproc.Image, comps []ir.Component) []ir.ColorFact {
 	return facts
 }
 
+// cropDominantColors measures the most frequent colors within a crop box by
+// sampling a coarse grid of interior points. Returns up to ~6 distinct colors,
+// most frequent first. Used to ground the per-crop VLM prompt so the model may
+// only name colors that were actually measured.
+func cropDominantColors(img *imageproc.Image, b ir.BoundingBox) []ir.ColorFact {
+	if b.Empty() {
+		return nil
+	}
+	const grid = 12
+	counts := map[string][3]int{}
+	freq := map[string]int{}
+	w := b.Width()
+	h := b.Height()
+	stepX := w / grid
+	stepY := h / grid
+	if stepX < 1 {
+		stepX = 1
+	}
+	if stepY < 1 {
+		stepY = 1
+	}
+	for y := b.Y0; y < b.Y1; y += stepY {
+		for x := b.X0; x < b.X1; x += stepX {
+			c := img.At(x, y)
+			if c.A < 128 {
+				continue
+			}
+			hex := fmt.Sprintf("#%02X%02X%02X", c.R, c.G, c.B)
+			counts[hex] = [3]int{int(c.R), int(c.G), int(c.B)}
+			freq[hex]++
+		}
+	}
+	type kv struct {
+		hex string
+		n   int
+	}
+	arr := make([]kv, 0, len(freq))
+	for k, n := range freq {
+		arr = append(arr, kv{k, n})
+	}
+	sort.Slice(arr, func(i, j int) bool { return arr[i].n > arr[j].n })
+	var out []ir.ColorFact
+	for i, e := range arr {
+		if i >= 6 {
+			break
+		}
+		rgb := counts[e.hex]
+		out = append(out, ir.ColorFact{
+			Name:       "measured",
+			Value:      e.hex,
+			RGB:        rgb,
+			BBoxGlobal: b,
+			Source:     "pixel_sampler",
+			Confidence: 0.99,
+		})
+	}
+	return out
+}
 
 // inferPageType does a lightweight page-type classification from geometry/text.
-func inferPageType(comps []ir.Component, toks []ir.ORCToken) string {
+func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 	text := ""
 	for _, t := range toks {
 		text += " " + t.Text
 	}
 	lt := strings.ToLower(text)
 	types := map[string][]string{
-		"login":         {"sign in", "signin", "login", "password", "email", "username"},
-		"pricing":       {"pricing", "plan", "per month", "billing"},
-		"dashboard":     {"dashboard", "metrics", "analytics", "revenue", "kpi"},
-		"ecommerce":     {"cart", "add to cart", "checkout", "shop", "products"},
-		"settings":      {"settings", "preferences", "profile", "account"},
+		"login":     {"sign in", "signin", "login", "log in", "password", "username"},
+		"pricing":   {"pricing", "per month", "per year", "/mo", "subscribe", "free trial"},
+		"billing":   {"billing", "invoice", "payment", "top up", "balance", "total cost", "usd", "$"},
+		"usage":     {"usage", "api requests", "tokens", "requests", "quota", "consumption", "rate limit"},
+		"analytics": {"analytics", "metrics", "dashboard", "chart", "cost(usd)", "last 30 days", "trend"},
+		"api":       {"api key", "api keys", "endpoint", "secret key", "access token", "docs"},
+		"dashboard": {"dashboard", "overview", "kpi", "revenue", "summary"},
+		"ecommerce": {"cart", "add to cart", "checkout", "shop", "products"},
+		"settings":  {"settings", "preferences", "profile", "account"},
 	}
 	score := map[string]int{}
 	for t, kw := range types {
@@ -250,4 +339,129 @@ func writeComponents(b *strings.Builder, comps []ir.Component) {
 func crossRegionSummary(s *summarize.Summarizer, ctx context.Context, cr *model.VisionResult) string {
 	out, _ := s.RegionSummary(ctx, []string{cr.Description})
 	return out
+}
+
+// inferPageGraph builds the semantic UI graph. It always starts from the
+// deterministic geometric relationships, then augments them with model
+// inferred relationships (tagged Source "model") when a text backend is
+// available. If the backend is unavailable or returns nothing parseable, the
+// geometric-only graph is returned intact (QA finding G7).
+func inferPageGraph(ctx context.Context, comps []ir.Component, backend model.TextBackend) *graph.Graph {
+	g := graph.Build(comps)
+	if backend == nil || len(comps) == 0 {
+		return g
+	}
+	seen := map[[2]string]bool{}
+	for _, r := range g.Relationships {
+		seen[[2]string{r.A, r.Relation + ">" + r.B}] = true
+	}
+	res, err := backend.Complete(ctx, model.TextRequest{
+		Prompt:        prompt.BuildGraphPrompt(comps, g.Relationships),
+		PromptVersion: prompt.UIGraphV1,
+	})
+	if err != nil || res == nil || res.Output == "" {
+		return g
+	}
+	ids := map[string]bool{}
+	for _, c := range comps {
+		ids[c.ID] = true
+	}
+	for _, line := range strings.Split(res.Output, "\n") {
+		line = strings.TrimSpace(strings.TrimPrefix(line, "-"))
+		line = strings.TrimSpace(line)
+		parts := strings.Fields(line)
+		if len(parts) < 3 {
+			continue
+		}
+		a, relation, b := parts[0], parts[1], parts[2]
+		if !ids[a] || !ids[b] {
+			continue
+		}
+		// Reject relationships already captured by geometric inference with an
+		// identical (a, relation, b) triple.
+		found := false
+		for _, r := range g.Relationships {
+			if r.A == a && r.Relation == relation && r.B == b {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+		if seen[[2]string{a, relation + ">" + b}] {
+			continue
+		}
+		seen[[2]string{a, relation + ">" + b}] = true
+		g.Relationships = append(g.Relationships, ir.Relationship{
+			A: a, Relation: relation, B: b,
+			Confidence: 0.6,
+			Source:     "model",
+		})
+	}
+	return g
+}
+
+// pageConfidence computes a coarse page-level confidence as the mean
+// component confidence (0.5 when no components were measured).
+func pageConfidence(comps []ir.Component) float64 {
+	if len(comps) == 0 {
+		return 0.5
+	}
+	var sum float64
+	for _, c := range comps {
+		sum += c.Confidence
+	}
+	return sum / float64(len(comps))
+}
+
+// unresolvedComponents counts components whose confidence sits below the
+// configured threshold and are therefore candidates for re-resolution.
+func unresolvedComponents(comps []ir.Component, threshold float64) int {
+	n := 0
+	for _, c := range comps {
+		if c.Confidence < threshold {
+			n++
+		}
+	}
+	return n
+}
+
+// cropDisagreementRate is the fraction of analyzed crops whose box geometry
+// needed repair or was dropped, a proxy for crop disagreement / low quality.
+func cropDisagreementRate(boxFailures, boxRepairs, total int) float64 {
+	if total <= 0 {
+		return 0
+	}
+	return float64(boxFailures) / float64(total)
+}
+
+// redactAll replaces visible text spans in a set of Markdown summaries with a
+// placeholder so potentially sensitive content is not sent to a cloud backend.
+func redactAll(texts []string) []string {
+	out := make([]string, len(texts))
+	for i, t := range texts {
+		out[i] = redactText(t)
+	}
+	return out
+}
+
+// redactText masks runs of displayable text while retaining structural
+// punctuation so the summary shape survives redaction for layout reasoning.
+func redactText(s string) string {
+	var b strings.Builder
+	runes := []rune(s)
+	for i := 0; i < len(runes); i++ {
+		r := runes[i]
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+			b.WriteRune('█')
+		case r == ' ' || r == '\n' || r == '\t' || r == ',' || r == '.' || r == '!' || r == '?' || r == '-' || r == '(' || r == ')' || r == '[' || r == ']' || r == ':' || r == ';' || r == '/' || r == '@' || r == '#' || r == '_':
+			b.WriteRune(r)
+		default:
+			// Other unicode letters/symbols are redacted too.
+			b.WriteRune('█')
+		}
+	}
+	return b.String()
 }

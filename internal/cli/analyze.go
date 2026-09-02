@@ -13,7 +13,9 @@ import (
 	"github.com/refraict/refraict/internal/cache"
 	"github.com/refraict/refraict/internal/config"
 	"github.com/refraict/refraict/internal/crop"
+	"github.com/refraict/refraict/internal/detect"
 	"github.com/refraict/refraict/internal/dub"
+	"github.com/refraict/refraict/internal/escalate"
 	"github.com/refraict/refraict/internal/graph"
 	"github.com/refraict/refraict/internal/imageproc"
 	"github.com/refraict/refraict/internal/ir"
@@ -44,6 +46,7 @@ type analysisOptions struct {
 	cloudFallback      bool
 	output             string
 	adaptive           bool
+	keepWarm           string
 }
 
 func newAnalyzeCmd() *cobra.Command {
@@ -80,6 +83,7 @@ func newAnalyzeCmd() *cobra.Command {
 	cmd.Flags().BoolVar(&o.cloudFallback, "cloud-fallback", false, "allow cloud escalation")
 	cmd.Flags().StringVarP(&o.output, "output", "o", "", "output directory")
 	cmd.Flags().BoolVar(&o.adaptive, "adaptive", true, "use adaptive crop planning")
+	cmd.Flags().StringVar(&o.keepWarm, "keep-warm", "", "keep local models loaded for this duration after use (e.g. 30s, 5m, -1 for indefinite); default frees them immediately")
 	return cmd
 }
 
@@ -130,7 +134,9 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		"height":       H,
 		"started_at":   time.Now(),
 	}
-	_ = ws.WriteJSON("manifest.json", manifest)
+	if err := ws.WriteJSON("manifest.json", manifest); err != nil {
+		return fail("write manifest: %w", err)
+	}
 
 	// Overview image.
 	overview := img.Resize(cfg.Image.OverviewWidth)
@@ -140,7 +146,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	stage("overview", start)
 
 	// OCR.
-	var toks []ir.ORCToken
+	var toks []ir.OCRToken
 	if !o.noOCR && !cfg.Analysis.NoOCR {
 		ocrKey := cache.Key(img.Sha256, "ocr-v1")
 		ocrHit := false
@@ -164,23 +170,47 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 			}
 		}
 	}
-	_ = ws.WriteJSON("evidence/ocr.json", map[string]any{"tokens": toks, "count": len(toks)})
+	writeArtifact(func() error { return ws.WriteJSON("evidence/ocr.json", map[string]any{"tokens": toks, "count": len(toks)}) })
 	stage("ocr", start)
 
 	// Crop plan.
 	planCfg := crop.CropPlanConfig{
-		CropLongSide: cfg.Image.CropLongSide,
-		Overlap:      cfg.Image.CropOverlap,
-		Rect:         rct(0, 0, W, H),
+		CropLongSide:      cfg.Image.CropLongSide,
+		Overlap:           cfg.Image.CropOverlap,
+		Rect:              rct(0, 0, W, H),
+		DetailLongSide:    cfg.Image.DetailLongSide,
+		MinimumTextHeight: cfg.Image.MinimumTextHeightAfter,
 	}
 	var plan *crop.Plan
-	if o.adaptive {
-		plan = crop.BuildPlan(img, toks, planCfg)
-	} else {
+	switch {
+	case !o.adaptive:
+		// Explicit fixed-grid benchmark strategy (legacy --adaptive=false).
 		plan = &crop.Plan{Crops: []crop.Crop{{ID: "ov", BBox: ir.BoundingBox{X0: 0, Y0: 0, X1: W, Y1: H}, Level: 0}}}
 		plan.Crops = append(plan.Crops, crop.PlanFixed(W, H, cfg.Image.CropLongSide, cfg.Image.CropOverlap)...)
+	case cfg.Image.CropStrategy == "adaptive":
+		// Legacy OCR-density-driven subdivision (opt-in). Can explode the crop
+		// count on text-dense pages; retained for comparison/benchmarking.
+		plan = crop.BuildPlan(img, toks, planCfg)
+	default:
+		// Default: bounded overview + fixed grid of higher-res focused tiles.
+		// Produces exactly 1 + GridRows*GridCols VLM calls regardless of image
+		// content, keeping a single model warm and avoiding OOM (see gap report).
+		rows := cfg.Image.GridRows
+		cols := cfg.Image.GridCols
+		if rows < 1 {
+			rows = 2
+		}
+		if cols < 1 {
+			cols = 2
+		}
+		plan = crop.PlanOverviewGrid(W, H, crop.GridPlanConfig{
+			Rows:           rows,
+			Cols:           cols,
+			Overlap:        cfg.Image.CropOverlap,
+			DetailLongSide: cfg.Image.DetailLongSide,
+		})
 	}
-	_ = ws.WriteJSON("evidence/regions.json", plan.Crops)
+	writeArtifact(func() error { return ws.WriteJSON("evidence/regions.json", plan.Crops) })
 	stage("crop-plan", start)
 
 	// Vision backend.
@@ -189,55 +219,89 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		slog.Warn("vision backend unavailable", "err", err)
 	}
 
-	// Analyze crops.
+	// Analyze crops. Vision inference is the expensive step, so it is run
+	// concurrently under a worker-pool limited by cfg.Vision.Workers, while
+	// persistence/repair/counting remain serial and ordered (QA finding G4).
+	workers := cfg.Vision.Workers
+	if workers < 1 {
+		workers = 1
+	}
+	type cropOutcome struct {
+		cp *crop.Crop
+		vr *model.VisionResult
+	}
+	analyzeCrops := make([]crop.Crop, 0, len(plan.Crops))
+	for i := range plan.Crops {
+		cp := plan.Crops[i]
+		// The overview crop IS analyzed (low-res whole-page context) so the VLM
+		// contributes coarse page-level layout; the higher-res tiles then add
+		// detail. Overlapping observations are reconciled downstream by IoU.
+		analyzeCrops = append(analyzeCrops, cp)
+	}
+	outcomes := make([]cropOutcome, len(analyzeCrops))
+	sem := make(chan struct{}, workers)
+	// Phase A: parallel inference (cache-aware), preserving input order.
+	for i := range analyzeCrops {
+		i := i
+		cp := analyzeCrops[i]
+		sem <- struct{}{}
+		go func() {
+			defer func() { <-sem }()
+			var vr *model.VisionResult
+			vKey := cache.Key(img.Sha256, cp.ID, "vision-v1", cfg.Vision.Model)
+			ok := false
+			if c.Has(vKey) {
+				ok, _ = c.Get(vKey, &vr)
+			}
+			if ok && vr != nil {
+				outcomes[i] = cropOutcome{cp: &analyzeCrops[i], vr: vr}
+				return
+			}
+			if vision == nil {
+				slog.Warn("no vision backend; skipping crop", "crop", cp.ID)
+				return
+			}
+			cropToks := tokensIn(cp.BBox, toks)
+			cropColors := cropDominantColors(img, cp.BBox)
+			res, aerr := vision.Analyze(ctx, model.VisionRequest{
+				ImageData:     cropBytes(img, cp),
+				ImageMIME:     "image/png",
+				CropID:        cp.ID,
+				BBoxGlobal:    cp.BBox,
+				OCRContext:    cropToks,
+				PromptVersion: prompt.CropAnalysisV1,
+				SchemaVersion: prompt.SchemaVersion,
+				Prompt:        prompt.BuildGroundedCropPrompt(cp.BBox, cropToks, cropColors),
+			})
+			if aerr != nil {
+				slog.Warn("crop analyze failed", "crop", cp.ID, "err", aerr)
+				return
+			}
+			_ = c.Set(vKey, res, nil)
+			outcomes[i] = cropOutcome{cp: &analyzeCrops[i], vr: res}
+		}()
+	}
+	// Phase B: serial processing of results in deterministic order.
 	var cropResults []*model.VisionResult
 	var cropComponents []ir.Component
 	schemaFailures := 0
 	boxFailures := 0
 	boxRepairs := 0
 	boxDrops := 0
-	debugDir := ws.Path("crops")
-	_ = debugDir
-	for _, cp := range plan.Crops {
-		if cp.ID == "ov" {
-			// Overview handled separately; still record a stub result.
+	for _, oc := range outcomes {
+		cp := oc.cp
+		if cp == nil || oc.vr == nil {
 			continue
 		}
-		vKey := cache.Key(img.Sha256, cp.ID, "vision-v1", cfg.Vision.Model)
-		var vr *model.VisionResult
-		ok := false
-		if c.Has(vKey) {
-			ok, _ = c.Get(vKey, &vr)
-		}
-		if !ok || vr == nil {
-			if vision == nil {
-				slog.Warn("no vision backend; skipping crop", "crop", cp.ID)
-				continue
-			}
-			vr, err = vision.Analyze(ctx, model.VisionRequest{
-				ImageData:     cropBytes(img, cp),
-				ImageMIME:     "image/png",
-				CropID:        cp.ID,
-				BBoxGlobal:    cp.BBox,
-				OCRContext:    tokensIn(cp.BBox, toks),
-				PromptVersion: prompt.CropAnalysisV1,
-				SchemaVersion: prompt.SchemaVersion,
-				Prompt:        prompt.BuildCropPrompt(cp.BBox, tokensIn(cp.BBox, toks)),
-			})
-			if err != nil {
-				slog.Warn("crop analyze failed", "crop", cp.ID, "err", err)
-				continue
-			}
-			_ = c.Set(vKey, vr, nil)
-		}
+		vr := oc.vr
 		cropResults = append(cropResults, vr)
 		if vr.SchemaFailed {
 			schemaFailures++
 		}
 		// Persist per-crop outputs.
-		_ = ws.WriteJSON("crops/"+cp.ID+".json", vr)
+		writeArtifact(func() error { return ws.WriteJSON("crops/"+cp.ID+".json", vr) })
 		if vr.Description != "" {
-			_ = ws.WriteText("crops/"+cp.ID+".md", vr.Description)
+			writeArtifact(func() error { return ws.WriteText("crops/"+cp.ID+".md", vr.Description) })
 		}
 		// Repair/normalize each component: synthesize IDs, recover empty boxes
 		// (via OCR text match or the enclosing crop's box), and clamp to bounds.
@@ -260,23 +324,52 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	}
 	stage("vision", start)
 
+	// Deterministic component synthesis. Small local VLMs cannot reliably emit
+	// precise bounding boxes, so components are derived from measured evidence
+	// (OCR tokens) rather than trusting the model's geometry. VLM output still
+	// contributes semantic role/description at the region level. This is the
+	// key reliability fix: components exist even when the VLM schema fails.
+	ocrComps := detect.TextComponentsFromOCR(toks, detect.DefaultTextComponentOptions())
+	cropComponents = append(cropComponents, ocrComps...)
+	slog.Info("synthesized deterministic components", "ocr_components", len(ocrComps), "vlm_components", len(cropComponents)-len(ocrComps))
+
+	// Deterministic non-text region detection (cards, panels, chart containers).
+	// Runs when enabled; the detector implementation is selected at build time
+	// (pure-Go by default, OpenCV Canny with `-tags opencv`). These cv_region
+	// components merge with OCR/VLM components in the reconciler by overlap.
+	var regionComps []ir.Component
+	if cfg.Analysis.DetectRegions {
+		regionComps = detectRegionComponents(img.AsImage())
+		cropComponents = append(cropComponents, regionComps...)
+		slog.Info("detected non-text regions", "region_components", len(regionComps))
+	}
+
 	// Normalize + dedupe overlapping observations.
-	merged := dub.Reconcile(cropComponents, dub.Options{IoUThreshold: cfg.Recon.IoUThreshold})
+	merged := dub.Reconcile(cropComponents, dub.Options{
+		IoUThreshold:    cfg.Recon.IoUThreshold,
+		ConfidenceMerge: cfg.Recon.ConfidenceMerge,
+	})
 	graph.SortByPosition(merged)
-	_ = ws.WriteJSON("evidence/merged_components.json", merged)
+	writeArtifact(func() error { return ws.WriteJSON("evidence/merged_components.json", merged) })
 
 	// Pixel color sampling for each merged component (measured colors).
 	colors := sampleColors(img, merged)
-	_ = ws.WriteJSON("evidence/colors.json", colors)
+	writeArtifact(func() error { return ws.WriteJSON("evidence/colors.json", colors) })
 
-	// Build canonical UI IR page.json.
-	uiGraph := graph.Build(merged)
-	_ = ws.WriteJSON("graph.json", uiGraph)
+	// Build canonical UI IR page.json. Geometric relationships are derived
+	// deterministically, then a text backend (if available) augments them with
+	// model-inferred relationships (G7). A nil backend falls back to geometry.
+	uiGraph := inferPageGraph(ctx, merged, buildTextBackend(cfg, o))
+	writeArtifact(func() error { return ws.WriteJSON("graph.json", uiGraph) })
 	stage("merge+graph", start)
 
 	// Summaries. Each crop becomes a region with a natural-language summary
 	// (regions/<id>.md); the region summaries are then condensed into the
-	// page-level summary (page.md).
+	// page-level summary (page.md). When confidence/schema/resolution signals
+	// warrant it (and no LocalOnly is set), the page-level aggregation is
+	// escalated to the dedicated aggregator backend (M4). If cloud escalation
+	// is allowed and text redaction is configured, sensitive text is redacted
+	// before it leaves local processing (M2).
 	pageSummary := ""
 	if !o.noSummary && !cfg.Analysis.NoSummary {
 		sum := summarize.New(buildTextBackend(cfg, o))
@@ -296,26 +389,75 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 				continue
 			}
 			regionSummary := crossRegionSummary(sum, ctx, cr)
-			_ = ws.WriteText("regions/"+cp.ID+".md", regionSummary)
+			writeArtifact(func() error { return ws.WriteText("regions/"+cp.ID+".md", regionSummary) })
 			regionMds = append(regionMds, regionSummary)
 		}
 		pageType := inferPageType(merged, toks)
-		ps, sErr := sum.PageSummary(ctx, regionMds, pageType)
-		if sErr == nil {
-			pageSummary = ps
+
+		// Decide whether to escalate the page-level aggregation to a stronger
+		// backend (M4) and, if so, whether it may leave local processing (M2).
+		signal := escalate.Signal{
+			PageConfidence:       pageConfidence(merged),
+			UnresolvedComponents: unresolvedComponents(merged, cfg.Analysis.ConfidenceThreshold),
+			CropDisagreementRate: cropDisagreementRate(boxFailures, boxRepairs, len(analyzeCrops)),
+			SchemaFailures:       schemaFailures,
 		}
+		policy := escalate.DefaultPolicy()
+		escalateToCloud := escalate.NeedsEscalation(signal, policy) &&
+			cfg.Cloud.AllowCloud && !cfg.Cloud.LocalOnly
+
+		aggBackend := buildAggregatorBackend(cfg)
+		textRegionMds := regionMds
+		if cfg.Cloud.RedactText {
+			textRegionMds = redactAll(regionMds)
+		}
+
+		var ps string
+		if escalateToCloud && aggBackend != nil {
+			agg := summarize.New(aggBackend)
+			var err error
+			ps, err = agg.PageSummary(ctx, textRegionMds, pageType)
+			if err != nil {
+				slog.Warn("cloud escalation failed; falling back to local", "err", err)
+				res, sErr := sum.PageSummary(ctx, regionMds, pageType)
+				if sErr == nil {
+					ps = res
+				}
+			} else {
+				slog.Info("escalated page aggregation to stronger backend", "policy", "cloud")
+			}
+		} else {
+			// M4: even locally, prefer the aggregator backend when the primary
+			// summary backend is unavailable or the initial aggregation fails.
+			var sErr error
+			ps, sErr = sum.PageSummary(ctx, regionMds, pageType)
+			if sErr != nil && aggBackend != nil {
+				ps2, aggErr := summarize.New(aggBackend).PageSummary(ctx, regionMds, pageType)
+				if aggErr == nil {
+					ps = ps2
+				}
+			}
+		}
+		pageSummary = ps
 		if pageSummary != "" {
-			_ = ws.WriteText("page.md", pageSummary)
+			writeArtifact(func() error { return ws.WriteText("page.md", pageSummary) })
 		}
 	}
 	stage("summary", start)
+
+	// Grounding guard (deterministic, no model): flag summary claims about
+	// colors or behavior that the measured evidence does not support, and emit
+	// a machine-readable report so a downstream agent can decide whether to
+	// trust the summary or fall back to a direct (paid) image read.
+	grounding := detect.CheckGrounding(pageSummary, colors, toks)
+	writeArtifact(func() error { return ws.WriteJSON("evidence/grounding.json", grounding) })
 
 	// DOM guess (probable DOM, clearly inferred).
 	dom := ""
 	if !o.noDOM && cfg.Analysis.GenerateDOMGuess {
 		dom = probableDOM(merged)
-		_ = ws.WriteText("dom.md", dom)
-		_ = ws.WriteJSON("dom.json", map[string]any{"inferred": true, "tree": dom, "note": "inferred probable DOM, not observed"})
+		writeArtifact(func() error { return ws.WriteText("dom.md", dom) })
+		writeArtifact(func() error { return ws.WriteJSON("dom.json", map[string]any{"inferred": true, "tree": dom, "note": "inferred probable DOM, not observed"}) })
 	}
 	stage("dom", start)
 
@@ -329,6 +471,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		"colors":                 colors,
 		"relationships_elements": uiGraph.Relationships,
 		"summary":                pageSummary,
+		"grounding":              grounding,
 		"provenance": map[string]any{
 			"vision":     cfg.Vision,
 			"summary":    cfg.Summary,
@@ -346,7 +489,11 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 			"crop_count": len(plan.Crops),
 		},
 	}
-	_ = ws.WriteJSON("page.json", pageJSON)
+	// page.json is the flagship artifact, so a failed write must surface
+	// rather than be swallowed (QA finding G8).
+	if err := ws.WriteJSON("page.json", pageJSON); err != nil {
+		return fail("write page.json: %w", err)
+	}
 
 	if flagJSON {
 		enc := json.NewEncoder(os.Stdout)
@@ -356,6 +503,15 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	elapsed := time.Since(start).Round(time.Millisecond)
 	fmt.Printf("Analysis complete: %s (%s), %d crops, %d components.\n", strings.TrimSuffix(o.output, "/"), elapsed, len(plan.Crops), len(merged))
 	return nil
+}
+
+// writeArtifact is a non-fatal convenience for auxiliary artifacts: it returns
+// the write error but logs it so a failed write during analyze is visible
+// rather than silently swallowed (QA finding G8).
+func writeArtifact(write func() error) {
+	if err := write(); err != nil {
+		slog.Warn("failed to write artifact", "err", err)
+	}
 }
 
 func resolveCacheDB(path string) string {

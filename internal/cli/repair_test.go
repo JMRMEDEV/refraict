@@ -59,7 +59,7 @@ func TestRepairComponentEmptyBoxFallsBackToCrop(t *testing.T) {
 // preferred over the crop box when the model omits coordinates.
 func TestRepairComponentOCRTokenFallback(t *testing.T) {
 	cropBox := ir.BoundingBox{X0: 0, Y0: 0, X1: 640, Y1: 900}
-	toks := []ir.ORCToken{
+	toks := []ir.OCRToken{
 		{Text: "Sign in", BBoxGlobal: ir.BoundingBox{X0: 40, Y0: 50, X1: 120, Y1: 70}},
 	}
 	cmp := model.VisionCompRef{

@@ -31,7 +31,7 @@ func newOCRCmd() *cobra.Command {
 			if err != nil || eng == nil {
 				fmt.Fprintln(os.Stderr, "warning: no OCR engine configured")
 				enc := json.NewEncoder(os.Stdout)
-				return enc.Encode(map[string]any{"tokens": []ir.ORCToken{}, "count": 0})
+				return enc.Encode(map[string]any{"tokens": []ir.OCRToken{}, "count": 0})
 			}
 			toks, err := eng.Recognize(context.Background(), ocr.Input{ImagePath: args[0]})
 			if err != nil {
@@ -62,7 +62,7 @@ func newRegionsCmd() *cobra.Command {
 				return fail("image: %w", err)
 			}
 			W, H := img.Bounds()
-			var toks []ir.ORCToken
+			var toks []ir.OCRToken
 			eng, err := buildOCREngine()
 			if err == nil && eng != nil {
 				if t, tErr := eng.Recognize(context.Background(), ocr.Input{ImagePath: args[0]}); tErr == nil {
@@ -212,7 +212,9 @@ func newReconstructCmd() *cobra.Command {
 				return fail("parse components: %w", err)
 			}
 			dom := probableDOM(comps)
-			_ = ws.WriteText("dom.md", dom)
+			if err := ws.WriteText("dom.md", dom); err != nil {
+				return fail("write dom.md: %w", err)
+			}
 			fmt.Println(dom)
 			return nil
 		},

@@ -12,12 +12,24 @@ type Config struct {
 	Vision     VisionConfig     `json:"vision" yaml:"vision"`
 	Summary    BackendConfig    `json:"summary" yaml:"summary"`
 	Aggregator BackendConfig    `json:"aggregator" yaml:"aggregator"`
+	Models     ModelsConfig     `json:"models" yaml:"models"`
 	Image      ImageConfig      `json:"image" yaml:"image"`
 	Analysis   AnalysisConfig   `json:"analysis" yaml:"analysis"`
 	Cache      CacheConfig      `json:"cache" yaml:"cache"`
 	Cloud      CloudConfig      `json:"cloud" yaml:"cloud"`
 	Output     OutputConfig     `json:"output" yaml:"output"`
 	Recon      ReconcilerConfig `json:"reconciler" yaml:"reconciler"`
+}
+
+// ModelsConfig holds cross-cutting local-model runtime settings.
+type ModelsConfig struct {
+	// KeepAlive is the Ollama keep_alive value applied to every local model
+	// request. Default "0" frees each model from memory immediately after use
+	// (minimizes resident RAM/VRAM — only one model loaded at a time). Set a
+	// duration ("30s", "5m") or "-1" (keep indefinitely) for batch/agentic
+	// callers that prefer to trade memory for reduced reload latency. The
+	// --keep-warm flag overrides this at runtime.
+	KeepAlive string `json:"keep_alive" yaml:"keep_alive"`
 }
 
 // VisionConfig configures the vision model backend.
@@ -43,6 +55,16 @@ type ImageConfig struct {
 	CropOverlap            float64 `json:"crop_overlap" yaml:"crop_overlap"`
 	MinimumTextHeightAfter int     `json:"minimum_text_height_after_resize" yaml:"minimum_text_height_after_resize"`
 	DetailLongSide         int     `json:"detail_long_side" yaml:"detail_long_side"`
+
+	// CropStrategy selects the crop planner:
+	//   "grid"     -> bounded overview + Rows x Cols focused tiles (default;
+	//                 fast, OCR-independent, keeps a single model warm).
+	//   "adaptive" -> legacy OCR-density-driven subdivision (can explode the
+	//                 crop count on text-dense pages).
+	CropStrategy string `json:"crop_strategy" yaml:"crop_strategy"`
+	// GridRows/GridCols define the focused-tile grid for the "grid" strategy.
+	GridRows int `json:"grid_rows" yaml:"grid_rows"`
+	GridCols int `json:"grid_cols" yaml:"grid_cols"`
 }
 
 // AnalysisConfig controls analysis behavior.
@@ -51,6 +73,10 @@ type AnalysisConfig struct {
 	GenerateDOMGuess    bool    `json:"generate_dom_guess" yaml:"generate_dom_guess"`
 	NoOCR               bool    `json:"no_ocr" yaml:"no_ocr"`
 	NoSummary           bool    `json:"no_summary" yaml:"no_summary"`
+	// DetectRegions enables deterministic CV detection of non-text UI regions
+	// (cards, panels, chart containers). The pure-Go detector runs by default;
+	// building with `-tags opencv` uses the stronger OpenCV Canny detector.
+	DetectRegions bool `json:"detect_regions" yaml:"detect_regions"`
 }
 
 // CacheConfig controls caching behavior. The cache is a file-based JSON store
@@ -120,16 +146,23 @@ func Default() *Config {
 			Model:    "qwen-14b",
 			Endpoint: "http://localhost:11434",
 		},
+		Models: ModelsConfig{
+			KeepAlive: "0",
+		},
 		Image: ImageConfig{
 			OverviewWidth:          1000,
 			CropLongSide:           1280,
 			CropOverlap:            0.20,
 			MinimumTextHeightAfter: 12,
 			DetailLongSide:         1100,
+			CropStrategy:           "grid",
+			GridRows:               2,
+			GridCols:               2,
 		},
 		Analysis: AnalysisConfig{
 			ConfidenceThreshold: 0.80,
 			GenerateDOMGuess:    true,
+			DetectRegions:       true,
 		},
 		Cache: CacheConfig{
 			Enabled: true,

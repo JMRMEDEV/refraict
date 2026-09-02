@@ -33,7 +33,7 @@ type repairOutcome struct {
 // to fall within this crop (used as a coordinate fallback). imgW/imgH bound the
 // global image and constrain clamping. If the component cannot be given a valid
 // (non-empty, in-bounds) box it is dropped, with outcome.Dropped set.
-func repairComponent(cmp model.VisionCompRef, cropID string, idx int, cropBox ir.BoundingBox, ocrTokens []ir.ORCToken, imgW, imgH int) (ir.Component, repairOutcome) {
+func repairComponent(cmp model.VisionCompRef, cropID string, idx int, cropBox ir.BoundingBox, ocrTokens []ir.OCRToken, imgW, imgH int) (ir.Component, repairOutcome) {
 	out := repairOutcome{}
 
 	// --- ID synthesis (C2) ---
@@ -81,7 +81,7 @@ func repairComponent(cmp model.VisionCompRef, cropID string, idx int, cropBox ir
 
 // matchOCRBox finds a non-empty OCR token whose text is contained in (or
 // equals) the given component text. Returns the token's global box.
-func matchOCRBox(compText string, ocrTokens []ir.ORCToken) (ir.BoundingBox, bool) {
+func matchOCRBox(compText string, ocrTokens []ir.OCRToken) (ir.BoundingBox, bool) {
 	t := strings.ToLower(strings.TrimSpace(compText))
 	if t == "" {
 		return ir.BoundingBox{}, false
