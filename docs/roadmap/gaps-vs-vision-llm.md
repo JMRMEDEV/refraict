@@ -243,6 +243,34 @@ upstream and the logo was not isolated as a clean box. The typing rules are
 correct and unit-tested; surfacing icons/logos end-to-end needs a detector
 retuning pass (retain smaller regions) — tracked as a follow-up.
 
+### 2026-09-02 — Gap 6 detector retuning + Tier 2 VLM element labeling
+
+Detector retuning (surface icons): added an icon size-band to the OpenCV
+detector (small, roughly-square contours are kept even below the main size
+band; no rectangularity requirement, since icon glyphs are non-rectangular).
+`classifyRegion` now types icons by GEOMETRY ALONE (small + compact + no
+children), not OCR-emptiness — OCR frequently misreads an icon glyph as a
+phantom character (e.g. the magnifier OCR'd as "Q." giving 36% box overlap),
+which previously suppressed genuine icons. Verified end-to-end: cv_region types
+`{icon:10, card:6, region:3}` on the reference image, icons landing on the real
+sidebar nav glyphs + close button with minimal noise.
+
+Tier 2 grounded VLM labeling: `analysis.label_elements` (default on),
+bounded by `analysis.max_element_labels`. Each graphic region (icon/logo/chart/
+image) is cropped with context padding and given a short grounded label via the
+VLM; a deterministic sanitizer (`sanitizeElementLabel`) rejects refusals,
+verbose non-answers, code fences/tokens, and list junk, requiring an element
+noun or a clean multi-word phrase. The label is attached to
+`Component.Semantic` as inference (source `vlm_element_label`) with provenance.
+
+Honest ceiling: a 3B VLM labeling ~24px icon crops is unreliable. On the
+reference image, 4 of 10 graphic regions received good labels ("Search icon",
+"Bar chart", "Settings gear icon", "Email icon"); the sanitizer dropped the
+other 6 as noise. This deliberately trades recall for precision — deterministic
+geometry/colors remain the source of truth, and labels are best-effort
+inference the guard keeps clean. Bigger VLMs (or the opencv-only path with
+larger crops) would raise recall; not pursued to preserve the local/cheap model.
+
 ## Target end state
 
 Refraict will not out-understand the vision read, but with items 1 and 3 it can

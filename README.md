@@ -341,6 +341,8 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
     "confidence_threshold": 0.80,
     "generate_dom_guess": true,
     "detect_regions": true,
+    "label_elements": true,
+    "max_element_labels": 12,
     "no_ocr": false,
     "no_summary": false
   },
@@ -372,7 +374,7 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
 - **`aggregator`** — larger text model for global reasoning/escalation.
 - **`models`** — cross-cutting local-model runtime settings. `keep_alive` is the Ollama keep-alive applied to every model request. Default `"0"` frees each model from memory immediately after use (only one model resident at a time — lowest RAM/VRAM). Set a duration (`"30s"`, `"5m"`) or `"-1"` (indefinite) for batch/agentic callers that prefer to trade memory for reduced reload latency. The `--keep-warm` flag overrides this per run.
 - **`image`** — ingest + crop-planning parameters. `crop_strategy` selects the crop planner: `"grid"` (default; bounded overview + `grid_rows`×`grid_cols` focused tiles — fast, OCR-independent, keeps a single model warm within a run) or `"adaptive"` (legacy OCR-density-driven subdivision, which can explode the crop count on text-dense pages).
-- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles, and `detect_regions` (default `true`) which enables deterministic non-text region detection (cards, panels, chart containers). The detector implementation is chosen at build time: pure-Go by default, OpenCV Canny with `-tags opencv`.
+- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles, `detect_regions` (default `true`) which enables deterministic non-text region detection (cards, panels, chart containers), and `label_elements` (default `true`, bounded by `max_element_labels`) which adds Tier-2 grounded VLM labels to graphic regions (icon/logo/chart/image), attached to each component's `semantic` field as inference. The detector implementation is chosen at build time: pure-Go by default, OpenCV Canny with `-tags opencv`.
 - **`cache`** — cache enablement and database directory.
 - **`cloud`** — cloud escalation policy (disabled by default; text is redacted before any cloud call).
 - **`output`** — global verbosity / JSON defaults.
