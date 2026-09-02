@@ -47,14 +47,16 @@ func TestClassifyIconRejectsLarge(t *testing.T) {
 	}
 }
 
-func TestClassifyIconRejectsTexty(t *testing.T) {
-	// Small but has text overlap => not an icon (it's a labeled control).
+func TestClassifyIconGeometryFirst(t *testing.T) {
+	// Icons are classified by geometry (small + compact), NOT OCR-emptiness,
+	// because OCR often misreads an icon glyph as a phantom character. A small
+	// compact region is typed icon even with some OCR overlap.
 	rb := box(30, 180, 54, 204)
 	got := classifyRegion(rb, RegionSignals{
 		OCROverlap: 0.5, MaxSidePx: 24, MinSidePx: 24, AspectRatio: 1.0,
 	})
-	if got == "icon" {
-		t.Fatalf("text-heavy small region should not be an icon, got %q", got)
+	if got != "icon" {
+		t.Fatalf("small compact region should be icon by geometry, got %q", got)
 	}
 }
 

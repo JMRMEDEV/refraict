@@ -31,6 +31,13 @@ type OpenCVRegionOptions struct {
 	// MinRectangularity: contourArea / boundingRectArea; higher keeps only
 	// blocky (card/panel) shapes and rejects ragged/organic blobs.
 	MinRectangularity float64
+	// Icon band: small compact contours are kept even though they fall below
+	// the main size band, so icons/logos surface. Constrained to be roughly
+	// square (IconMaxAspect) and within a size range (original px), which
+	// admits icon glyphs while rejecting wide text-line contours.
+	IconMinSidePx int
+	IconMaxSidePx int
+	IconMaxAspect float64
 }
 
 // DefaultOpenCVRegionOptions returns defaults tuned for low-contrast flat UIs.
@@ -44,6 +51,9 @@ func DefaultOpenCVRegionOptions() OpenCVRegionOptions {
 		MaxAreaFrac:       0.60,
 		MinSidePx:         24,
 		MinRectangularity: 0.75,
+		IconMinSidePx:     12,
+		IconMaxSidePx:     44,
+		IconMaxAspect:     1.6,
 	}
 }
 
@@ -110,25 +120,53 @@ func DetectRegionsOpenCV(img image.Image, opts OpenCVRegionOptions) ([]RegionBox
 	defer contours.Close()
 
 	workArea := float64(ww * wh)
+	// Icon-band thresholds are given in original px; convert to working px.
+	iconMinW := int(float64(opts.IconMinSidePx) * scale)
+	iconMaxW := int(float64(opts.IconMaxSidePx) * scale)
+	if iconMinW < 1 {
+		iconMinW = 1
+	}
 	var out []RegionBox
 	for i := 0; i < contours.Size(); i++ {
 		c := contours.At(i)
 		rect := gocv.BoundingRect(c)
 		bw, bh := rect.Dx(), rect.Dy()
-		if bw < opts.MinSidePx || bh < opts.MinSidePx {
+
+		// A contour is kept if it passes the main size band OR the icon band.
+		mainBand := bw >= opts.MinSidePx && bh >= opts.MinSidePx
+		af := float64(bw*bh) / workArea
+		if mainBand {
+			if af < opts.MinAreaFrac || af > opts.MaxAreaFrac {
+				mainBand = false
+			}
+		}
+
+		iconBand := false
+		if opts.IconMaxSidePx > 0 {
+			mx, mn := bw, bh
+			if bh > bw {
+				mx, mn = bh, bw
+			}
+			aspect := 1.0
+			if mn > 0 {
+				aspect = float64(mx) / float64(mn)
+			}
+			iconBand = mn >= iconMinW && mx <= iconMaxW && aspect <= opts.IconMaxAspect
+		}
+
+		if !mainBand && !iconBand {
 			continue
 		}
+
 		rectArea := float64(bw * bh)
-		af := rectArea / workArea
-		if af < opts.MinAreaFrac || af > opts.MaxAreaFrac {
-			continue
-		}
 		ca := gocv.ContourArea(c)
 		fill := 0.0
 		if rectArea > 0 {
 			fill = ca / rectArea
 		}
-		if fill < opts.MinRectangularity {
+		// Rectangularity is required for main-band regions (cards/panels) but
+		// not for icon-band glyphs, which are legitimately non-rectangular.
+		if mainBand && !iconBand && fill < opts.MinRectangularity {
 			continue
 		}
 		// Scale back to original coordinates.

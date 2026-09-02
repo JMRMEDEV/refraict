@@ -350,6 +350,16 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		ConfidenceMerge: cfg.Recon.ConfidenceMerge,
 	})
 	graph.SortByPosition(merged)
+
+	// Tier-2 grounded VLM labeling of graphic elements (icon/logo/chart/image):
+	// each such region is cropped and given a short element label attached to
+	// Component.Semantic (inference). Bounded by MaxElementLabels; no-op without
+	// a vision backend. Deterministic geometry/colors remain the source of
+	// truth; these labels are interpretation.
+	if cfg.Analysis.LabelElements {
+		n := labelGraphicElements(ctx, vision, img, merged, cfg.Analysis.MaxElementLabels, cfg.Vision.Provider, cfg.Vision.Model)
+		slog.Info("labeled graphic elements", "count", n)
+	}
 	writeArtifact(func() error { return ws.WriteJSON("evidence/merged_components.json", merged) })
 
 	// Pixel color sampling for each merged component (measured colors).

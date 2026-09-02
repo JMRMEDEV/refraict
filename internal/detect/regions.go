@@ -217,8 +217,14 @@ type RegionSignals struct {
 // visually. See docs/roadmap/gaps-vs-vision-llm.md (Gap 6).
 func classifyRegion(rb RegionBox, s RegionSignals) string {
 	textEmpty := s.OCROverlap < 0.05
+	// Icons are discriminated by geometry (small + compact + no children).
+	// OCR-emptiness is intentionally NOT required here: OCR frequently misreads
+	// an icon glyph as a phantom low-value character, which would otherwise
+	// suppress a genuine icon. The small+square geometry already rejects wide
+	// text-line contours, so it is a sufficient discriminator.
+	iconShaped := s.MaxSidePx > 0 && s.MaxSidePx <= 48 && s.AspectRatio <= 1.6 && s.Encloses == 0
 	switch {
-	case textEmpty && s.MaxSidePx > 0 && s.MaxSidePx <= 48 && s.AspectRatio <= 1.6 && s.Encloses == 0:
+	case iconShaped:
 		return "icon"
 	case textEmpty && s.HeaderBand && s.Encloses == 0 && rb.FillRatio < 0.85:
 		return "logo"

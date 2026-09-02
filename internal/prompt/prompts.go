@@ -82,6 +82,23 @@ Write a SHORT Markdown description of THIS crop for another AI system that canno
 	return b.String()
 }
 
+// BuildElementLabelPrompt asks the VLM to name a single cropped graphic UI
+// element (icon, logo, chart, or image) in a few words. The crop is tightly
+// bounded to one element, so the model is constrained to describe only what is
+// visible. It must not invent surrounding context or read data values.
+func BuildElementLabelPrompt(elementType string) string {
+	return `You are shown a single cropped ` + elementType + ` from a user interface.
+In a few words, name what this element is or represents (e.g. "search icon",
+"settings gear", "brand logo", "bar chart"). 
+
+Rules:
+- Describe ONLY this cropped element, not any surrounding UI.
+- If it is an icon, name the glyph/function (e.g. "magnifier / search").
+- If it is a chart, name the chart type only (e.g. "bar chart"); do NOT read or
+  invent specific data values or axis numbers.
+- Do not invent text. Reply with a short phrase, no punctuation-heavy sentences.`
+}
+
 // BuildRegionSummaryPrompt condenses raw crop observations into a region summary.
 func BuildRegionSummaryPrompt(crops []string) string {
 	p := `You are Refraict summarizing a UI region from its grounded crop descriptions. Produce a concise Markdown summary.

@@ -249,6 +249,183 @@ func cropDominantColors(img *imageproc.Image, b ir.BoundingBox) []ir.ColorFact {
 	return out
 }
 
+// isGraphicType reports whether a component type is a graphic/structural element
+// worth a Tier-2 VLM label (icon, logo, chart, image) — as opposed to text or
+// generic containers/cards which are already described by OCR + crop summaries.
+func isGraphicType(t string) bool {
+	switch t {
+	case "icon", "logo", "chart", "image":
+		return true
+	default:
+		return false
+	}
+}
+
+// labelGraphicElements attaches a short grounded VLM label to each graphic
+// component's Semantic field (marked inference). It crops each element, sends it
+// to the vision backend with a bounded, element-scoped prompt, and stops after
+// max labels to keep model calls bounded. Components are modified in place.
+// A nil backend or max<=0 is a no-op.
+func labelGraphicElements(ctx context.Context, vision model.VisionBackend, img *imageproc.Image, comps []ir.Component, max int, provider, mdl string) int {
+	if vision == nil || max <= 0 {
+		return 0
+	}
+	labeled := 0
+	for i := range comps {
+		if labeled >= max {
+			break
+		}
+		c := &comps[i]
+		if !isGraphicType(c.Type.Value) {
+			continue
+		}
+		data := cropBytes(img, crop.Crop{ID: c.ID, BBox: paddedBBox(c.BBox, img, 0.6)})
+		if len(data) == 0 {
+			continue
+		}
+		res, err := vision.Analyze(ctx, model.VisionRequest{
+			ImageData:     data,
+			ImageMIME:     "image/png",
+			CropID:        c.ID,
+			BBoxGlobal:    c.BBox,
+			PromptVersion: prompt.CropAnalysisV1,
+			SchemaVersion: prompt.SchemaVersion,
+			Prompt:        prompt.BuildElementLabelPrompt(c.Type.Value),
+		})
+		if err != nil || res == nil {
+			continue
+		}
+		label, ok := sanitizeElementLabel(res.Description)
+		if !ok {
+			// Verbose / refusal / low-quality output — do not store noise.
+			continue
+		}
+		c.Semantic = &ir.ConstString{Value: label, Source: "vlm_element_label", Confidence: 0.5}
+		c.Provenance = &ir.RunProvenance{Model: mdl, Provider: provider, PromptVersion: prompt.CropAnalysisV1, SchemaVersion: prompt.SchemaVersion}
+		labeled++
+	}
+	return labeled
+}
+
+// sanitizeElementLabel cleans a VLM element label and reports whether it is a
+// usable short label. It rejects refusals and verbose non-answers (small VLMs
+// often ramble or apologize on tiny icon crops) and trims to a short phrase.
+func sanitizeElementLabel(s string) (string, bool) {
+	s = strings.TrimSpace(s)
+	// Strip Markdown code fences and a leading language tag (```diff, ```json).
+	s = strings.ReplaceAll(s, "```", "")
+	s = strings.TrimSpace(s)
+	for _, lang := range []string{"diff", "json", "text", "plaintext"} {
+		if strings.HasPrefix(strings.ToLower(s), lang+"\n") || strings.ToLower(s) == lang {
+			s = strings.TrimSpace(s[len(lang):])
+		}
+	}
+	s = strings.Trim(s, "`")
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return "", false
+	}
+	low := strings.ToLower(s)
+	// Refusal / uncertainty / rambling markers => reject.
+	rejects := []string{
+		"i'm sorry", "i am sorry", "cannot", "can't", "unable to",
+		"difficult to determine", "without additional context",
+		"without more", "not possible", "it could potentially",
+		"as an ai", "i cannot",
+	}
+	for _, r := range rejects {
+		if strings.Contains(low, r) {
+			return "", false
+		}
+	}
+	// Take the first line/clause only.
+	if idx := strings.IndexAny(s, ".\n"); idx > 0 {
+		s = s[:idx]
+	}
+	s = strings.TrimSpace(s)
+	// A label should be a short phrase. Reject long descriptions / lists and
+	// degenerate fragments (empty, or a single very-short/numeric token).
+	fields := strings.Fields(s)
+	if len(fields) == 0 || len(fields) > 6 {
+		return "", false
+	}
+	// Strip a leading list marker like "1)" / "*" / "-".
+	if len(fields) > 1 {
+		switch fields[0] {
+		case "*", "-", "•", "1)", "1.", "2)", "3)":
+			fields = fields[1:]
+			s = strings.Join(fields, " ")
+		}
+	}
+	low = strings.ToLower(s)
+	// Accept only if it reads like a UI element description: either it mentions
+	// a known element noun, or it's a clean 2+ word phrase with no stray code
+	// tokens. This rejects small-VLM noise like "lua", "css", "1) P".
+	elementNouns := []string{
+		"icon", "logo", "chart", "graph", "image", "button", "gear", "search",
+		"magnifier", "menu", "bubble", "email", "mail", "bell", "arrow", "cross",
+		"close", "avatar", "user", "profile", "settings", "home", "dashboard",
+		"plus", "minus", "check", "star", "heart", "cart", "bar", "pie", "line",
+	}
+	hasNoun := false
+	for _, n := range elementNouns {
+		if strings.Contains(low, n) {
+			hasNoun = true
+			break
+		}
+	}
+	if !hasNoun {
+		// No element noun: require a clean multi-word phrase (>=2 words, each
+		// alphabetic and length>=3) to avoid stray code/identifier tokens.
+		if len(fields) < 2 {
+			return "", false
+		}
+		for _, f := range fields {
+			if len(f) < 3 || !isAlpha(f) {
+				return "", false
+			}
+		}
+	}
+	return s, true
+}
+
+func isAlpha(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')) {
+			return false
+		}
+	}
+	return true
+}
+
+// paddedBBox expands a bbox by frac of its size on each side (clamped to image
+// bounds), giving a small VLM more visual context around a tiny element.
+func paddedBBox(b ir.BoundingBox, img *imageproc.Image, frac float64) ir.BoundingBox {
+	w, h := img.Bounds()
+	padX := int(float64(b.Width()) * frac)
+	padY := int(float64(b.Height()) * frac)
+	x0 := b.X0 - padX
+	y0 := b.Y0 - padY
+	x1 := b.X1 + padX
+	y1 := b.Y1 + padY
+	if x0 < 0 {
+		x0 = 0
+	}
+	if y0 < 0 {
+		y0 = 0
+	}
+	if x1 > w {
+		x1 = w
+	}
+	if y1 > h {
+		y1 = h
+	}
+	return ir.BoundingBox{X0: x0, Y0: y0, X1: x1, Y1: y1}
+}
+
 // inferPageType does a lightweight page-type classification from geometry/text.
 func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 	text := ""

@@ -77,6 +77,14 @@ type AnalysisConfig struct {
 	// (cards, panels, chart containers). The pure-Go detector runs by default;
 	// building with `-tags opencv` uses the stronger OpenCV Canny detector.
 	DetectRegions bool `json:"detect_regions" yaml:"detect_regions"`
+	// LabelElements enables Tier-2 grounded VLM labeling of graphic regions
+	// (icon/logo/chart/image): each such region is cropped and given a short
+	// element label attached to Component.Semantic (marked inference). Requires
+	// a vision backend; bounded by MaxElementLabels.
+	LabelElements bool `json:"label_elements" yaml:"label_elements"`
+	// MaxElementLabels caps how many graphic regions are labeled per analysis
+	// (bounds VLM calls / memory). 0 uses a built-in default.
+	MaxElementLabels int `json:"max_element_labels" yaml:"max_element_labels"`
 }
 
 // CacheConfig controls caching behavior. The cache is a file-based JSON store
@@ -163,6 +171,8 @@ func Default() *Config {
 			ConfidenceThreshold: 0.80,
 			GenerateDOMGuess:    true,
 			DetectRegions:       true,
+			LabelElements:       true,
+			MaxElementLabels:    12,
 		},
 		Cache: CacheConfig{
 			Enabled: true,
