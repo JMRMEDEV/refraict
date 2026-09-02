@@ -1,0 +1,65 @@
+# Third-Party Licenses
+
+Refraict embeds and/or depends on third-party software and data. Their license
+notices are reproduced below as required.
+
+--------------------------------------------------------------------------------
+## Lucide icon metadata (embedded)
+
+`internal/iconlabel/data/lucide_aliases.json` is derived from the Lucide icon
+library's per-icon tag metadata (`lucide-static/tags.json`). It is used to map
+model-produced icon names to canonical concepts.
+
+    ISC License
+
+    Copyright (c) 2026 Lucide Icons and Contributors
+
+    Permission to use, copy, modify, and/or distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+A subset of Lucide icons (and their associated metadata) is derived from the
+Feather icon project, which is under the MIT License:
+
+    The MIT License (MIT)
+
+    Copyright (c) 2013-present Cole Bemis
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+--------------------------------------------------------------------------------
+## Go module dependencies
+
+- github.com/anthonynsimon/bild — MIT License
+- gocv.io/x/gocv — Apache License 2.0 (optional; only with `-tags opencv`;
+  requires a system OpenCV 4.x install, which carries its own Apache/BSD terms)
+- github.com/spf13/cobra — Apache License 2.0
+- golang.org/x/image — BSD 3-Clause License
+
+External tools invoked at runtime (not embedded):
+- Tesseract OCR — Apache License 2.0 (optional OCR backend)
+- Ollama — MIT License (optional local model runtime)
