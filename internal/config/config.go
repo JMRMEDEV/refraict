@@ -179,7 +179,7 @@ func Default() *Config {
 			DetectRegions:       true,
 			LabelElements:       true,
 			MaxElementLabels:    12,
-			ElementLabelRuns:    6,
+			ElementLabelRuns:    10,
 			ElementLabelThreshold: 0.5,
 		},
 		Cache: CacheConfig{
