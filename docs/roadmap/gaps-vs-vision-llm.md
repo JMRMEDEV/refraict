@@ -309,6 +309,22 @@ match it on presence/position/color/text — deterministically and for free — 
 use the grounding guard to trigger a paid vision read only when uncertain. That
 is the cost-saving cross-check pattern this tool is built to enable.
 
+### 2026-09-02 — Icon color inversion for VLM labeling → REJECTED
+
+Hypothesis: since dark-theme OCR needed inversion, inverting dark icon crops
+before the VLM might also help. Tested with 10-run voting on 5 dark-bg icons,
+normal vs pure-color-inverted crops (no bg removal / tracing — just a color
+flip, keeping a natural raster image). Result: mean agreement dropped 5.0/10
+(normal) → 3.6/10 (inverted); every icon was equal or worse inverted.
+
+Why inversion helps OCR but hurts the VLM: Tesseract assumes dark-on-light and
+breaks on light-on-dark (a hard algorithmic mismatch inversion fixes). The VLM
+has no such assumption — it trained on both; inverting instead discards color
+information and shifts hues unnaturally without addressing the real bottleneck
+(too few pixels in a ~24px icon). Same lesson as the vectorization PoC:
+preprocessing that aids human/OCR legibility does not aid a VLM whose ceiling is
+information content and model capacity, not contrast. Not adopted.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses
