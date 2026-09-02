@@ -325,6 +325,28 @@ information and shifts hues unnaturally without addressing the real bottleneck
 preprocessing that aids human/OCR legibility does not aid a VLM whose ceiling is
 information content and model capacity, not contrast. Not adopted.
 
+### 2026-09-02 — `icons` subcommand + crop-framing fix (real regression found)
+
+Added a first-class `refraict icons <image>` subcommand: detect + type non-text
+elements and (optionally) vote-label them. `--dump-crops <dir>` writes the exact
+crop fed to the VLM; `--no-label` skips the model for a fast, deterministic
+crop-inspection loop.
+
+Using `--dump-crops --no-label` to inspect the actual crops revealed a real bug
+that earlier metric-only analysis had wrongly dismissed as "stochastic
+variance": the element crop showed the VLM a **tiny speck** (icon ~5% of the
+512px canvas). Cause: the crop path used `CropRegion(maxLong)`, which only
+DOWNSCALES — a ~60px padded icon region was never upscaled and sat tiny in the
+center. Fix: `imageproc.ElementCropPNG` now scales the crop so its longest side
+fills the inner margin (upscaling small icons). Re-dumped crops show the icon
+filling the frame; measured vote agreement rose on the recognizable icons:
+search 3/10→7/10, x 5/10→8/10, matching the PoC's 7–9/10. Hard/ambiguous icons
+(billing, docs) stay low — genuine 3B-VLM ceiling; the threshold withholds them.
+
+Lesson: inspect the actual model input, don't reason only from output metrics.
+Refactors: `imageproc.ElementCropPNG` + `PadBox` (exported), `voteRawLabels` +
+`buildVisionBackendKeepAlive` (shared by analyze + icons).
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses

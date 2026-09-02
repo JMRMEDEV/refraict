@@ -190,6 +190,35 @@ On success it prints:
 Analysis complete: ./out (2.1s), 4 crops, 12 components.
 ```
 
+### `icons`
+
+**`icons <image>`** — Detect and identify non-text UI elements (icons, logos,
+charts) without running the full pipeline. For each graphic element it prints
+the type, bounding box, and — unless `--no-label` — a vote-based semantic label
+with its agreement ratio.
+
+```bash
+# Identify icons (vote-based labeling)
+./refraict icons screenshot.png --config ./refraict.json
+
+# Fast, model-free: just detect + type, and dump the exact crops the VLM sees
+./refraict icons screenshot.png --dump-crops ./crops --no-label
+```
+
+Flags:
+
+| Flag | Description | Default |
+| --- | --- | --- |
+| `--dump-crops <dir>` | Write each element's VLM crop PNG to a directory (for inspection/tuning) | — |
+| `--no-label` | Skip VLM labeling (detect + type + optional dump only; no model) | `false` |
+| `--runs` | VLM samples per element for voting | from config |
+| `--threshold` | Min vote agreement ratio to accept a label | from config |
+| `--vision-model` | Vision model name | from config |
+| `--keep-warm` | Keep the model loaded for this duration after use | free immediately |
+
+Non-text element detection is strongest in the OpenCV build (`-tags opencv`);
+the pure-Go build detects fewer elements on low-contrast UIs.
+
 ### `ocr`
 
 **`ocr <image>`** — Run OCR on an image and print tokens as JSON.
