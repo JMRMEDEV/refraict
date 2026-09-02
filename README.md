@@ -114,9 +114,10 @@ go vet ./...
 ## Quick start
 
 ```bash
-# 0. (optional) start a local Ollama server with a vision model
+# 0. (optional) start a local Ollama server with the models
 ollama serve &
-ollama pull qwen-vl-3b
+ollama pull gemma3:4b     # vision
+ollama pull qwen2.5:3b    # summary/aggregator (text)
 
 # 1. Analyze a screenshot (offline-first version works without models too)
 ./refraict analyze my-app.png --output ./out
@@ -340,19 +341,19 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
 {
   "vision": {
     "provider": "ollama",
-    "model": "qwen-vl-3b",
+    "model": "gemma3:4b",
     "endpoint": "http://localhost:11434",
     "workers": 1,
-    "batch_size": 2
+    "batch_size": 1
   },
   "summary": {
     "provider": "ollama",
-    "model": "qwen-3b",
+    "model": "qwen2.5:3b",
     "endpoint": "http://localhost:11434"
   },
   "aggregator": {
     "provider": "ollama",
-    "model": "qwen-14b",
+    "model": "qwen2.5:3b",
     "endpoint": "http://localhost:11434"
   },
   "models": {

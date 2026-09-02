@@ -157,12 +157,12 @@ func Default() *Config {
 		},
 		Summary: BackendConfig{
 			Provider: "ollama",
-			Model:    "qwen-3b",
+			Model:    "qwen2.5:3b",
 			Endpoint: "http://localhost:11434",
 		},
 		Aggregator: BackendConfig{
 			Provider: "ollama",
-			Model:    "qwen-14b",
+			Model:    "qwen2.5:3b",
 			Endpoint: "http://localhost:11434",
 		},
 		Models: ModelsConfig{

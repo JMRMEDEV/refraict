@@ -940,7 +940,7 @@ Every run should persist:
 
 ```json
 {
-  "model": "qwen-vl-3b",
+  "model": "gemma3:4b",
   "prompt_version": "crop-analysis-v4",
   "schema_version": "ui-ir-v2"
 }
@@ -1106,18 +1106,18 @@ Expected behavior:
 ```yaml
 vision:
   provider: ollama
-  model: qwen-vl-3b
+  model: gemma3:4b
   endpoint: http://localhost:11434
   workers: 1
-  batch_size: 2
+  batch_size: 1
 
 summary:
   provider: ollama
-  model: qwen-3b
+  model: qwen2.5:3b
 
 aggregator:
   provider: ollama
-  model: qwen-14b
+  model: qwen2.5:3b
 
 image:
   overview_width: 1000
