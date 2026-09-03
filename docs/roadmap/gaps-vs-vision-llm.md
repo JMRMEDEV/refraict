@@ -417,7 +417,17 @@ MEAN without parsing raw text. Same philosophy as the icon-labeler (evidence-
 attached interpretation) applied to text patterns. Start with 5–10 high-value
 patterns; grow iteratively.
 
-**Milestone E — Section-header association** (structural assembly 7-8→8)
+**Milestone E — Section-header association** (structural ~7→8) — DONE (2026-09-03)
+`graph.AssociateHeaders` names each x-axis (column) repeated group with the text
+token sitting directly above its top edge with x-overlap (ranked by smallest
+gap, then overlap). y-axis (row) groups are skipped (a top-header there is
+redundant/noise). Measured board-dark: the 3 kanban columns are named
+"TO DO (4)", "IN PROGRESS (3)", "IN REVIEW (2)" (RepeatedGroup.header). Combined
+with A/A2/B/D the agent now reads: kanban board -> named column (N cards) ->
+card -> {label, assignee, checklist}. Deterministic; leaves unnamed when no
+clear header (any "@ " prefixes are OCR noise, not this code). Unit-tested.
+
+Original plan:
 Priority: MEDIUM, fragile. Effort: medium.
 OCR tokens that are visually distinct (taller bbox = larger font, uppercase,
 different color from body text) sitting directly above a component cluster are

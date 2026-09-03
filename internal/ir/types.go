@@ -152,6 +152,12 @@ type RepeatedGroup struct {
 	Spacing   int      `json:"spacing"`    // average center-to-center spacing (px)
 	Type      string   `json:"type"`       // shared component type (e.g. "card")
 	MemberIDs []string `json:"member_ids"` // component IDs in axis order
+	// Header is the text of a section/column header sitting directly above the
+	// group (Milestone E), e.g. "TO DO (4)" for a kanban column of cards. Empty
+	// when no header is confidently associated. HeaderID is the header
+	// component's ID.
+	Header   string `json:"header,omitempty"`
+	HeaderID string `json:"header_id,omitempty"`
 }
 
 // SemanticHint is a deterministic, pattern-matched interpretation of a text

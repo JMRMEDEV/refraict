@@ -82,3 +82,24 @@ func TestDetectRepeatingGroups(t *testing.T) {
 		}
 	}
 }
+
+func TestAssociateHeaders(t *testing.T) {
+	comps := []ir.Component{
+		// Column header token above the cards.
+		{ID: "h1", Type: ir.ConstString{Value: "text"}, Text: &ir.ConstString{Value: "TO DO (4)"}, BBox: ir.BoundingBox{X0: 100, Y0: 40, X1: 300, Y1: 70}},
+		// Two stacked cards forming an x-axis (same x-center) group.
+		{ID: "c1", Type: ir.ConstString{Value: "card"}, BBox: ir.BoundingBox{X0: 100, Y0: 100, X1: 400, Y1: 300}},
+		{ID: "c2", Type: ir.ConstString{Value: "card"}, BBox: ir.BoundingBox{X0: 100, Y0: 350, X1: 400, Y1: 550}},
+	}
+	groups := []ir.RepeatedGroup{
+		{Axis: "x", Type: "card", MemberIDs: []string{"c1", "c2"}},
+		{Axis: "y", Type: "card", MemberIDs: []string{"c1", "c2"}},
+	}
+	AssociateHeaders(groups, comps)
+	if groups[0].Header != "TO DO (4)" || groups[0].HeaderID != "h1" {
+		t.Fatalf("x-axis group should be headed 'TO DO (4)', got %q/%q", groups[0].Header, groups[0].HeaderID)
+	}
+	if groups[1].Header != "" {
+		t.Fatalf("y-axis group must not be headed, got %q", groups[1].Header)
+	}
+}

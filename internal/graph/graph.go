@@ -205,6 +205,92 @@ func intAbs(n int) int {
 	return n
 }
 
+// AssociateHeaders (Milestone E) attaches a section/column header to each
+// repeated group: a text token sitting directly ABOVE the group's top edge (a
+// small vertical gap) whose x-range overlaps the group's x-range. This turns an
+// anonymous sibling group into a NAMED one ("TO DO (4)" for a kanban column) so
+// the agent gets group semantics for free. Deterministic; no model.
+//
+// Header candidates are ranked by: smallest vertical gap above the group, then
+// greatest x-overlap. Only text components are considered; ones already used as
+// a member are excluded. Fragile by nature (font styling varies), so it only
+// attaches when a candidate clearly sits above and overlaps — otherwise the group
+// is left unnamed.
+func AssociateHeaders(groups []ir.RepeatedGroup, comps []ir.Component) {
+	byID := map[string]ir.Component{}
+	for _, c := range comps {
+		byID[c.ID] = c
+	}
+	for gi := range groups {
+		g := &groups[gi]
+		// Header-above-group semantics apply to x-axis groups (a horizontal set
+		// of siblings — e.g. a kanban column's cards, a card row — with a header
+		// on top). A y-axis group is a vertical stack whose "top header" is either
+		// redundant with the x-group's header or noise, so skip it.
+		if g.Axis != "x" {
+			continue
+		}
+		member := map[string]bool{}
+		gx0, gy0, gx1 := 1<<30, 1<<30, -(1 << 30)
+		for _, id := range g.MemberIDs {
+			member[id] = true
+			b := byID[id].BBox
+			if b.X0 < gx0 {
+				gx0 = b.X0
+			}
+			if b.X1 > gx1 {
+				gx1 = b.X1
+			}
+			if b.Y0 < gy0 {
+				gy0 = b.Y0
+			}
+		}
+		if gx1 <= gx0 {
+			continue
+		}
+		bestID, bestGap, bestOverlap := "", 1<<30, 0
+		for _, c := range comps {
+			if member[c.ID] || c.Type.Value != "text" || c.Text == nil {
+				continue
+			}
+			b := c.BBox
+			gap := gy0 - b.Y1 // header bottom to group top
+			// Header must sit ABOVE the group within a bounded gap.
+			if gap < 0 || gap > 120 {
+				continue
+			}
+			// Horizontal overlap with the group's x-span.
+			ox0, ox1 := maxI(b.X0, gx0), minI(b.X1, gx1)
+			overlap := ox1 - ox0
+			if overlap <= 0 {
+				continue
+			}
+			// Prefer the closest header; break ties by larger overlap.
+			if gap < bestGap || (gap == bestGap && overlap > bestOverlap) {
+				bestID, bestGap, bestOverlap = c.ID, gap, overlap
+			}
+		}
+		if bestID != "" {
+			g.Header = byID[bestID].Text.Value
+			g.HeaderID = bestID
+		}
+	}
+}
+
+func maxI(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func minI(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // SortByPosition orders components top-to-bottom then left-to-right.
 func SortByPosition(comps []ir.Component) {
 	sort.SliceStable(comps, func(i, j int) bool {

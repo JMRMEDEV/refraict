@@ -402,6 +402,10 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// same-typed components at regular spacing — kanban columns, card rows, nav
 	// items. Pure geometry; the agent reads these to infer sibling relationships.
 	uiGraph.RepeatedGroups = graph.DetectRepeatingGroups(merged, 50, 80, 2)
+	// Associate section/column headers with each group (Milestone E): a text
+	// token directly above a group's top with x-overlap names it (e.g. "TO DO (4)"
+	// for a kanban column). Deterministic; leaves unnamed when no clear header.
+	graph.AssociateHeaders(uiGraph.RepeatedGroups, merged)
 	writeArtifact(func() error { return ws.WriteJSON("graph.json", uiGraph) })
 	stage("merge+graph", start)
 
