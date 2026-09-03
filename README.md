@@ -54,7 +54,7 @@ Given a screenshot, Refraict:
 > Use deterministic tools for facts that can be measured directly, small vision models for local semantic interpretation, small text models for compression and synthesis, and larger models only when global reasoning or escalation is necessary.
 
 - **Local-first, low cost** — defaults to Ollama, nothing leaves the machine.
-- **Portable** — a single Go executable for Linux, macOS, and Windows.
+- **Cross-platform** — a Go executable for Linux, macOS, and Windows (requires system OpenCV 4.x at build and runtime; see Installation).
 - **Efficient with small models** — adaptive cropping avoids feeding huge images to 3B-class models.
 - **Provenance & confidence** — every important property records source and confidence.
 - **Graceful degradation** — if OCR or a vision backend is unavailable, analysis still runs (with warnings), producing the deterministic pieces.
@@ -63,7 +63,26 @@ Given a screenshot, Refraict:
 
 ## Installation & build
 
-Requires Go 1.22+.
+Refraict requires **Go 1.22+** and **OpenCV 4.x** (with headers). OpenCV is a
+hard dependency: refraict's region detection (cards, panels, containers — which
+underpin the structural signals in the output) is OpenCV-backed via CGo. Install
+OpenCV first for your platform:
+
+```bash
+# Debian / Ubuntu
+sudo apt-get install -y libopencv-dev pkg-config
+
+# Fedora
+sudo dnf install -y opencv-devel pkgconf-pkg-config
+
+# macOS (Homebrew)
+brew install opencv pkg-config
+
+# Arch
+sudo pacman -S opencv pkgconf
+```
+
+Then build:
 
 ```bash
 git clone <repo-url> refraict
@@ -71,36 +90,19 @@ cd refraict
 go build -o refraict ./cmd/refraict
 ```
 
-The resulting `./refraict` binary has no runtime dependencies.
-
-### Optional: OpenCV-backed region detection
-
-Refraict detects non-text UI regions (cards, panels, chart containers) using a
-pure-Go connected-components detector by default — no extra dependencies. For
-**low-contrast flat UIs** (faint cards on a near-uniform background) that the
-pure-Go detector cannot segment reliably, an optional OpenCV Canny detector is
-available behind a build tag:
+The build links CGo against system OpenCV, so the resulting binary is **not**
+statically linked and needs OpenCV present at runtime. Verify it works:
 
 ```bash
-# Requires system OpenCV 4.x + headers (e.g. Debian/Ubuntu):
-sudo apt-get install -y libopencv-dev pkg-config
-go build -tags opencv -o refraict ./cmd/refraict
+./refraict version
+./refraict inspect <some-screenshot.png>   # deterministic, no models needed
 ```
 
-The `opencv` build links CGo + system OpenCV (so it is **not** a static binary
-and needs OpenCV present at runtime). The default build stays pure-Go and
-statically linkable; region detection then uses the built-in detector. Both
-builds expose the same output — only the detector strength differs. Region
-detection is controlled by `analysis.detect_regions` (default on).
-
-Cross-compile (default pure-Go build only):
-
-```bash
-# macOS arm64
-GOOS=darwin GOARCH=arm64 go build -o refraict-darwin-arm64 ./cmd/refraict
-# Windows amd64
-GOOS=windows GOARCH=amd64 go build -o refraict.exe ./cmd/refraict
-```
+> **Note on gocv/OpenCV versions:** refraict pins `gocv.io/x/gocv` (see `go.mod`);
+> gocv supports specific OpenCV releases. If the build fails to find OpenCV,
+> confirm `pkg-config --modversion opencv4` reports a 4.x version and that the
+> gocv version in `go.mod` matches your OpenCV. Region detection is controlled by
+> `analysis.detect_regions` (default on).
 
 Run the test suite:
 
@@ -218,8 +220,9 @@ Flags:
 | `--vision-model` | Vision model name | from config |
 | `--keep-warm` | Keep the model loaded for this duration after use | free immediately |
 
-Non-text element detection is strongest in the OpenCV build (`-tags opencv`);
-the pure-Go build detects fewer elements on low-contrast UIs.
+Non-text element detection uses refraict's OpenCV-backed region detector
+(cards, panels, icons), including a CLAHE pass that recovers faint cards on
+low-contrast/light-theme UIs.
 
 ### `ocr`
 
@@ -415,7 +418,7 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
 - **`models`** — cross-cutting local-model runtime settings. `keep_alive` is the Ollama keep-alive applied to every model request. Default `"0"` frees each model from memory immediately after use (only one model resident at a time — lowest RAM/VRAM). Set a duration (`"30s"`, `"5m"`) or `"-1"` (indefinite) for batch/agentic callers that prefer to trade memory for reduced reload latency. The `--keep-warm` flag overrides this per run.
 - **`vision.profile`** (optional) — per-model output-handling overrides. Small VLMs produce differently-shaped noise, so Refraict resolves an output *profile* from the vision model name (verbosity cap, whether the model cites hex color codes in prose, structured-output support) — see `internal/modelprofile`. Override any field here: `max_label_words`, `strip_hex_in_numbers`, `structured_output`. Omit to use the name-resolved defaults.
 - **`image`** — ingest + crop-planning parameters. `crop_strategy` selects the crop planner: `"grid"` (default; bounded overview + `grid_rows`×`grid_cols` focused tiles — fast, OCR-independent, keeps a single model warm within a run) or `"adaptive"` (legacy OCR-density-driven subdivision, which can explode the crop count on text-dense pages).
-- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles, `detect_regions` (default `true`) which enables deterministic non-text region detection (cards, panels, chart containers), and `label_elements` (default `true`) which adds vote-based grounded labels to graphic regions (icon/logo/chart/image). Each such element is sampled by the vision model `element_label_runs` times (default `10`); the outputs are canonicalized against an embedded Lucide-derived alias map (TF-IDF weak-flagged) and majority-voted. A label is written to the component's `semantic` field (source `vlm_element_vote`, confidence = vote agreement ratio) **only** when agreement ≥ `element_label_threshold` (default `0.7`); otherwise the element is detected but left unlabeled. The relatively high default favors precision over recall: it withholds low-agreement guesses (e.g. a document icon the model reads as "credit card" at 6/10) rather than emitting a confident-wrong label. `max_element_labels` (default `12`) bounds VLM calls per analysis. The region-detector implementation is chosen at build time: pure-Go by default, OpenCV Canny with `-tags opencv`.
+- **`analysis`** — confidence threshold, DOM-guess toggle, stage toggles, `detect_regions` (default `true`) which enables deterministic non-text region detection (cards, panels, chart containers), and `label_elements` (default `true`) which adds vote-based grounded labels to graphic regions (icon/logo/chart/image). Each such element is sampled by the vision model `element_label_runs` times (default `10`); the outputs are canonicalized against an embedded Lucide-derived alias map (TF-IDF weak-flagged) and majority-voted. A label is written to the component's `semantic` field (source `vlm_element_vote`, confidence = vote agreement ratio) **only** when agreement ≥ `element_label_threshold` (default `0.7`); otherwise the element is detected but left unlabeled. The relatively high default favors precision over recall: it withholds low-agreement guesses (e.g. a document icon the model reads as "credit card" at 6/10) rather than emitting a confident-wrong label. `max_element_labels` (default `12`) bounds VLM calls per analysis. Region detection is OpenCV-backed (Canny + a CLAHE dual-pass for faint/low-contrast cards).
 - **`cache`** — cache enablement and database directory.
 - **`cloud`** — cloud escalation policy (disabled by default; text is redacted before any cloud call).
 - **`output`** — global verbosity / JSON defaults.
@@ -570,7 +573,7 @@ Cloud is disabled by default. Keep it disabled, stick with Ollama, and rely on `
 By default Refraict frees each local model from memory immediately after use (`models.keep_alive: "0"`), so at most one model is resident at a time. If you run many analyses back-to-back and want to avoid repeated model reloads, pass `--keep-warm=5m` (or set `models.keep_alive`) to trade memory for speed. Note that on constrained VRAM, keeping both the vision and text models warm simultaneously can exceed the GPU and spill into system RAM.
 
 **Region detection misses cards on a low-contrast/dark UI.**
-The default pure-Go detector needs a visible contrast step between cards and the background. For faint flat designs, build with `-tags opencv` (requires system OpenCV) to use the stronger Canny-based detector. See [Optional: OpenCV-backed region detection](#optional-opencv-backed-region-detection). You can also disable region detection with `analysis.detect_regions: false`.
+Region detection is OpenCV-backed (Canny + CLAHE). Faint cards on very low-contrast/light-theme UIs are recovered by a CLAHE dual-pass, though extremely faint borders (card interior == page background) may still be missed. You can disable region detection with `analysis.detect_regions: false`.
 
 ---
 

@@ -951,6 +951,29 @@ the default path. Consolidation quality is capped by the overview read (it
 faithfully carries forward gemma's own overview errors, e.g. org-home's
 "analytics" misclass — correct behavior, not a regression).
 
+### 2026-09-03 — OpenCV made a hard dependency (pure-Go detector removed)
+
+Architectural decision (owner): the pure-Go region detector's weakness
+undermined the deterministic story — it found 0 cards on board-DARK (not even the
+hard case) vs. 9 for OpenCV, and CLAHE/Canny (the light-theme fixes) were
+OpenCV-only. A tool whose core structural signals only work behind a build tag is
+confusing, and "portable but poor results" is not a real selling point. So:
+- Dropped the `opencv` build tag everywhere; the OpenCV detector compiles and is
+  used unconditionally. `go build ./cmd/refraict` now requires system OpenCV 4.x.
+- Removed the pure-Go detector (DetectRegions/RegionComponents + connected-
+  components/union-find/mask helpers) and the `bild` dependency (go mod tidy).
+  Kept the shared region TYPES + typing helpers (RegionBox, classifyRegion,
+  regionSignals, ...) used by the OpenCV detector.
+- Deleted the tagged CLI/dev wiring (regions_purego.go, dev regcheck purego).
+- Rewrote README (Installation now leads with per-platform OpenCV install:
+  apt/dnf/brew/pacman), Design principles ("Cross-platform, requires OpenCV 4.x"
+  replacing "single static binary / no runtime deps"), removed the cross-compile
+  claim, and the FAQ/config notes. Updated THIRD_PARTY_LICENSES (gocv REQUIRED,
+  bild removed).
+Tradeoff explicitly accepted: detection QUALITY over static-binary portability.
+OpenCV is now a documented hard prerequisite. Next: the in-process Go MCP server
+(`cmd/refraict-mcp`) on this unified single-path foundation.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses

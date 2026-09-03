@@ -1,5 +1,3 @@
-//go:build opencv
-
 package main
 
 import (

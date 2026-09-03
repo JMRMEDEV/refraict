@@ -54,9 +54,9 @@ Feather icon project, which is under the MIT License:
 --------------------------------------------------------------------------------
 ## Go module dependencies
 
-- github.com/anthonynsimon/bild — MIT License
-- gocv.io/x/gocv — Apache License 2.0 (optional; only with `-tags opencv`;
-  requires a system OpenCV 4.x install, which carries its own Apache/BSD terms)
+- gocv.io/x/gocv — Apache License 2.0 (REQUIRED; refraict's region detection is
+  OpenCV-backed via CGo; requires a system OpenCV 4.x install, which carries its
+  own Apache/BSD terms)
 - github.com/spf13/cobra — Apache License 2.0
 - golang.org/x/image — BSD 3-Clause License
 

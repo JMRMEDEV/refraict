@@ -1,5 +1,3 @@
-//go:build opencv
-
 // Package detect — OpenCV-backed region detector (opt-in via `-tags opencv`).
 //
 // This implementation targets the hard case that pure-Go bild + single-
