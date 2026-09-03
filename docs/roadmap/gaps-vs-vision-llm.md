@@ -326,9 +326,24 @@ Correct fix (deferred): LOCAL contrast — CLAHE (tiled/adaptive histogram
 equalization), which lifts faint local borders without saturating flat regions.
 bild lacks it; it's a real implementation (tiled histogram + bilinear
 interpolation of tile mappings), not a one-liner. That is the actual A2 task.
-Alternative shortcut: the opencv build already has Canny hysteresis (better on
-faint borders) — wiring the light-theme case to prefer opencv, or tuning Canny
-low/high per measured contrast, may be a cheaper win than a pure-Go CLAHE.
+
+"Lean on opencv Canny" shortcut — EMPIRICALLY DISPROVEN (2026-09-03):
+Tested the hypothesis that the opencv Canny hysteresis path already handles the
+faint borders pure-Go misses. It does NOT. Measured board-light:
+- opencv default (Canny 20/60): 0 cards (same as pure-Go). A threshold sweep
+  (Canny down to 6/18, rectangularity down to 0.35, dilate up to 5) never
+  surfaced a single CARD-sized contour — the ~19 boxes found are all icons +
+  2 dark banner images; zero cards at any setting.
+- Root cause pinned by pixel inspection: on board-light the card INTERIOR
+  luminance (249) EQUALS the page background (249) — zero fill contrast — and the
+  "border" is only a 9-luminance-unit step (249→239, ~3.5%). There is no closable
+  card-sized contour to find at that faintness, so no Canny threshold recovers it;
+  and global contrast pushes both 249 and 239 to 255 (the rejected boostEdges).
+Conclusion: only LOCAL adaptive equalization (CLAHE), which stretches the local
+249↔239 step into a strong edge while leaving it distinguishable from the flat
+interior, can recover these cards. CLAHE-before-edge-detection is confirmed as
+THE A2 approach; both the global-contrast boost and Canny-threshold tuning are
+dead ends for zero-fill-contrast cards.
 
 **Milestone B — Repeating-structure detection** (structural assembly 6→7-8)
 Priority: HIGH. Effort: medium (clustering pass).
