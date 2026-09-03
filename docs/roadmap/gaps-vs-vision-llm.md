@@ -674,8 +674,39 @@ color word. Do NOT use `consistent == true` (agreement == 1.0) as the bar — it
 over-triggers (12/25) on trivial color nitpicks. Report already exposes separate
 text/color/count sub-scores so the agent can weight text mismatches above color.
 
-Next (Gap 7 step 2): the `--structure` overview prompt + deterministic kanban
-verifier.
+Next (Gap 7): the OPTIONAL `--structure` overview prompt (a grounded VLM
+hypothesis, cross-checked) — the deterministic container assembler is OUT OF
+SCOPE (see Gap 7 re-scope).
+
+### 2026-09-03 — A/B: qwen page synthesis vs. deterministic assembly (validates the qwen drop)
+
+Isolated the "was dropping qwen from the page composer correct?" question with a
+controlled A/B: two binaries off the SAME HEAD (all other fixes held constant),
+differing ONLY in the default page composer — `AssemblePage` (current) vs. qwen
+`PageSummary` (old behavior). Run on multi-region pages where synthesis would
+matter most (board-dark, org-home-dark, settings-light, project-home-light).
+
+Result — nuanced, and it confirms the drop as the DEFAULT:
+- qwen prose is more readable (grouped concepts, less raw-OCR noise) — a
+  human-reader advantage.
+- But every qwen synthesis "win" came paired with a fabrication or degradation:
+  org-home — invented "the page is centered around a Telouri project" (it shows
+  three equal initiatives) and self-classified the page "analytics" (wrong);
+  settings — truncated the DANGER ZONE warning "Actions here cannot be easily
+  undone" to "Cannot easily be undone" (fact-drift).
+- The assembled version loses NO measured facts: everything qwen stated
+  correctly is present in assembly, which additionally keeps the raw tokens and
+  does not editorialize.
+
+Verdict: for refraict's consumer (an AI agent), assembly is more faithful and
+lossless, and the agent is the better synthesizer from complete facts. qwen's
+only real edge is human-readable prose, bought with reduced faithfulness — not
+refraict's job. Keeping qwen `PageSummary` available (escalation path / possible
+opt-in) rather than deleting it was therefore correct: the capability is not
+wrong, it is just not the right default. Possible future refinement (not built):
+an `output.page_style: assembled|synthesized` toggle to let a human-facing use
+opt into qwen prose, making the faithfulness/readability tradeoff explicit rather
+than baked in.
 
 ## References & third-party sources
 
