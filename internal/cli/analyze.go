@@ -359,6 +359,14 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	})
 	graph.SortByPosition(merged)
 
+	// Semantic text-pattern hints (Milestone D): attach a deterministic
+	// interpretation (overdue_deadline, completion_ratio, email, git_branch_ref,
+	// task_id, currency, percentage, count_badge) to components whose text
+	// matches a known UI pattern — so the agent knows what a token MEANS without
+	// re-parsing raw text. Rule-based, no model.
+	nHints := detect.AttachSemanticHints(merged)
+	slog.Info("attached semantic hints", "count", nHints)
+
 	// Tier-2 grounded VLM labeling of graphic elements (icon/logo/chart/image):
 	// each such region is cropped and given a short element label attached to
 	// Component.Semantic (inference). Bounded by MaxElementLabels; no-op without

@@ -394,7 +394,19 @@ forgot_password. Known residual: project-home-light → kanban (its board NAMES
 "Sprint Board"/"Backlog" trip the keywords — the "page about X" issue, milder);
 the signals field surfaces the reason so the agent can judge.
 
-**Milestone D — Semantic text-pattern hints** (semantic 7→7-8)
+**Milestone D — Semantic text-pattern hints** (semantic ~6.5→7-8) — DONE (2026-09-03)
+`detect.AttachSemanticHints` attaches `ir.SemanticHint{kind,value}` to components
+whose text matches a known UI pattern (task_id, git_branch_ref, email,
+overdue_deadline, completion_ratio, currency_amount, percentage, count_badge).
+Anchored patterns match whole-token identifiers; search patterns extract embedded
+data from phrases (e.g. "IN PROGRESS (3)"->count_badge 3, the email out of a
+sentence). Kept distinct from Semantic (VLM labels). Measured: task-detail gets
+task_id/overdue_deadline/completion_ratio; board-dark gets the column count
+badges (4/3/2) + a ratio — which combine with Milestone B groups to give
+"column with N cards". Rule-based, no model. Unit-tested (matches + no false
+positives). Grown iteratively from here.
+
+Original plan:
 Priority: MEDIUM-HIGH. Effort: medium (pattern library, iterative).
 Attach a `semantic_hint` field to components whose OCR text matches known UI
 patterns: `(Overdue)` in a red pill → `{hint: "overdue_deadline"}`; `2/5` next

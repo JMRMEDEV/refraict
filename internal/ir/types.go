@@ -105,6 +105,11 @@ type Component struct {
 	Text       *ConstString   `json:"text,omitempty"`
 	Appearance *Appearance    `json:"appearance,omitempty"`
 	Semantic   *ConstString   `json:"semantic,omitempty"`
+	// SemanticHint is a deterministic interpretation of the component's text via
+	// known UI patterns (e.g. overdue_deadline, completion_ratio, email,
+	// git_branch_ref). Kept distinct from Semantic (VLM-voted labels): this is
+	// pattern-matched, not model-inferred, so the agent knows it's rule-based.
+	SemanticHint *SemanticHint  `json:"semantic_hint,omitempty"`
 	Children   []string       `json:"children,omitempty"`
 	Role       *ConstString   `json:"role,omitempty"`
 	Confidence float64        `json:"confidence"`
@@ -147,4 +152,14 @@ type RepeatedGroup struct {
 	Spacing   int      `json:"spacing"`    // average center-to-center spacing (px)
 	Type      string   `json:"type"`       // shared component type (e.g. "card")
 	MemberIDs []string `json:"member_ids"` // component IDs in axis order
+}
+
+// SemanticHint is a deterministic, pattern-matched interpretation of a text
+// component — e.g. {Kind: "completion_ratio", Value: "2/5"} or
+// {Kind: "overdue_deadline"}. It tells the agent what a token MEANS without the
+// agent re-parsing raw text. Rule-based (no model); Kind is the pattern name and
+// Value optionally carries the extracted datum.
+type SemanticHint struct {
+	Kind  string `json:"kind"`
+	Value string `json:"value,omitempty"`
 }
