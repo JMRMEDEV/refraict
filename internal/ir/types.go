@@ -137,3 +137,14 @@ type RunProvenance struct {
 	RunID         string `json:"run_id,omitempty"`
 	Provider      string `json:"provider,omitempty"`
 }
+
+// RepeatedGroup is a set of similarly-sized, same-typed components at regular
+// spacing along one axis — kanban columns, nav items, card rows, settings rows.
+// The agent uses these to infer sibling relationships ("these 4 cards are in a
+// grid/list") without refraict assembling the container. Deterministic geometry.
+type RepeatedGroup struct {
+	Axis      string   `json:"axis"`       // "x" (column-like) or "y" (row-like)
+	Spacing   int      `json:"spacing"`    // average center-to-center spacing (px)
+	Type      string   `json:"type"`       // shared component type (e.g. "card")
+	MemberIDs []string `json:"member_ids"` // component IDs in axis order
+}

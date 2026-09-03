@@ -10,8 +10,9 @@ import (
 
 // Graph is a semantic UI graph: nodes (components) plus explicit relationships.
 type Graph struct {
-	Nodes         []ir.Component    `json:"nodes"`
-	Relationships []ir.Relationship `json:"relationships"`
+	Nodes          []ir.Component    `json:"nodes"`
+	Relationships  []ir.Relationship `json:"relationships"`
+	RepeatedGroups []ir.RepeatedGroup `json:"repeated_groups,omitempty"`
 }
 
 // Build derives relationships from geometry: containment (inside), alignment
@@ -87,6 +88,121 @@ func horizGap(a, b ir.BoundingBox) float64 {
 		return float64(a.X0 - b.X1)
 	}
 	return 0
+}
+
+// DetectRepeatingGroups finds sets of similarly-sized, same-typed components at
+// regular spacing along one axis. Each group tells the agent "these N things are
+// siblings in a list/grid/column set" — kanban columns, nav items, card rows.
+// Pure geometry + type matching, no model.
+func DetectRepeatingGroups(comps []ir.Component, sizeTol, axisTol, minMembers int) []ir.RepeatedGroup {
+	if minMembers < 2 {
+		minMembers = 2
+	}
+	byType := map[string][]ir.Component{}
+	for _, c := range comps {
+		t := c.Type.Value
+		if t == "" || t == "text" || t == "label" {
+			continue
+		}
+		byType[t] = append(byType[t], c)
+	}
+	var groups []ir.RepeatedGroup
+	for typ, cs := range byType {
+		if len(cs) < minMembers {
+			continue
+		}
+		used := make([]bool, len(cs))
+		for i := 0; i < len(cs); i++ {
+			if used[i] {
+				continue
+			}
+			cluster := []ir.Component{cs[i]}
+			used[i] = true
+			wi, hi := cs[i].BBox.Width(), cs[i].BBox.Height()
+			for j := i + 1; j < len(cs); j++ {
+				if used[j] {
+					continue
+				}
+				wj, hj := cs[j].BBox.Width(), cs[j].BBox.Height()
+				if intAbs(wi-wj) <= sizeTol && intAbs(hi-hj) <= sizeTol {
+					cluster = append(cluster, cs[j])
+					used[j] = true
+				}
+			}
+			if len(cluster) < minMembers {
+				continue
+			}
+			groups = append(groups, axisClusters(cluster, "x", axisTol, minMembers, typ)...)
+			groups = append(groups, axisClusters(cluster, "y", axisTol, minMembers, typ)...)
+		}
+	}
+	return groups
+}
+
+func axisClusters(cs []ir.Component, axis string, axisTol, minMembers int, typ string) []ir.RepeatedGroup {
+	sorted := make([]ir.Component, len(cs))
+	copy(sorted, cs)
+	sort.Slice(sorted, func(i, j int) bool {
+		return centerAxis(sorted[i], axis) < centerAxis(sorted[j], axis)
+	})
+	var groups []ir.RepeatedGroup
+	cluster := []ir.Component{sorted[0]}
+	for i := 1; i < len(sorted); i++ {
+		gap := centerAxis(sorted[i], axis) - centerAxis(sorted[i-1], axis)
+		if gap > axisTol {
+			if g, ok := makeGroup(cluster, axis, typ, minMembers); ok {
+				groups = append(groups, g)
+			}
+			cluster = nil
+		}
+		cluster = append(cluster, sorted[i])
+	}
+	if g, ok := makeGroup(cluster, axis, typ, minMembers); ok {
+		groups = append(groups, g)
+	}
+	return groups
+}
+
+func makeGroup(cs []ir.Component, axis, typ string, minMembers int) (ir.RepeatedGroup, bool) {
+	if len(cs) < minMembers {
+		return ir.RepeatedGroup{}, false
+	}
+	crossAxis := "y"
+	if axis == "y" {
+		crossAxis = "x"
+	}
+	sort.Slice(cs, func(i, j int) bool {
+		return centerAxis(cs[i], crossAxis) < centerAxis(cs[j], crossAxis)
+	})
+	spacing := 0
+	if len(cs) > 1 {
+		total := centerAxis(cs[len(cs)-1], crossAxis) - centerAxis(cs[0], crossAxis)
+		spacing = total / (len(cs) - 1)
+	}
+	ids := make([]string, len(cs))
+	for i, c := range cs {
+		ids[i] = c.ID
+	}
+	// Suppress degenerate groups: same-position (spacing ~ 0) is not a repeating
+	// pattern — it's overlapping components that happen to be same-typed/sized.
+	if spacing < 20 {
+		return ir.RepeatedGroup{}, false
+	}
+	return ir.RepeatedGroup{Axis: axis, Spacing: spacing, Type: typ, MemberIDs: ids}, true
+}
+
+func centerAxis(c ir.Component, axis string) int {
+	if axis == "x" {
+		return (c.BBox.X0 + c.BBox.X1) / 2
+	}
+	return (c.BBox.Y0 + c.BBox.Y1) / 2
+}
+
+func intAbs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
 }
 
 // SortByPosition orders components top-to-bottom then left-to-right.

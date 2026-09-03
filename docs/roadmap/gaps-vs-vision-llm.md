@@ -364,7 +364,16 @@ further gains would need per-card local thresholding, diminishing returns.
 Pure-Go path still lacks CLAHE (opencv-only); a hand-rolled CLAHE remains the
 pure-Go follow-up. Unit-tested (boxIoU, unionRegionBoxes).
 
-**Milestone B — Repeating-structure detection** (structural assembly 6→7-8)
+**Milestone B — Repeating-structure detection** (structural assembly ~5→7) — DONE (2026-09-03)
+`graph.DetectRepeatingGroups` clusters same-typed, similarly-sized components by
+axis center and tags groups of >=2 at regular spacing as `ir.RepeatedGroup`
+(axis, spacing, type, member_ids), attached to graph.json `repeated_groups`.
+Measured board-dark: recovers the kanban layout — 3 x-axis card groups (the
+columns, spacing ~290-306) plus their y-axis vertical stacks. board-light: 2 card
+groups; org-home-dark: the 3 project tiles as a y-column. A min-spacing filter
+(<20px) drops degenerate overlapping-component groups. No model. Unit-tested.
+
+Original plan:
 Priority: HIGH. Effort: medium (clustering pass).
 Kanban columns, nav items, settings rows, card grids all share a pattern: N
 visually-similar regions at regular spacing along one axis. A clustering pass

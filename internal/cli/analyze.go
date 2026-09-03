@@ -390,6 +390,10 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// was the call that ran away on invite-dark. Cross-region text SYNTHESIS now
 	// lives in the gemma consolidation pass below, where a model actually helps.
 	uiGraph := inferPageGraph(ctx, merged, nil)
+	// Repeating-structure detection (Milestone B): find sets of similarly-sized,
+	// same-typed components at regular spacing — kanban columns, card rows, nav
+	// items. Pure geometry; the agent reads these to infer sibling relationships.
+	uiGraph.RepeatedGroups = graph.DetectRepeatingGroups(merged, 50, 80, 2)
 	writeArtifact(func() error { return ws.WriteJSON("graph.json", uiGraph) })
 	stage("merge+graph", start)
 

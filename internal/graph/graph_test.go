@@ -55,3 +55,30 @@ func TestSortByPositionOrder(t *testing.T) {
 		t.Fatalf("unexpected sort order: %s, %s, %s", comps[0].ID, comps[1].ID, comps[2].ID)
 	}
 }
+
+func TestDetectRepeatingGroups(t *testing.T) {
+	// 3 cards in a column (same x-center, spaced along y).
+	cs := []ir.Component{
+		{ID: "c1", Type: ir.ConstString{Value: "card"}, BBox: ir.BoundingBox{X0: 100, Y0: 100, X1: 660, Y1: 400}},
+		{ID: "c2", Type: ir.ConstString{Value: "card"}, BBox: ir.BoundingBox{X0: 100, Y0: 450, X1: 660, Y1: 750}},
+		{ID: "c3", Type: ir.ConstString{Value: "card"}, BBox: ir.BoundingBox{X0: 100, Y0: 800, X1: 660, Y1: 1100}},
+		{ID: "t1", Type: ir.ConstString{Value: "text"}, BBox: ir.BoundingBox{X0: 110, Y0: 110, X1: 300, Y1: 130}},
+	}
+	groups := DetectRepeatingGroups(cs, 50, 80, 2)
+	// Should find at least one group of 3 cards along the x axis (same xc).
+	found := false
+	for _, g := range groups {
+		if g.Type == "card" && len(g.MemberIDs) == 3 {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected a 3-card group, got %+v", groups)
+	}
+	// Text components must not form groups (skipped).
+	for _, g := range groups {
+		if g.Type == "text" {
+			t.Fatal("text components must not form repeating groups")
+		}
+	}
+}
