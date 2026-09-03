@@ -512,7 +512,7 @@ func elementCropBytes(img *imageproc.Image, b ir.BoundingBox, padFrac float64) [
 // "Implement login screen / build the login form with email/password fields"
 // must classify as task_detail, not login. Content keywords alone cannot tell a
 // page that IS a login form from a page ABOUT login; the container signals can.
-func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
+func inferPageType(comps []ir.Component, toks []ir.OCRToken) ir.PageType {
 	text := ""
 	for _, t := range toks {
 		text += " " + t.Text
@@ -522,31 +522,40 @@ func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 	// Structural signals (high weight) — evidence of the page's container type,
 	// independent of the feature/task the content talks about.
 	structural := map[string][]string{
-		"task_detail": {"checklists", "due date", "labels", "assignee", "add a comment", "write a comment", "linked cards", "attachments", "branch name", "overdue"},
-		"kanban":      {"to do", "in progress", "in review", "backlog", "done", "sprint board"},
-		"settings":    {"danger zone", "deactivate account", "delete account", "preferences", "language", "theme"},
-		"invite":      {"invitation", "you have been invited", "accept invitation", "decline"},
+		"task_detail":     {"checklists", "due date", "labels", "assignee", "add a comment", "write a comment", "linked cards", "attachments", "branch name", "overdue"},
+		"kanban":          {"to do", "in progress", "in review", "backlog", "sprint board"},
+		"settings":        {"danger zone", "deactivate account", "delete account", "language", "theme"},
+		"invite":          {"invitation", "you have been invited", "accept invitation", "decline"},
+		"error_state":     {"access denied", "permission denied", "not found", "403", "404", "500", "error occurred", "go to dashboard"},
+		"confirmation":    {"success", "verified", "email sent", "account created"},
+		"verify_email":    {"verify your email", "verification email", "resend verification", "check your inbox"},
+		"forgot_password": {"forgot your password", "reset password", "reset link", "password reset"},
+		"project_home":    {"boards", "configure", "kanban"},
 	}
 	structScore := map[string]int{}
+	matchedSignals := map[string][]string{} // type -> matched keywords
+
 	for t, kw := range structural {
 		for _, k := range kw {
 			if strings.Contains(lt, k) {
-				structScore[t] += 2 // structural signals count double
+				structScore[t] += 2
+				matchedSignals[t] = append(matchedSignals[t], k)
 			}
 		}
 	}
-	// A task-ID token (e.g. "PH-123", "ABC-4521") is a strong task/card signal.
 	if hasTaskIDToken(toks) {
 		structScore["task_detail"]++
+		matchedSignals["task_detail"] = append(matchedSignals["task_detail"], "task-id-token")
 	}
+
 	types := map[string][]string{
 		"login":     {"sign in", "signin", "login", "log in", "password", "username"},
 		"pricing":   {"pricing", "per month", "per year", "/mo", "subscribe", "free trial"},
 		"billing":   {"billing", "invoice", "payment", "top up", "balance", "total cost", "usd", "$"},
 		"usage":     {"usage", "api requests", "tokens", "requests", "quota", "consumption", "rate limit"},
-		"analytics": {"analytics", "metrics", "dashboard", "chart", "cost(usd)", "last 30 days", "trend"},
-		"api":       {"api key", "api keys", "endpoint", "secret key", "access token", "docs"},
-		"dashboard": {"dashboard", "overview", "kpi", "revenue", "summary"},
+		"analytics": {"analytics", "metrics", "cost(usd)", "last 30 days", "trend"},
+		"api":       {"api key", "api keys", "endpoint", "secret key", "access token"},
+		"dashboard": {"dashboard", "overview", "kpi", "revenue", "active initiatives"},
 		"ecommerce": {"cart", "add to cart", "checkout", "shop", "products"},
 		"settings":  {"settings", "preferences", "profile", "account"},
 	}
@@ -555,10 +564,10 @@ func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 		for _, k := range kw {
 			if strings.Contains(lt, k) {
 				score[t]++
+				matchedSignals[t] = append(matchedSignals[t], k)
 			}
 		}
 	}
-	// Fold in the higher-weight structural signals.
 	for t, s := range structScore {
 		score[t] += s
 	}
@@ -568,7 +577,27 @@ func inferPageType(comps []ir.Component, toks []ir.OCRToken) string {
 			best, bs = t, s
 		}
 	}
-	return best
+	// Confidence: proportion of best score vs possible signals. Coarse but useful
+	// for the agent to gauge how strongly the classification is supported.
+	maxPossible := len(structural[best]) + len(types[best])
+	if maxPossible == 0 {
+		maxPossible = 1
+	}
+	// The raw signal count can exceed maxPossible due to double-weighting and
+	// combined structural+content. Clamp to 1.0.
+	conf := float64(bs) / float64(maxPossible*2) // normalize against double-weighted max
+	if conf > 1.0 {
+		conf = 1.0
+	}
+	if conf < 0.1 && best != "generic" {
+		conf = 0.1
+	}
+
+	return ir.PageType{
+		Type:       best,
+		Signals:    matchedSignals[best],
+		Confidence: conf,
+	}
 }
 
 // hasTaskIDToken reports whether any OCR token looks like a task/card ID

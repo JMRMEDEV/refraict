@@ -178,7 +178,8 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// can frame the crop prompts (reducing content-driven mislabels, e.g. a
 	// task-detail view being described as a login page). Reused for the page
 	// summary below.
-	pageTypeHint := inferPageType(nil, toks)
+	pageTypeInfo := inferPageType(nil, toks)
+	pageTypeHint := pageTypeInfo.Type
 
 	// Crop plan.
 	planCfg := crop.CropPlanConfig{
@@ -554,6 +555,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		"summary":                pageSummary,
 		"grounding":              grounding,
 		"crosscheck":             crosscheck,
+		"page_type":              pageTypeInfo,
 		"consolidated_summary":   consolidated,
 		"consolidation_check":    consolidationCheck,
 		"provenance": map[string]any{

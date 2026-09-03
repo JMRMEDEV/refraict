@@ -286,6 +286,28 @@ card→contents nesting — the single biggest missing structural signal — fal
 from geometry alone. This is the one item that moves the score the most with the
 least work.
 
+FINDING (2026-09-03): containment edges are ALREADY implemented in
+`graph.relationship` (`a.BBox.Contains(b.BBox) && area>3x`). On board-dark this
+produces 41 correct card→contents edges (9 cards, each nesting its label/title/
+assignee text). So Milestone A's mechanism is DONE. The real bottleneck exposed
+by measuring: containment only works where CARD REGIONS ARE DETECTED, and the
+detector misses cards on light/low-contrast themes — board-dark finds 9 cards
+(41 edges) but board-light finds 0 cards (3 edges). The structural-assembly
+score is gated by DETECTION QUALITY on flat UIs, not by the containment logic.
+Redirected to Milestone A2.
+
+**Milestone A2 — Edge-enhancement preprocessing for card detection on flat UIs** (unblocks A/B on light themes)
+Priority: HIGHEST (real bottleneck). Effort: medium (detector preprocessing).
+The region detector keys on edge magnitude (Sobel pure-Go / Canny opencv); faint
+hairline card borders on near-white backgrounds produce too weak a gradient to
+threshold, so cards go undetected on light themes. Fix (owner steer): a
+deterministic mid-processing contrast/edge-amplification step on the WORKING copy
+fed to edge detection (not the original used for color sampling) — CLAHE / local
+contrast normalization or unsharp-mask — so faint borders become detectable
+gradients. Success metric: board-light card count 0 → ~9 (match board-dark)
+without over-detecting on dark themes. Reuses the same low-contrast technique the
+Gap 1 OCR follow-up proposed.
+
 **Milestone B — Repeating-structure detection** (structural assembly 6→7-8)
 Priority: HIGH. Effort: medium (clustering pass).
 Kanban columns, nav items, settings rows, card grids all share a pattern: N
@@ -295,17 +317,17 @@ of same-sized, same-typed, regularly-spaced component clusters as a
 `repeated_group` tells the agent "these 4 things are siblings in a list/grid."
 On board-dark this turns "103 unrelated components" into "4 groups of similar
 cards at regular x-intervals" — columns read themselves. No model; pure geometry
-+ component-type matching.
++ component-type matching. (Depends on A2 for light themes.)
 
-**Milestone C — Richer inferPageType with confidence + signals** (semantic 5→6-7)
-Priority: HIGH. Effort: small (extends existing classifier).
-Return a structured object instead of a bare string:
-`{type: "task_detail", subtype: "overdue_task", signals: ["PH-123", "Overdue",
-"CHECKLISTS"], confidence: 0.9}`. The signals field shows the agent WHY the
-classification was made. Add types for common UI states that refraict currently
-misses: "error_state" (Access Denied, 404, error), "empty_state" (No items, Get
-started), "confirmation" (Success, Verified, email sent). All keyword/pattern-
-based. Cheap, already half-exists.
+**Milestone C — Richer inferPageType with confidence + signals** (semantic 5→6-7) — DONE (2026-09-03)
+`inferPageType` now returns `ir.PageType{type, signals, confidence}` (exposed in
+page.json `page_type`) instead of a bare string. Added types: error_state,
+confirmation, verify_email, forgot_password, project_home. Verified fixes:
+access-denied → error_state (was generic/dashboard); org-home → dashboard (was
+analytics/settings); verify-email → verify_email (conf 0.75); forgot-password →
+forgot_password. Known residual: project-home-light → kanban (its board NAMES
+"Sprint Board"/"Backlog" trip the keywords — the "page about X" issue, milder);
+the signals field surfaces the reason so the agent can judge.
 
 **Milestone D — Semantic text-pattern hints** (semantic 7→7-8)
 Priority: MEDIUM-HIGH. Effort: medium (pattern library, iterative).

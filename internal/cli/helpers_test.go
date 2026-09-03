@@ -29,7 +29,7 @@ func TestInferPageTypeBillingUsage(t *testing.T) {
 		{Text: "Total cost"}, {Text: "$1.58"}, {Text: "USD"},
 		{Text: "API requests"}, {Text: "Tokens"}, {Text: "Last 30 days"},
 	}
-	got := inferPageType(nil, toks)
+	got := inferPageType(nil, toks).Type
 	// Should classify as one of the finance/usage-oriented types, not "generic".
 	switch got {
 	case "billing", "usage", "analytics", "api", "dashboard":
@@ -41,7 +41,7 @@ func TestInferPageTypeBillingUsage(t *testing.T) {
 
 func TestInferPageTypeGenericFallback(t *testing.T) {
 	toks := []ir.OCRToken{{Text: "lorem"}, {Text: "ipsum"}}
-	if got := inferPageType(nil, toks); got != "generic" {
+	if got := inferPageType(nil, toks).Type; got != "generic" {
 		t.Fatalf("expected generic for unrelated text, got %q", got)
 	}
 }
@@ -56,7 +56,7 @@ func TestInferPageTypeTaskOverLogin(t *testing.T) {
 		{Text: "MEMBERS"}, {Text: "DUE"}, {Text: "DATE"}, {Text: "CHECKLISTS"},
 		{Text: "Write"}, {Text: "a"}, {Text: "comment"}, {Text: "branch"}, {Text: "name"},
 	}
-	if got := inferPageType(nil, toks); got != "task_detail" {
+	if got := inferPageType(nil, toks).Type; got != "task_detail" {
 		t.Fatalf("expected task_detail (not login) for a login-titled task view, got %q", got)
 	}
 }
@@ -136,7 +136,7 @@ func TestProbableDOM(t *testing.T) {
 // TestInferPageType verifies lightweight page-type classification.
 func TestInferPageType(t *testing.T) {
 	toks := []ir.OCRToken{{Text: "Sign in with your email and password", BBoxGlobal: ir.BoundingBox{X0: 0, Y0: 0, X1: 10, Y1: 10}}}
-	if got := inferPageType(nil, toks); got != "login" {
+	if got := inferPageType(nil, toks).Type; got != "login" {
 		t.Fatalf("expected login, got %q", got)
 	}
 }
