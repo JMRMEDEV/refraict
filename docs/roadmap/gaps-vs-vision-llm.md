@@ -296,7 +296,7 @@ detector misses cards on light/low-contrast themes — board-dark finds 9 cards
 score is gated by DETECTION QUALITY on flat UIs, not by the containment logic.
 Redirected to Milestone A2.
 
-**Milestone A2 — Edge-enhancement preprocessing for card detection on flat UIs** (unblocks A/B on light themes)
+**Milestone A2 — Edge-enhancement preprocessing for card detection on flat UIs** (PARTIAL; capability added, default OFF pending adaptive gating)
 Priority: HIGHEST (real bottleneck). Effort: medium (detector preprocessing).
 The region detector keys on edge magnitude (Sobel pure-Go / Canny opencv); faint
 hairline card borders on near-white backgrounds produce too weak a gradient to
@@ -304,9 +304,31 @@ threshold, so cards go undetected on light themes. Fix (owner steer): a
 deterministic mid-processing contrast/edge-amplification step on the WORKING copy
 fed to edge detection (not the original used for color sampling) — CLAHE / local
 contrast normalization or unsharp-mask — so faint borders become detectable
-gradients. Success metric: board-light card count 0 → ~9 (match board-dark)
-without over-detecting on dark themes. Reuses the same low-contrast technique the
-Gap 1 OCR follow-up proposed.
+gradients.
+
+Implemented + measured (2026-09-03) — first attempt REJECTED, honest finding:
+`RegionOptions.EdgeBoost` + `boostEdges` hook added (applied to a SEPARATE edge-
+detection input; fill mask keeps unboosted gray; color/coords use the untouched
+original). The naive body (bild global `adjust.Contrast` + `UnsharpMask`) was
+measured and does NOT work:
+- board-dark at boost 0.6 FRAGMENTED solid card borders (containers → header-band
+  sub-parts).
+- Worse, the unit test exposed the core flaw: global contrast expands values
+  around mid-gray, so a faint light border (235 on a 250 background) AND the
+  background BOTH saturate toward 255 — ERASING the difference. Global contrast
+  is the wrong primitive for faint light borders.
+So `boostEdges` is left a documented NO-OP and `EdgeBoost` defaults to 0 (zero
+behavior change vs. base — verified identical output). Also learned: the earlier
+"board-dark 9 cards" was the OPENCV Canny path; pure-Go finds 0 cards on
+board-dark regardless (separate pure-Go weakness).
+
+Correct fix (deferred): LOCAL contrast — CLAHE (tiled/adaptive histogram
+equalization), which lifts faint local borders without saturating flat regions.
+bild lacks it; it's a real implementation (tiled histogram + bilinear
+interpolation of tile mappings), not a one-liner. That is the actual A2 task.
+Alternative shortcut: the opencv build already has Canny hysteresis (better on
+faint borders) — wiring the light-theme case to prefer opencv, or tuning Canny
+low/high per measured contrast, may be a cheaper win than a pure-Go CLAHE.
 
 **Milestone B — Repeating-structure detection** (structural assembly 6→7-8)
 Priority: HIGH. Effort: medium (clustering pass).

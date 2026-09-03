@@ -38,6 +38,13 @@ type RegionOptions struct {
 	MaxAreaFrac float64
 	// MinSidePx: drop blobs whose width or height (working space) is below this.
 	MinSidePx int
+	// EdgeBoost: strength (0..~1) of a deterministic contrast/edge-amplification
+	// applied to the grayscale WORKING copy before edge detection, so faint
+	// hairline card borders on near-white (light-theme) backgrounds become steep
+	// enough gradients for the Sobel threshold to catch. 0 disables (no boost).
+	// Only the edge-detection input is boosted; the original image (color
+	// sampling, coordinates) is untouched.
+	EdgeBoost float64
 }
 
 // DefaultRegionOptions returns conservative defaults tuned for flat, modern
@@ -52,6 +59,12 @@ func DefaultRegionOptions() RegionOptions {
 		MinAreaFrac:       0.002,
 		MaxAreaFrac:       0.60,
 		MinSidePx:         12,
+		// EdgeBoost default OFF: the always-on 0.6 boost helped light themes
+		// (board-light cards 0->5 containers) but FRAGMENTED solid dark-theme card
+		// borders (board-dark 9 cards -> 0, edges 41->2). It needs contrast-
+		// adaptive gating (apply only on measured-low-contrast/light images) and
+		// gentler strength before it can be on by default. Available as opt-in.
+		EdgeBoost: 0,
 	}
 }
 
@@ -311,7 +324,17 @@ func DetectRegions(img image.Image, opts RegionOptions) []RegionBox {
 	// is unioned in so high-contrast solid blocks (banners, active pills) are
 	// also captured.
 	gray := effect.Grayscale(work)
-	edges := effect.Sobel(gray)
+	// Edge-amplification (owner steer): faint hairline card borders on light/flat
+	// UIs produce too weak a Sobel gradient to threshold. Boost local contrast +
+	// sharpen a SEPARATE edge-detection input so those borders become steep
+	// enough to survive thresholding. The fill/background mask below keeps the
+	// UNBOOSTED gray (it relies on absolute luminance differences that the boost
+	// would distort); color sampling/coordinates use the untouched original.
+	edgeInput := gray
+	if opts.EdgeBoost > 0 {
+		edgeInput = boostEdges(gray, opts.EdgeBoost)
+	}
+	edges := effect.Sobel(edgeInput)
 	edgeMask := thresholdGray(edges, opts.EdgeThreshold)
 
 	bg := estimateBackgroundGray(gray)
@@ -497,6 +520,34 @@ func toRGBA(img image.Image) *image.RGBA {
 
 // thresholdGray returns a binary RGBA mask: pixels whose grayscale magnitude is
 // >= t become white (foreground), else black.
+// boostEdges is a placeholder for contrast/edge-amplification of the edge-
+// detection input, intended to surface faint hairline card borders on light/flat
+// UIs (owner steer, Milestone A2).
+//
+// NOT YET IMPLEMENTED CORRECTLY — kept as a no-op. The naive approach (bild
+// global adjust.Contrast + UnsharpMask) was measured and REJECTED: global
+// contrast expands values around mid-gray, so a faint light border (e.g. 235 on
+// a 250 background) and the background BOTH saturate toward 255, ERASING the very
+// difference we need. Global contrast is the wrong primitive for faint light
+// borders. The correct fix is LOCAL contrast — CLAHE (tiled/adaptive histogram
+// equalization) — which bild does not provide and which is a real implementation
+// (tiled histogram + interpolation), not a one-liner. Until that lands, the boost
+// is a no-op (EdgeBoost defaults to 0, so this is never called in the default
+// path). See the Milestone A2 roadmap entry.
+func boostEdges(gray image.Image, amount float64) *image.RGBA {
+	if r, ok := gray.(*image.RGBA); ok {
+		return r
+	}
+	b := gray.Bounds()
+	dst := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			dst.Set(x-b.Min.X, y-b.Min.Y, gray.At(x, y))
+		}
+	}
+	return dst
+}
+
 func thresholdGray(img image.Image, t int) *image.RGBA {
 	b := img.Bounds()
 	w, h := b.Dx(), b.Dy()
