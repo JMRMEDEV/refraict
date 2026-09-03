@@ -159,6 +159,20 @@ func buildTextBackend(cfg *config.Config, o *analysisOptions) model.TextBackend 
 	return buildBackendFor(cfg.Summary.Provider, cfg.Summary.Endpoint, cfg.Summary.Model, resolveKeepAlive(cfg, o))
 }
 
+// buildVisionTextBackend returns a TextBackend pointed at the VISION model
+// (gemma), used TEXT-ONLY. gemma3:4b is a general instruction-tuned model that
+// also accepts images; omitting images makes it a text model. Using it for the
+// page consolidation keeps the whole run on ONE already-warm model (no second
+// model resident), and — since gemma produced the crop/overview descriptions —
+// lets it consolidate and self-cross-check its own reads.
+func buildVisionTextBackend(cfg *config.Config, o *analysisOptions) model.TextBackend {
+	provider := cfg.Vision.Provider
+	if provider == "" || provider == "ollama" {
+		return model.NewOllamaKeepAlive(cfg.Vision.Endpoint, cfg.Vision.Model, resolveKeepAlive(cfg, o))
+	}
+	return nil
+}
+
 // buildAggregatorBackend constructs the text adapter used for the aggregator /
 // escalation stage (M4). Aggregation runs over the already-produced region
 // summaries with an (optionally stronger) model to synthesize the final page

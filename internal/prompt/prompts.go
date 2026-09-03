@@ -6,6 +6,7 @@ package prompt
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/refraict/refraict/internal/ir"
 )
@@ -179,6 +180,53 @@ COMPONENTS:
 	}
 	return p
 }
+
+// BuildConsolidatePrompt asks gemma (text-only) to consolidate its OWN reads of
+// one UI — the whole-page overview description plus the per-section descriptions
+// it produced — into a single coherent description. This is the one text task
+// worth a model: synthesis across multiple grounded sources (dedup overlaps,
+// reconcile the same element seen in several sections). It is constrained to the
+// provided descriptions (no new facts) and told to stay consistent with the
+// overview, which doubles as a self-consistency signal (the consolidation is
+// then cross-checked against measured evidence downstream).
+func BuildConsolidatePrompt(pageType, overview string, sections []string) string {
+	var b bytes.Buffer
+	b.WriteString(`You are Refraict. Below are your OWN prior descriptions of a single UI screenshot: a whole-page OVERVIEW read, then several SECTION reads of parts of the same screen. Consolidate them into ONE coherent Markdown description of the page for another AI system.
+
+Rules (strict):
+- Use ONLY information stated in the descriptions below. Do NOT add new facts, labels, colors, components, or behavior.
+- Remove redundancy: when the same element/text appears in the overview and a section, or across sections, state it once.
+- Prefer concrete detail from the SECTION reads; use the OVERVIEW for whole-page structure.
+- Stay CONSISTENT with the overview's whole-page impression. If a section read contradicts the overview, keep the better-supported statement and note the uncertainty briefly rather than inventing a resolution.
+- Do NOT describe dynamic behavior (hover, animation, transitions, click results).
+- Be concise. No JSON, no coordinates.
+
+`)
+	if pageType != "" && pageType != "generic" {
+		b.WriteString("Page type (deterministic): " + pageType + "\n\n")
+	}
+	b.WriteString("OVERVIEW (whole-page read):\n")
+	if strings.TrimSpace(overview) == "" {
+		b.WriteString("(none)\n")
+	} else {
+		b.WriteString(strings.TrimSpace(overview) + "\n")
+	}
+	b.WriteString("\nSECTION reads:\n")
+	if len(sections) == 0 {
+		b.WriteString("(none)\n")
+	}
+	for i, s := range sections {
+		if strings.TrimSpace(s) == "" {
+			continue
+		}
+		b.WriteString(fmt.Sprintf("\n--- section %d ---\n%s\n", i+1, strings.TrimSpace(s)))
+	}
+	b.WriteString("\nNow write the consolidated Markdown description:\n")
+	return b.String()
+}
+
+// ConsolidateV1 versions the consolidation prompt.
+const ConsolidateV1 = "consolidate-v1"
 
 func fbox(b ir.BoundingBox) string {
 	return fmt.Sprintf("[%d,%d,%d,%d]", b.X0, b.Y0, b.X1, b.Y1)

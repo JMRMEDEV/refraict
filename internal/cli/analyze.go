@@ -382,10 +382,13 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	colors := sampleColors(img, merged)
 	writeArtifact(func() error { return ws.WriteJSON("evidence/colors.json", colors) })
 
-	// Build canonical UI IR page.json. Geometric relationships are derived
-	// deterministically, then a text backend (if available) augments them with
-	// model-inferred relationships (G7). A nil backend falls back to geometry.
-	uiGraph := inferPageGraph(ctx, merged, buildTextBackend(cfg, o))
+	// Build canonical UI IR page.json. Relationships are derived DETERMINISTICALLY
+	// from measured geometry. The former text-model augmentation was removed: a
+	// language model re-deriving spatial relations from a text list of coordinates
+	// is both unreliable and redundant (the geometry is already measured), and it
+	// was the call that ran away on invite-dark. Cross-region text SYNTHESIS now
+	// lives in the gemma consolidation pass below, where a model actually helps.
+	uiGraph := inferPageGraph(ctx, merged, nil)
 	writeArtifact(func() error { return ws.WriteJSON("graph.json", uiGraph) })
 	stage("merge+graph", start)
 
@@ -397,6 +400,7 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	// is allowed and text redaction is configured, sensitive text is redacted
 	// before it leaves local processing (M2).
 	pageSummary := ""
+	consolidated := ""
 	if !o.noSummary && !cfg.Analysis.NoSummary {
 		sum := summarize.New(buildTextBackend(cfg, o))
 		// gemma's whole-image (overview) description — the "original summary".
@@ -469,6 +473,29 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		if pageSummary != "" {
 			writeArtifact(func() error { return ws.WriteText("page.md", pageSummary) })
 		}
+
+		// Gemma consolidation pass (experimental): the faithful page.md above is
+		// the deterministic assembly. Additionally, ask gemma — TEXT-ONLY, reusing
+		// the already-warm vision model, no second model — to consolidate its OWN
+		// overview + section reads into one coherent, de-duplicated narrative. This
+		// is the single text task worth a model (cross-source synthesis) and keeps
+		// the run on one model. The consolidation is a SEPARATE artifact
+		// (page-consolidated.md), never replacing the faithful assembly, and is
+		// grounded-checked against measured evidence downstream. Skipped under
+		// --no-summary. Non-fatal: any failure just omits the artifact.
+		if gemText := buildVisionTextBackend(cfg, o); gemText != nil && (overviewDesc != "" || len(regionMds) > 0) {
+			cres, cerr := gemText.Complete(ctx, model.TextRequest{
+				Prompt:        prompt.BuildConsolidatePrompt(pageType, overviewDesc, regionMds),
+				PromptVersion: prompt.ConsolidateV1,
+				MaxTokens:     768,
+			})
+			if cerr != nil {
+				slog.Warn("gemma consolidation failed; keeping assembled page only", "err", cerr)
+			} else if cres != nil && strings.TrimSpace(cres.Output) != "" {
+				consolidated = strings.TrimSpace(cres.Output)
+				writeArtifact(func() error { return ws.WriteText("page-consolidated.md", consolidated) })
+			}
+		}
 	}
 	stage("summary", start)
 
@@ -494,6 +521,18 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 	crosscheck := detect.CrossCheck(ovDesc, colors, toks, merged)
 	writeArtifact(func() error { return ws.WriteJSON("evidence/crosscheck.json", crosscheck) })
 
+	// Cross-check the gemma consolidation (if produced) against the same measured
+	// evidence, so the synthesized narrative carries its own grounding score.
+	// This is the guardrail on model synthesis: consolidation may read cleaner,
+	// but the agent gets a number telling it how far the narrative drifted from
+	// measured facts.
+	var consolidationCheck *detect.CrossCheckReport
+	if consolidated != "" {
+		cc := detect.CrossCheck(consolidated, colors, toks, merged)
+		consolidationCheck = &cc
+		writeArtifact(func() error { return ws.WriteJSON("evidence/consolidation_check.json", cc) })
+	}
+
 	// DOM guess (probable DOM, clearly inferred).
 	dom := ""
 	if !o.noDOM && cfg.Analysis.GenerateDOMGuess {
@@ -515,6 +554,8 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		"summary":                pageSummary,
 		"grounding":              grounding,
 		"crosscheck":             crosscheck,
+		"consolidated_summary":   consolidated,
+		"consolidation_check":    consolidationCheck,
 		"provenance": map[string]any{
 			"vision":     cfg.Vision,
 			"summary":    cfg.Summary,

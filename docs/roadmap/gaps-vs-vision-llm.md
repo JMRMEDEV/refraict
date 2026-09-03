@@ -708,6 +708,53 @@ an `output.page_style: assembled|synthesized` toggle to let a human-facing use
 opt into qwen prose, making the faithfulness/readability tradeoff explicit rather
 than baked in.
 
+### 2026-09-03 — Gemma self-consolidation; qwen removed from the default path
+
+Steer (owner): the one remaining qwen call — `inferPageGraph` relationship
+inference — made no sense (a language model re-deriving spatial relations from a
+text list of coordinates, when the geometry is already measured; also the call
+that ran away on invite-dark). The place text reasoning IS worth it is
+synthesizing the assembled page (overview + per-section reads) into one coherent
+narrative — and gemma can do that TEXT-ONLY (it's a general instruction model
+that also takes images), so it needs no second model. Confirmed gemma answers
+text-only prompts; context is a non-issue (consolidation input max ~850 tokens
+vs. gemma's 128K trained / 4K default num_ctx).
+
+Implemented:
+- Dropped the qwen graph augmentation (`inferPageGraph(ctx, merged, nil)`) —
+  graph.json is now purely deterministic geometry. qwen is now OUT of the
+  default analyze path entirely (crop=gemma passthrough, page.md=deterministic
+  AssemblePage, graph=deterministic). qwen PageSummary remains only for opt-in
+  cloud escalation.
+- Added a gemma TEXT-ONLY consolidation pass (`BuildConsolidatePrompt`, reusing
+  the already-warm vision model): it reconciles gemma's own overview + section
+  reads into one de-duplicated narrative, told to stay consistent with the
+  overview (self-consistency). Written as a SEPARATE artifact
+  `page-consolidated.md` (never replaces the faithful deterministic page.md) and
+  cross-checked against measured evidence (`evidence/consolidation_check.json`).
+
+Result — consolidation_check across all 25 (the point of the run):
+  mean 0.952, median 0.972, range 0.70–1.00; 12/25 perfectly grounded; only 1
+  below 0.8, 3 below 0.9.
+Critical comparison vs. the overview read's own cross-check (same run):
+  consolidation better=7 / worse=6 / equal=12, mean slightly UP (0.952 vs 0.939).
+So gemma self-consolidation does NOT systematically hallucinate — it preserves
+(and sometimes improves, by reconciling sections against the overview) the
+grounding of its inputs. This is the sharp contrast with the earlier qwen A/B,
+where cross-model synthesis degraded faithfulness (invented "Telouri focus",
+truncated DANGER ZONE, fabricated colors). Flags are almost entirely the known
+color-naming looseness (text near-perfect, e.g. settings-light 26/26,
+org-home-light 30/30); worst case invite-dark 0.70 (auth-page color drift), which
+the consolidation_check score correctly surfaces. Example win: settings-light
+consolidation is both readable AND fully grounded (agree 1.00, text 33/33) — the
+best of the three composers (qwen truncated the warning; assembly was verbose).
+
+Verdict: good steer. One model for the whole run; a readable, grounded narrative
+alongside the faithful assembly, each with its own grounding score; qwen out of
+the default path. Consolidation quality is capped by the overview read (it
+faithfully carries forward gemma's own overview errors, e.g. org-home's
+"analytics" misclass — correct behavior, not a regression).
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses
