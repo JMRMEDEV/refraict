@@ -235,18 +235,105 @@ owns the verdict.
 
 ## Prioritized order (highest leverage first)
 
+### Completed milestones
+
 1. Auto-invert + upscale OCR (Gap 1). ← DONE (2026-09-01)
 2. Expand deterministic page-type/semantic hints from clean OCR (Gap 2). ← DONE (2026-09-01)
-3. Connected-components / OpenCV non-text detector (Gap 3). ← DONE narrow case (2026-09-01)
+3. Connected-components / OpenCV non-text detector (Gap 3). ← DONE (2026-09-01)
 4. Harden the grounding guard: color naming + numeric-claim + quoted-text checks
    (Gap 4). ← DONE (2026-09-01)
-5. Visual element typing — Tier 1 deterministic: classify detected regions as
-   icon / logo(image) / chart (Gap 6). ← NEXT
-6. Visual element labeling — Tier 2 grounded VLM description of icon/logo/chart
-   sub-crops, guard-checked (Gap 6).
-7. Optional: PaddleOCR/RapidOCR swap if Tesseract plateaus (Gap 1). Residual
-   Tesseract errors after invert+upscale: "usp"/"uso" (USD), "deepseck",
-   "APli keys".
+5. Visual element typing — Tier 1 deterministic (Gap 6). ← DONE (2026-09-02)
+6. Visual element labeling — Tier 2 grounded VLM vote (Gap 6). ← DONE (2026-09-02)
+7. Text-call hardening (num_predict + call timeout) (robustness). ← DONE (2026-09-02)
+8. Page-type grounding + chart-label gate (Gaps 2/6). ← DONE (2026-09-02)
+9. Deterministic page assembly (qwen removed from crop + page). ← DONE (2026-09-02)
+10. Cross-check comparator (Gap 7 step 1). ← DONE (2026-09-02)
+11. Gemma self-consolidation; qwen fully out of default path. ← DONE (2026-09-03)
+
+### Gap analysis: refraict vs. vision-LLM (`fs_read`) — 2026-09-03
+
+Measured on the 25-image Hermes stress test (12-image `fs_read` baseline for the
+vision-LLM side). Five dimensions scored:
+
+| Dimension                | fs_read  | refraict | Gap        |
+| ---                      | ---      | ---      | ---        |
+| Text extraction          | 9/10     | 9/10     | ~parity    |
+| Color accuracy           | 7/10 est | 10/10 px | refraict ↑ |
+| Geometry / positioning   | 0/10     | 10/10    | refraict ↑ |
+| Structural assembly      | 9/10     | 3/10     | LARGE      |
+| Semantic interpretation  | 9/10     | 5/10     | MEDIUM     |
+
+refraict surpasses a direct vision-LLM on measured FACTS (colors, coordinates,
+exhaustive component lists) — the data gap is closed and inverted. The remaining
+gap is INTERPRETATION: structural assembly (flat component list → grouped
+containers with parent/child/sibling) and semantic intent (page purpose, element
+implications, cross-element reasoning). The assembly gap is the one deliberately
+scoped to the calling agent (Gap 7 re-scope); the milestones below narrow both
+gaps by emitting richer STRUCTURED SIGNALS that make the agent's job trivially
+easier, without refraict crossing the "emit evidence, don't assemble" boundary.
+
+### Next milestones (narrowing structural + semantic gaps)
+
+Ordered by leverage × simplicity, all deterministic, no new model:
+
+**Milestone A — Containment edges** (structural assembly 3→6)
+Priority: HIGHEST. Effort: small (one loop over component pairs).
+For every component pair where A's bbox fully encloses B's bbox, emit
+`{A contains B}` in graph.json. Currently graph.Build does spatial adjacency
+(left-of, above) but NOT containment. Adding it gives the agent
+"this card-panel contains these 5 text/icon components" directly. The
+card→contents nesting — the single biggest missing structural signal — falls out
+from geometry alone. This is the one item that moves the score the most with the
+least work.
+
+**Milestone B — Repeating-structure detection** (structural assembly 6→7-8)
+Priority: HIGH. Effort: medium (clustering pass).
+Kanban columns, nav items, settings rows, card grids all share a pattern: N
+visually-similar regions at regular spacing along one axis. A clustering pass
+over (width, height, x-center or y-center) of detected regions that tags groups
+of same-sized, same-typed, regularly-spaced component clusters as a
+`repeated_group` tells the agent "these 4 things are siblings in a list/grid."
+On board-dark this turns "103 unrelated components" into "4 groups of similar
+cards at regular x-intervals" — columns read themselves. No model; pure geometry
++ component-type matching.
+
+**Milestone C — Richer inferPageType with confidence + signals** (semantic 5→6-7)
+Priority: HIGH. Effort: small (extends existing classifier).
+Return a structured object instead of a bare string:
+`{type: "task_detail", subtype: "overdue_task", signals: ["PH-123", "Overdue",
+"CHECKLISTS"], confidence: 0.9}`. The signals field shows the agent WHY the
+classification was made. Add types for common UI states that refraict currently
+misses: "error_state" (Access Denied, 404, error), "empty_state" (No items, Get
+started), "confirmation" (Success, Verified, email sent). All keyword/pattern-
+based. Cheap, already half-exists.
+
+**Milestone D — Semantic text-pattern hints** (semantic 7→7-8)
+Priority: MEDIUM-HIGH. Effort: medium (pattern library, iterative).
+Attach a `semantic_hint` field to components whose OCR text matches known UI
+patterns: `(Overdue)` in a red pill → `{hint: "overdue_deadline"}`; `2/5` next
+to a progress bar → `{hint: "completion_ratio", value: "2/5"}`; `you@example.com`
+→ `{hint: "placeholder_email"}`; `feat/PH-123-implement-login-screen` →
+`{hint: "git_branch_ref"}`. The agent immediately knows what these components
+MEAN without parsing raw text. Same philosophy as the icon-labeler (evidence-
+attached interpretation) applied to text patterns. Start with 5–10 high-value
+patterns; grow iteratively.
+
+**Milestone E — Section-header association** (structural assembly 7-8→8)
+Priority: MEDIUM, fragile. Effort: medium.
+OCR tokens that are visually distinct (taller bbox = larger font, uppercase,
+different color from body text) sitting directly above a component cluster are
+likely section/column headers. A heuristic that associates "TO DO (4)" at y=180
+with the component cluster at y=200–800 in the same x-band gives the agent NAMED
+groups. More UI-dependent than A/B (font-size thresholds vary), so lower
+priority, but high value on standard UIs.
+
+**Target after A+C (the quick wins):** structural ~6/10, semantic ~7/10 — a
+meaningful jump from today's 3/5, achievable in a single session, no scope
+boundary crossed.
+
+**Target after A+B+C+D:** structural ~7-8/10, semantic ~7-8/10 — approaching
+the usable minimum where a calling agent can reconstruct most standard UI
+semantics from refraict's evidence without a paid vision read.
 
 ## Update log
 
