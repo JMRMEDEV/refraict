@@ -66,3 +66,32 @@ func TestFilterNestedKeepsSeparateRegions(t *testing.T) {
 		t.Fatalf("expected 2 non-overlapping regions kept, got %d", len(got))
 	}
 }
+
+func TestBoxIoU(t *testing.T) {
+	a := ir.BoundingBox{X0: 0, Y0: 0, X1: 10, Y1: 10}
+	if iou := boxIoU(a, a); iou < 0.99 {
+		t.Fatalf("identical boxes IoU should be ~1, got %f", iou)
+	}
+	disjoint := ir.BoundingBox{X0: 100, Y0: 100, X1: 110, Y1: 110}
+	if iou := boxIoU(a, disjoint); iou != 0 {
+		t.Fatalf("disjoint boxes IoU should be 0, got %f", iou)
+	}
+}
+
+func TestUnionRegionBoxes(t *testing.T) {
+	// keep = pass-1 (icons); add = pass-2 (CLAHE cards). A card box that does not
+	// overlap any kept box is added; a near-duplicate of a kept box is dropped.
+	keep := []RegionBox{rb(0, 0, 40, 40)}           // an icon
+	add := []RegionBox{
+		rb(200, 200, 760, 500),                      // a new card -> added
+		rb(2, 2, 42, 42),                            // ~duplicate of the icon -> dropped
+	}
+	out := unionRegionBoxes(keep, add, 0.6)
+	if len(out) != 2 {
+		t.Fatalf("expected 2 boxes (icon + new card), got %d", len(out))
+	}
+	// The kept icon must always be present.
+	if out[0].BBox != keep[0].BBox {
+		t.Fatalf("kept box not preserved: %+v", out[0].BBox)
+	}
+}

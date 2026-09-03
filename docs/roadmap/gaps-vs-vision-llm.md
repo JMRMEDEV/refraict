@@ -345,6 +345,25 @@ interior, can recover these cards. CLAHE-before-edge-detection is confirmed as
 THE A2 approach; both the global-contrast boost and Canny-threshold tuning are
 dead ends for zero-fill-contrast cards.
 
+RESOLVED (2026-09-03) — DUAL-PASS opencv CLAHE:
+Implemented via native gocv CLAHE. Single-pass CLAHE had a tradeoff (recovered
+board-light cards 0→3 but WIPED task-detail icons 8→0, because CLAHE's local
+amplification merges/erases small icon-band contours). A stddev gate was tried
+and rejected — global stddev is the wrong signal (board-light 48 > board-dark 22;
+local faintness ≠ low global contrast). Solution: `DetectRegionsOpenCV` now runs
+TWO passes and unions them (IoU-dedupe, keep-pass-1-preferred):
+  pass 1 (no CLAHE) → icons + high-contrast regions (icon-reliable);
+  pass 2 (CLAHE clip=8, 8×8 tiles) → faint cards on flat UIs.
+Measured (dual-pass): board-light cards 0→3 AND icons kept 17; board-dark
+unchanged (9 cards, 18 icons); voirel-task-detail cards 1→2 AND icons kept 8
+(single-pass had wiped them). End-to-end, board-light containment edges went
+3→21 — the recovered cards now nest their contents (Milestone A works on light
+themes). Best of both, no tradeoff. Note: recovers 3 of ~9 board-light cards
+(the faintest 6 still don't close a contour even post-CLAHE) — partial but real;
+further gains would need per-card local thresholding, diminishing returns.
+Pure-Go path still lacks CLAHE (opencv-only); a hand-rolled CLAHE remains the
+pure-Go follow-up. Unit-tested (boxIoU, unionRegionBoxes).
+
 **Milestone B — Repeating-structure detection** (structural assembly 6→7-8)
 Priority: HIGH. Effort: medium (clustering pass).
 Kanban columns, nav items, settings rows, card grids all share a pattern: N

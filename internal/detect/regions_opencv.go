@@ -38,6 +38,21 @@ type OpenCVRegionOptions struct {
 	IconMinSidePx int
 	IconMaxSidePx int
 	IconMaxAspect float64
+	// CLAHEClip enables contrast-limited adaptive histogram equalization on the
+	// grayscale edge-detection input when > 0. This recovers cards on light/flat
+	// UIs whose interior luminance equals the page background and whose border is
+	// only a few luminance units — a case no Canny threshold can close, because
+	// the local step is too faint (see roadmap Milestone A2). CLAHE stretches
+	// that local step into a strong edge. Clip limit ~2.0 is conservative (caps
+	// noise amplification in flat regions).
+	CLAHEClip float64
+	// CLAHETile is the CLAHE tile grid size (e.g. 8 => 8x8 tiles). 0 => 8.
+	CLAHETile int
+	// CLAHEMaxStdDev gates CLAHE to LOW-CONTRAST images only: apply CLAHE only
+	// when the grayscale std-dev is at/below this (light/flat UIs). High-contrast
+	// (dark-theme) images already have detectable borders and CLAHE would amplify
+	// their texture into noise. 0 => always apply when CLAHEClip>0 (no gate).
+	CLAHEMaxStdDev float64
 }
 
 // DefaultOpenCVRegionOptions returns defaults tuned for low-contrast flat UIs.
@@ -54,12 +69,83 @@ func DefaultOpenCVRegionOptions() OpenCVRegionOptions {
 		IconMinSidePx:     12,
 		IconMaxSidePx:     44,
 		IconMaxAspect:     1.6,
+		CLAHEClip:         8.0,
+		CLAHETile:         8,
+		CLAHEMaxStdDev:    0, // unused: dual-pass unions clean + CLAHE passes
 	}
 }
 
-// DetectRegionsOpenCV finds card/panel/container boxes using OpenCV Canny +
-// findContours. Returns boxes in ORIGINAL image coordinates.
+// DetectRegionsOpenCV finds card/panel/container/icon boxes using OpenCV Canny +
+// findContours. It runs TWO passes and unions the results (IoU-deduped):
+//
+//	pass 1 — no CLAHE: detects icons and high-contrast regions cleanly. CLAHE's
+//	         local amplification can merge/erase small icon-band contours, so the
+//	         icon-reliable read comes from the un-enhanced pass.
+//	pass 2 — CLAHE (clip=CLAHEClip): lifts faint card borders on light/flat UIs
+//	         (interior luminance == background, a few-unit border step) into
+//	         closable contours — cards that no Canny threshold recovers unenhanced.
+//
+// This dual-pass gets cards AND icons without the single-pass tradeoff (measured:
+// single-pass CLAHE recovered board-light cards 0→3 but wiped task-detail icons
+// 8→0). Boxes are returned in ORIGINAL image coordinates.
 func DetectRegionsOpenCV(img image.Image, opts OpenCVRegionOptions) ([]RegionBox, error) {
+	// Pass 1: no enhancement (icons + high-contrast regions).
+	base, err := detectRegionsOnceOpenCV(img, opts, 0)
+	if err != nil {
+		return nil, err
+	}
+	if opts.CLAHEClip <= 0 {
+		return base, nil
+	}
+	// Pass 2: CLAHE-enhanced (faint cards on flat UIs).
+	enhanced, err := detectRegionsOnceOpenCV(img, opts, opts.CLAHEClip)
+	if err != nil {
+		return base, nil // pass-1 result is still useful
+	}
+	return unionRegionBoxes(base, enhanced, 0.6), nil
+}
+
+// unionRegionBoxes merges two box sets, dropping a box from `add` when it
+// overlaps an existing box (from `keep` or an earlier-added box) by >= iouThresh.
+// `keep` boxes are all retained; `add` boxes only fill gaps. This preserves the
+// icon-reliable pass-1 boxes while adding the CLAHE-only card boxes.
+func unionRegionBoxes(keep, add []RegionBox, iouThresh float64) []RegionBox {
+	out := make([]RegionBox, len(keep))
+	copy(out, keep)
+	for _, a := range add {
+		dup := false
+		for _, k := range out {
+			if boxIoU(a.BBox, k.BBox) >= iouThresh {
+				dup = true
+				break
+			}
+		}
+		if !dup {
+			out = append(out, a)
+		}
+	}
+	return out
+}
+
+// boxIoU is the intersection-over-union of two boxes.
+func boxIoU(a, b ir.BoundingBox) float64 {
+	ix0, iy0 := maxInt(a.X0, b.X0), maxInt(a.Y0, b.Y0)
+	ix1, iy1 := minInt(a.X1, b.X1), minInt(a.Y1, b.Y1)
+	if ix1 <= ix0 || iy1 <= iy0 {
+		return 0
+	}
+	inter := float64((ix1 - ix0) * (iy1 - iy0))
+	ua := float64(a.Width()*a.Height() + b.Width()*b.Height())
+	if ua-inter <= 0 {
+		return 0
+	}
+	return inter / (ua - inter)
+}
+
+// detectRegionsOnceOpenCV is a single Canny+contour detection pass. claheClip>0
+// applies CLAHE to the grayscale edge input (0 = none). Returns boxes in
+// ORIGINAL image coordinates.
+func detectRegionsOnceOpenCV(img image.Image, opts OpenCVRegionOptions, claheClip float64) ([]RegionBox, error) {
 	ob := img.Bounds()
 	ow, oh := ob.Dx(), ob.Dy()
 	if ow <= 0 || oh <= 0 {
@@ -96,6 +182,21 @@ func DetectRegionsOpenCV(img image.Image, opts OpenCVRegionOptions) ([]RegionBox
 	gray := gocv.NewMat()
 	defer gray.Close()
 	gocv.CvtColor(work, &gray, gocv.ColorBGRToGray)
+
+	// CLAHE on the edge-detection input (pass 2 only): lifts faint local card
+	// borders into closable contours. Native OpenCV CLAHE via gocv.
+	if claheClip > 0 {
+		tile := opts.CLAHETile
+		if tile <= 0 {
+			tile = 8
+		}
+		clahe := gocv.NewCLAHEWithParams(claheClip, image.Pt(tile, tile))
+		eq := gocv.NewMat()
+		clahe.Apply(gray, &eq)
+		clahe.Close()
+		gray.Close()
+		gray = eq
+	}
 
 	// Slight blur to stabilize Canny on compression noise.
 	blurred := gocv.NewMat()
