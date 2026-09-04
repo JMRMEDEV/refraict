@@ -471,6 +471,34 @@ tolerate an occluded corner. 4 pixel reads/region, no model.
 
 Implemented: `detect.AttachCornerStyles` attaches `ir.CornerStyle{style,confidence,rounded_corners}` to card/region/panel components (in page.json). Corner pixel vs interior-fill vs page-bg, vote >=3/4, anti-aliasing inset, and a low-contrast guard that WITHHOLDS when interior==bg. Verified on board-dark: all 9 cards -> rounded 4/4 conf 1.00. Unit-tested (square, rounded, low-contrast-withhold, non-container-skip).
 
+**Milestone F2 — Approximate border-radius magnitude (FUTURE / POC-validated, not built)**
+Priority: LOW-MEDIUM. Effort: small (~40 lines, extends CornerStyle). Extends F
+from binary rounded/square to an approximate radius, for "how rounded" questions
+and cross-card consistency checks.
+
+Method (POC 2026-09-04): for a rounded region, walk each corner's 45° diagonal
+inward to the bg->fill transition; the diagonal distance converts to a radius
+(for a quarter-circle, `r = d_diag / (sqrt2 - 1)`), median over the 4 corners.
+Report `radius_px`, `radius_frac` (of the region's min dimension), and a coarse
+bucket (none / subtle <=6px / moderate / large / pill).
+
+POC results — measurement is SOUND at adequate contrast (synthetic light cards,
+known radius):
+  known 8px -> ~6.8, 16 -> 13.7, 24 -> 23.9, 40 -> 37.6  (consistent ~1-2.5px
+  UNDER-bias, correctable with a ~+2px calibration offset; per-corner agreement
+  tight, ~+-3px).
+Constraint (the real limit): the radius WALK needs a clean bg->fill transition,
+so it requires adequate fill/bg contrast. The dark-theme Voirel cards (fill vs
+bg only ~26 units apart) are too low-contrast — the walk withholds there even
+though the BINARY corner test (F) still works (it only needs relative closeness,
+not a crisp edge). So F2 must: (1) apply only when F already said "rounded";
+(2) apply a calibration offset; (3) WITHHOLD radius (keep rounded/square) when
+fill/bg contrast is below threshold — honest "rounded, radius unmeasurable at
+this contrast". Accuracy is ~+-2-3px: good for relative comparison and buckets,
+NOT a pixel-exact CSS border-radius (anti-aliasing + circular-corner assumption
+forbid exactness). Not implemented; recorded so a future build starts from this
+evidence.
+
 ## Update log
 
 ### 2026-09-01 — Gap 1 OCR fix applied (auto-invert + 2x upscale)
