@@ -368,6 +368,12 @@ func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error
 	nHints := detect.AttachSemanticHints(merged)
 	slog.Info("attached semantic hints", "count", nHints)
 
+	// Corner-style detection (Milestone F): rounded|square per card/region/panel,
+	// measured from pixels — lets an agent settle "rounded vs square" visual
+	// disputes deterministically. No model.
+	nCorners := detect.AttachCornerStyles(img.AsImage(), merged)
+	slog.Info("attached corner styles", "count", nCorners)
+
 	// Tier-2 grounded VLM labeling of graphic elements (icon/logo/chart/image):
 	// each such region is cropped and given a short element label attached to
 	// Component.Semantic (inference). Bounded by MaxElementLabels; no-op without

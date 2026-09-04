@@ -444,6 +444,33 @@ boundary crossed.
 the usable minimum where a calling agent can reconstruct most standard UI
 semantics from refraict's evidence without a paid vision read.
 
+**Milestone F — Corner-style detection (rounded vs square)** (visual-verification) — DONE (2026-09-04)
+Priority: MEDIUM (high value for visual-diff disputes). Effort: small (pixel test).
+Motivation: an agent may be asked "you said list item 3 has rounded corners but I
+see square — verify with refraict." Today refraict measures a region's bbox/color
+but has NO border-shape signal, so it cannot settle that. It should be able to,
+deterministically, from pixels it already has.
+
+Method (validated as POC 2026-09-04): for a detected card/region/panel bbox,
+sample the pixel AT each corner and compare it to (a) the region's interior fill
+color and (b) the page background just outside the region. A ROUNDED corner shows
+the background (fill clipped away); a SQUARE corner shows the fill. Vote across
+the 4 corners (>=3 => rounded).
+
+POC result — all three cases classified correctly:
+- REAL Voirel card (board-dark r0005, known rounded): rounded 4/4 (corner px ==
+  measured bg, d_interior=26, d_bg=0).
+- synthetic square control: square 0/4 (corner px == fill, d_bg=80).
+- synthetic rounded control: rounded 4/4.
+So the pixel data refraict already has is sufficient. Emit `corner_style:
+rounded|square` + confidence per card/region/panel component (and surface in the
+MCP analyze summary). Caveats to handle in the real impl: anti-aliased corners
+(sample a few px in, tolerance), and a LOW-CONFIDENCE guard when interior≈bg (the
+zero-fill-contrast light-theme case, where the test is unreliable); vote >=3/4 to
+tolerate an occluded corner. 4 pixel reads/region, no model.
+
+Implemented: `detect.AttachCornerStyles` attaches `ir.CornerStyle{style,confidence,rounded_corners}` to card/region/panel components (in page.json). Corner pixel vs interior-fill vs page-bg, vote >=3/4, anti-aliasing inset, and a low-contrast guard that WITHHOLDS when interior==bg. Verified on board-dark: all 9 cards -> rounded 4/4 conf 1.00. Unit-tested (square, rounded, low-contrast-withhold, non-container-skip).
+
 ## Update log
 
 ### 2026-09-01 — Gap 1 OCR fix applied (auto-invert + 2x upscale)

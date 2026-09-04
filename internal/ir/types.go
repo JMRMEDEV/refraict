@@ -110,6 +110,11 @@ type Component struct {
 	// git_branch_ref). Kept distinct from Semantic (VLM-voted labels): this is
 	// pattern-matched, not model-inferred, so the agent knows it's rule-based.
 	SemanticHint *SemanticHint  `json:"semantic_hint,omitempty"`
+	// CornerStyle is a deterministic rounded|square classification of a
+	// card/region/panel's corners, measured from pixels (Milestone F). Empty when
+	// not applicable or low-confidence. Lets an agent settle "rounded vs square"
+	// visual-verification disputes without a paid vision read.
+	CornerStyle *CornerStyle   `json:"corner_style,omitempty"`
 	Children   []string       `json:"children,omitempty"`
 	Role       *ConstString   `json:"role,omitempty"`
 	Confidence float64        `json:"confidence"`
@@ -168,4 +173,15 @@ type RepeatedGroup struct {
 type SemanticHint struct {
 	Kind  string `json:"kind"`
 	Value string `json:"value,omitempty"`
+}
+
+// CornerStyle is a deterministic classification of a region's corners as
+// "rounded" or "square", measured from pixels (Milestone F). Confidence reflects
+// how cleanly the corner pixels separate the region fill from the page
+// background; RoundedCorners is the count (0-4) of corners that read as
+// background (rounded).
+type CornerStyle struct {
+	Style          string  `json:"style"` // "rounded" | "square"
+	Confidence     float64 `json:"confidence"`
+	RoundedCorners int     `json:"rounded_corners"` // 0..4
 }
