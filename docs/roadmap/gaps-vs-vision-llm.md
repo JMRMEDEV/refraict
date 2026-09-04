@@ -974,6 +974,21 @@ Tradeoff explicitly accepted: detection QUALITY over static-binary portability.
 OpenCV is now a documented hard prerequisite. Next: the in-process Go MCP server
 (`cmd/refraict-mcp`) on this unified single-path foundation.
 
+### 2026-09-03 — MCP server (cmd/refraict-mcp)
+
+Added an in-process Go MCP server exposing the pipeline to AI agents over stdio
+(github.com/modelcontextprotocol/go-sdk v1.7.0, pinned). Tools: `analyze`
+(bounded summary — page_type+confidence, component counts by type, repeated-group
+count, grounding/crosscheck/consolidation_check scores — plus output_dir +
+artifact paths), `inspect` (deterministic facts, no models), `get_artifact`
+(read back a named artifact on demand, path-escape guarded). Reuses the pipeline
+via a new exported `cli.Analyze(ctx, req)` entry point; `runAnalyze` was decoupled
+from cobra (takes ctx) and a `quiet` flag suppresses stdout so it never corrupts
+the MCP stdio JSON-RPC stream. Bounded-summary-plus-pointers design: decision
+signals in the response, heavy data stays on disk. Smoke-tested end-to-end
+(initialize/tools list/analyze/get_artifact). Builds on the opencv-only
+foundation.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses

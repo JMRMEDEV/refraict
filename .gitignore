@@ -38,3 +38,4 @@ dist/
 *.prof
 # Root-built binary from 'go build ./cmd/refraict'
 /refraict
+/refraict-mcp

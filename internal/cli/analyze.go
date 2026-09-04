@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -48,6 +49,7 @@ type analysisOptions struct {
 	output             string
 	adaptive           bool
 	keepWarm           string
+	quiet              bool // suppress stdout (in-process/MCP callers)
 }
 
 func newAnalyzeCmd() *cobra.Command {
@@ -64,7 +66,7 @@ func newAnalyzeCmd() *cobra.Command {
 				base := strings.TrimSuffix(filepath.Base(args[0]), filepath.Ext(args[0]))
 				o.output = "./analysis-" + base
 			}
-			return runAnalyze(cmd, args[0], o)
+			return runAnalyze(cmd.Context(), args[0], o)
 		},
 	}
 	cmd.Flags().StringVar(&o.visionModel, "vision-model", "", "vision model name")
@@ -89,8 +91,7 @@ func newAnalyzeCmd() *cobra.Command {
 }
 
 // runAnalyze executes the full pipeline.
-func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error {
-	ctx := cmd.Context()
+func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error {
 	start := time.Now()
 	resetStageTimes()
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn})))
@@ -597,13 +598,15 @@ func runAnalyze(cmd *cobra.Command, imagePath string, o *analysisOptions) error 
 		return fail("write page.json: %w", err)
 	}
 
-	if flagJSON {
+	if flagJSON && !o.quiet {
 		enc := json.NewEncoder(os.Stdout)
 		_ = enc.Encode(map[string]any{"output": strings.TrimSuffix(o.output, "/")})
 	}
 
 	elapsed := time.Since(start).Round(time.Millisecond)
-	fmt.Printf("Analysis complete: %s (%s), %d crops, %d components.\n", strings.TrimSuffix(o.output, "/"), elapsed, len(plan.Crops), len(merged))
+	if !o.quiet {
+		fmt.Printf("Analysis complete: %s (%s), %d crops, %d components.\n", strings.TrimSuffix(o.output, "/"), elapsed, len(plan.Crops), len(merged))
+	}
 	return nil
 }
 

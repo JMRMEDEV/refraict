@@ -493,6 +493,44 @@ flag enables escalation for a single run without editing config.
 
 ---
 
+## MCP server (for AI agents)
+
+Refraict ships an [MCP](https://modelcontextprotocol.io) server
+(`cmd/refraict-mcp`) that exposes the pipeline to AI agents over stdio. It runs
+the **same in-process pipeline** as `refraict analyze` (no subprocess) and
+returns a **bounded summary + pointers** to the on-disk artifacts rather than
+dumping the large `page.json` into the agent's context.
+
+Build it (requires OpenCV 4.x, like the main binary):
+
+```bash
+go build -o refraict-mcp ./cmd/refraict-mcp
+```
+
+Tools:
+
+| Tool | Purpose |
+| --- | --- |
+| `analyze` | Run the full pipeline on an image. Returns a bounded summary — page type + confidence, component counts by type, repeated-group count, and the `grounding` / `crosscheck` / `consolidation_check` scores — plus `output_dir` and `artifacts` paths. |
+| `inspect` | Deterministic facts (dimensions, SHA-256, format, dominant color). No models; fast. |
+| `get_artifact` | Read back a named artifact (`page_json`, `graph_json`, `page_md`, `page_consolidated`, `dom_md`, `grounding`, `crosscheck`, `merged_components`, `colors`, `ocr`) from a prior `analyze` `output_dir` — pull full detail on demand. |
+
+The design keeps the decision signals (page type, grounding, crosscheck) in the
+`analyze` response so the agent can decide whether to trust the summary or pull
+the full artifacts; the heavy data stays on disk. OCR (`REFRAICT_OCR_CMD`) and
+Ollama are used the same way as the CLI. Register it with any MCP client, e.g.:
+
+```json
+{
+  "mcpServers": {
+    "refraict": {
+      "command": "/path/to/refraict-mcp",
+      "env": { "REFRAICT_OCR_CMD": "ocr-infer" }
+    }
+  }
+}
+```
+
 ## Caching
 
 Refraict caches every expensive, reproducible stage, keyed by image SHA + stage + model:
