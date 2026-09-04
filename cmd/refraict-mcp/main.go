@@ -44,6 +44,7 @@ type analyzeOutput struct {
 	ComponentCount  int               `json:"component_count"`
 	Counts          map[string]int    `json:"component_counts_by_type"`
 	RepeatedGroups  int               `json:"repeated_group_count"`
+	CornerStyles    []cornerStyleRef  `json:"corner_styles,omitempty"`
 	Grounding       any               `json:"grounding,omitempty"`
 	CrossCheck      any               `json:"crosscheck,omitempty"`
 	ConsolidationOK any               `json:"consolidation_check,omitempty"`
@@ -91,6 +92,7 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 		if comps, ok := page["components"].([]any); ok {
 			out.ComponentCount = len(comps)
 			out.Counts = countByType(comps)
+			out.CornerStyles = cornerStyleRefs(comps)
 		}
 	}
 	// Repeated-group count from graph.json.
@@ -197,6 +199,41 @@ func toInt(v any) int {
 	return 0
 }
 
+// cornerStyleRef is a compact per-component corner-style entry surfaced in the
+// analyze summary so an agent can settle a "rounded vs square" dispute without
+// pulling the full page.json.
+type cornerStyleRef struct {
+	ID         string  `json:"id"`
+	Type       string  `json:"type"`
+	Style      string  `json:"style"`
+	Confidence float64 `json:"confidence"`
+}
+
+// cornerStyleRefs extracts the compact corner-style rollup from page.json
+// components (only those that carry a corner_style).
+func cornerStyleRefs(comps []any) []cornerStyleRef {
+	var out []cornerStyleRef
+	for _, c := range comps {
+		m, ok := c.(map[string]any)
+		if !ok {
+			continue
+		}
+		cs, ok := m["corner_style"].(map[string]any)
+		if !ok || cs == nil {
+			continue
+		}
+		id, _ := m["id"].(string)
+		typ := ""
+		if t, ok := m["type"].(map[string]any); ok {
+			typ, _ = t["value"].(string)
+		}
+		style, _ := cs["style"].(string)
+		conf, _ := cs["confidence"].(float64)
+		out = append(out, cornerStyleRef{ID: id, Type: typ, Style: style, Confidence: conf})
+	}
+	return out
+}
+
 func countByType(comps []any) map[string]int {
 	out := map[string]int{}
 	for _, c := range comps {
@@ -243,7 +280,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze",
-		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
+		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
 	}, analyze)
 
 	mcp.AddTool(server, &mcp.Tool{

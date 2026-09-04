@@ -511,7 +511,7 @@ Tools:
 
 | Tool | Purpose |
 | --- | --- |
-| `analyze` | Run the full pipeline on an image. Returns a bounded summary — page type + confidence, component counts by type, repeated-group count, and the `grounding` / `crosscheck` / `consolidation_check` scores — plus `output_dir` and `artifacts` paths. |
+| `analyze` | Run the full pipeline on an image. Returns a bounded summary — page type + confidence, component counts by type, repeated-group count, `corner_styles` (rounded/square per card), and the `grounding` / `crosscheck` / `consolidation_check` scores — plus `output_dir` and `artifacts` paths. |
 | `inspect` | Deterministic facts (dimensions, SHA-256, format, dominant color). No models; fast. |
 | `get_artifact` | Read back a named artifact (`page_json`, `graph_json`, `page_md`, `page_consolidated`, `dom_md`, `grounding`, `crosscheck`, `merged_components`, `colors`, `ocr`) from a prior `analyze` `output_dir` — pull full detail on demand. |
 
