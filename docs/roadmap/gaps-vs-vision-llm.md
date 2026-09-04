@@ -499,6 +499,42 @@ NOT a pixel-exact CSS border-radius (anti-aliasing + circular-corner assumption
 forbid exactness). Not implemented; recorded so a future build starts from this
 evidence.
 
+**Milestone G — Padding (x/y) + inter-sibling gaps** (spatial layout) — DONE (2026-09-04)
+Priority: MEDIUM-HIGH (cleanest spatial signal; reuses A + B, no pixels/models).
+Answers layout-consistency questions ("is padding/spacing uniform across cards?
+is item 3 misaligned?") from pure box arithmetic on data we already have
+(containment edges from A, repeated groups from B).
+
+Padding (container edge -> nearest child edge, per side):
+`padding_left = min(child.X0) - container.X0`, etc. POC on board-dark (9 cards):
+- padding-LEFT median 36px, spread 8px (34-42) — tight/reliable.
+- padding-TOP median 44px, spread 8px (38-46) — tight/reliable.
+- padding-RIGHT/BOTTOM noisy (spread 114/93px) — CORRECT: R/B "padding" is really
+  leftover whitespace after the last child (a 2-child card has huge bottom
+  slack). So LEFT/TOP are the trustworthy content insets; RIGHT/BOTTOM are
+  content-dependent and must be labeled as such (or paired with a "content fills
+  container" flag). Padding accuracy also inherits child-detection completeness
+  (a missed edge child inflates padding).
+
+Inter-sibling gaps (adjacent repeated-group members): `next.X0 - cur.X1` /
+`next.Y0 - cur.Y1`. POC board-dark: vertical card gaps a consistent 9px across
+every column; horizontal column gaps 44/41px consistent across rows — the
+cleanest signal of all. Frame as "space between siblings", NOT one-sided CSS
+margin (the measured gap is margin-right(A)+margin-left(B) combined; not
+attributable to one side).
+
+Plan: attach `padding {left,right,top,bottom, content_fills}` to containers with
+children; attach a `gaps`/spacing summary (median + spread) to repeated groups;
+surface a compact rollup in the MCP analyze output. This is the LAST planned
+milestone in this arc.
+
+Implemented: `graph.AttachPadding` (ir.Padding{left,right,top,bottom,content_fills}
+on containers, from containment edges) + `graph.AttachGroupGaps`
+(gap_median/gap_spread on repeated groups). Surfaced in the MCP analyze summary as
+`paddings` and `group_spacing`. Verified board-dark: card padding L~36/T~44
+(content_fills flags the sparse cards); card columns gap 9px spread 0; column
+rows gap 44px spread 3. Unit-tested.
+
 ## Update log
 
 ### 2026-09-01 — Gap 1 OCR fix applied (auto-invert + 2x upscale)

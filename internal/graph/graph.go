@@ -291,6 +291,119 @@ func minI(a, b int) int {
 	return b
 }
 
+// AttachPadding computes each container's inset to its nearest children
+// (Milestone G) from the graph's "contains" relationships and attaches ir.Padding
+// to the container component. Left/Top are reliable content insets; Right/Bottom
+// are content-dependent slack, flagged via ContentFills (children span >=60% of
+// the container both ways). Pure box arithmetic; no pixels/models.
+func AttachPadding(comps []ir.Component, rels []ir.Relationship) int {
+	idx := map[string]int{}
+	for i := range comps {
+		idx[comps[i].ID] = i
+	}
+	children := map[string][]string{}
+	for _, r := range rels {
+		if r.Relation == "contains" {
+			children[r.A] = append(children[r.A], r.B)
+		}
+	}
+	n := 0
+	for pid, kids := range children {
+		pi, ok := idx[pid]
+		if !ok || len(kids) == 0 {
+			continue
+		}
+		p := comps[pi].BBox
+		cx0, cy0 := 1<<30, 1<<30
+		cx1, cy1 := -(1 << 30), -(1 << 30)
+		for _, kid := range kids {
+			ki, ok := idx[kid]
+			if !ok {
+				continue
+			}
+			b := comps[ki].BBox
+			if b.X0 < cx0 {
+				cx0 = b.X0
+			}
+			if b.Y0 < cy0 {
+				cy0 = b.Y0
+			}
+			if b.X1 > cx1 {
+				cx1 = b.X1
+			}
+			if b.Y1 > cy1 {
+				cy1 = b.Y1
+			}
+		}
+		if cx1 < cx0 || cy1 < cy0 {
+			continue
+		}
+		pad := &ir.Padding{
+			Left:   cx0 - p.X0,
+			Right:  p.X1 - cx1,
+			Top:    cy0 - p.Y0,
+			Bottom: p.Y1 - cy1,
+		}
+		pw, ph := p.Width(), p.Height()
+		if pw > 0 && ph > 0 {
+			pad.ContentFills = (cx1-cx0)*10 >= pw*6 && (cy1-cy0)*10 >= ph*6
+		}
+		comps[pi].Padding = pad
+		n++
+	}
+	return n
+}
+
+// AttachGroupGaps fills GapMedian/GapSpread for each repeated group from the
+// gaps between adjacent members along the group's spatial axis (Milestone G).
+func AttachGroupGaps(groups []ir.RepeatedGroup, comps []ir.Component) {
+	byID := map[string]ir.BoundingBox{}
+	for _, c := range comps {
+		byID[c.ID] = c.BBox
+	}
+	for gi := range groups {
+		g := &groups[gi]
+		if len(g.MemberIDs) < 2 {
+			continue
+		}
+		// Members are stored in cross-axis spatial order (see makeGroup): an
+		// x-axis group varies along y, a y-axis group varies along x.
+		crossAxis := "y"
+		if g.Axis == "y" {
+			crossAxis = "x"
+		}
+		ids := append([]string(nil), g.MemberIDs...)
+		sort.Slice(ids, func(i, j int) bool {
+			bi, bj := byID[ids[i]], byID[ids[j]]
+			if crossAxis == "x" {
+				return bi.X0 < bj.X0
+			}
+			return bi.Y0 < bj.Y0
+		})
+		var gaps []int
+		for i := 0; i+1 < len(ids); i++ {
+			cur, nxt := byID[ids[i]], byID[ids[i+1]]
+			var gap int
+			if crossAxis == "x" {
+				gap = nxt.X0 - cur.X1
+			} else {
+				gap = nxt.Y0 - cur.Y1
+			}
+			if gap < 0 {
+				gap = 0
+			}
+			gaps = append(gaps, gap)
+		}
+		if len(gaps) == 0 {
+			continue
+		}
+		sorted := append([]int(nil), gaps...)
+		sort.Ints(sorted)
+		g.GapMedian = sorted[len(sorted)/2]
+		g.GapSpread = sorted[len(sorted)-1] - sorted[0]
+	}
+}
+
 // SortByPosition orders components top-to-bottom then left-to-right.
 func SortByPosition(comps []ir.Component) {
 	sort.SliceStable(comps, func(i, j int) bool {

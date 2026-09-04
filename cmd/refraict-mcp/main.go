@@ -45,6 +45,8 @@ type analyzeOutput struct {
 	Counts          map[string]int    `json:"component_counts_by_type"`
 	RepeatedGroups  int               `json:"repeated_group_count"`
 	CornerStyles    []cornerStyleRef  `json:"corner_styles,omitempty"`
+	Paddings        []paddingRef      `json:"paddings,omitempty"`
+	GroupSpacing    []spacingRef      `json:"group_spacing,omitempty"`
 	Grounding       any               `json:"grounding,omitempty"`
 	CrossCheck      any               `json:"crosscheck,omitempty"`
 	ConsolidationOK any               `json:"consolidation_check,omitempty"`
@@ -93,6 +95,7 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 			out.ComponentCount = len(comps)
 			out.Counts = countByType(comps)
 			out.CornerStyles = cornerStyleRefs(comps)
+			out.Paddings = paddingRefs(comps)
 		}
 	}
 	// Repeated-group count from graph.json.
@@ -101,6 +104,7 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 		if json.Unmarshal(b, &g) == nil {
 			if rg, ok := g["repeated_groups"].([]any); ok {
 				out.RepeatedGroups = len(rg)
+				out.GroupSpacing = spacingRefs(rg)
 			}
 		}
 	}
@@ -234,6 +238,83 @@ func cornerStyleRefs(comps []any) []cornerStyleRef {
 	return out
 }
 
+// paddingRef is a compact container-padding entry (Milestone G) for the analyze
+// summary. content_fills=false means right/bottom are leftover slack, not real
+// padding.
+type paddingRef struct {
+	ID           string `json:"id"`
+	Type         string `json:"type"`
+	Left         int    `json:"left"`
+	Right        int    `json:"right"`
+	Top          int    `json:"top"`
+	Bottom       int    `json:"bottom"`
+	ContentFills bool   `json:"content_fills"`
+}
+
+func paddingRefs(comps []any) []paddingRef {
+	var out []paddingRef
+	for _, c := range comps {
+		m, ok := c.(map[string]any)
+		if !ok {
+			continue
+		}
+		pm, ok := m["padding"].(map[string]any)
+		if !ok || pm == nil {
+			continue
+		}
+		id, _ := m["id"].(string)
+		typ := ""
+		if t, ok := m["type"].(map[string]any); ok {
+			typ, _ = t["value"].(string)
+		}
+		gi := func(k string) int {
+			if f, ok := pm[k].(float64); ok {
+				return int(f)
+			}
+			return 0
+		}
+		cf, _ := pm["content_fills"].(bool)
+		out = append(out, paddingRef{ID: id, Type: typ, Left: gi("left"), Right: gi("right"), Top: gi("top"), Bottom: gi("bottom"), ContentFills: cf})
+	}
+	return out
+}
+
+// spacingRef is a compact repeated-group spacing entry (Milestone G): the gap
+// median + spread between adjacent siblings (spread ~0 = evenly spaced).
+type spacingRef struct {
+	Type      string `json:"type"`
+	Axis      string `json:"axis"`
+	Members   int    `json:"members"`
+	Header    string `json:"header,omitempty"`
+	GapMedian int    `json:"gap_median"`
+	GapSpread int    `json:"gap_spread"`
+}
+
+func spacingRefs(groups []any) []spacingRef {
+	var out []spacingRef
+	gi := func(m map[string]any, k string) int {
+		if f, ok := m[k].(float64); ok {
+			return int(f)
+		}
+		return 0
+	}
+	for _, g := range groups {
+		m, ok := g.(map[string]any)
+		if !ok {
+			continue
+		}
+		mem, _ := m["member_ids"].([]any)
+		if len(mem) < 2 {
+			continue
+		}
+		typ, _ := m["type"].(string)
+		axis, _ := m["axis"].(string)
+		hdr, _ := m["header"].(string)
+		out = append(out, spacingRef{Type: typ, Axis: axis, Members: len(mem), Header: hdr, GapMedian: gi(m, "gap_median"), GapSpread: gi(m, "gap_spread")})
+	}
+	return out
+}
+
 func countByType(comps []any) map[string]int {
 	out := map[string]int{}
 	for _, c := range comps {
@@ -280,7 +361,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze",
-		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
+		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
 	}, analyze)
 
 	mcp.AddTool(server, &mcp.Tool{

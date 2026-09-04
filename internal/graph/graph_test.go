@@ -103,3 +103,40 @@ func TestAssociateHeaders(t *testing.T) {
 		t.Fatalf("y-axis group must not be headed, got %q", groups[1].Header)
 	}
 }
+
+func TestAttachPadding(t *testing.T) {
+	comps := []ir.Component{
+		{ID: "card", Type: ir.ConstString{Value: "card"}, BBox: ir.BoundingBox{X0: 0, Y0: 0, X1: 200, Y1: 200}},
+		{ID: "t1", Type: ir.ConstString{Value: "text"}, BBox: ir.BoundingBox{X0: 20, Y0: 30, X1: 180, Y1: 60}},
+		{ID: "t2", Type: ir.ConstString{Value: "text"}, BBox: ir.BoundingBox{X0: 20, Y0: 70, X1: 150, Y1: 170}},
+	}
+	rels := []ir.Relationship{
+		{A: "card", Relation: "contains", B: "t1"},
+		{A: "card", Relation: "contains", B: "t2"},
+	}
+	if n := AttachPadding(comps, rels); n != 1 {
+		t.Fatalf("expected 1 padded container, got %d", n)
+	}
+	p := comps[0].Padding
+	if p == nil {
+		t.Fatal("no padding attached")
+	}
+	// left=20-0, top=30-0, right=200-180, bottom=200-170
+	if p.Left != 20 || p.Top != 30 || p.Right != 20 || p.Bottom != 30 {
+		t.Fatalf("wrong padding: %+v", p)
+	}
+}
+
+func TestAttachGroupGaps(t *testing.T) {
+	// three cards stacked vertically (x-axis group varies in y) at even 10px gaps.
+	comps := []ir.Component{
+		{ID: "a", BBox: ir.BoundingBox{X0: 0, Y0: 0, X1: 100, Y1: 50}},
+		{ID: "b", BBox: ir.BoundingBox{X0: 0, Y0: 60, X1: 100, Y1: 110}},
+		{ID: "c", BBox: ir.BoundingBox{X0: 0, Y0: 120, X1: 100, Y1: 170}},
+	}
+	groups := []ir.RepeatedGroup{{Axis: "x", Type: "card", MemberIDs: []string{"a", "b", "c"}}}
+	AttachGroupGaps(groups, comps)
+	if groups[0].GapMedian != 10 || groups[0].GapSpread != 0 {
+		t.Fatalf("expected gap_median=10 spread=0, got median=%d spread=%d", groups[0].GapMedian, groups[0].GapSpread)
+	}
+}

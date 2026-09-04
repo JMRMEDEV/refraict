@@ -115,6 +115,11 @@ type Component struct {
 	// not applicable or low-confidence. Lets an agent settle "rounded vs square"
 	// visual-verification disputes without a paid vision read.
 	CornerStyle *CornerStyle   `json:"corner_style,omitempty"`
+	// Padding is the measured inset from this container's edges to its nearest
+	// child components (Milestone G), when this component contains others.
+	// left/top are reliable content insets; right/bottom are content-dependent
+	// (leftover slack) — see ContentFills.
+	Padding    *Padding       `json:"padding,omitempty"`
 	Children   []string       `json:"children,omitempty"`
 	Role       *ConstString   `json:"role,omitempty"`
 	Confidence float64        `json:"confidence"`
@@ -163,6 +168,12 @@ type RepeatedGroup struct {
 	// component's ID.
 	Header   string `json:"header,omitempty"`
 	HeaderID string `json:"header_id,omitempty"`
+	// GapMedian/GapSpread (Milestone G) are the median and spread (max-min) of the
+	// gaps between adjacent members along the group's spatial axis, in px — the
+	// space BETWEEN siblings (combined margins, not one-sided). GapSpread near 0
+	// means evenly spaced. 0 when <2 members.
+	GapMedian int `json:"gap_median,omitempty"`
+	GapSpread int `json:"gap_spread"`
 }
 
 // SemanticHint is a deterministic, pattern-matched interpretation of a text
@@ -184,4 +195,16 @@ type CornerStyle struct {
 	Style          string  `json:"style"` // "rounded" | "square"
 	Confidence     float64 `json:"confidence"`
 	RoundedCorners int     `json:"rounded_corners"` // 0..4
+}
+
+// Padding is a container's measured inset (px) from each edge to its nearest
+// child component (Milestone G). Left/Top are reliable content insets; Right/
+// Bottom are content-dependent leftover slack — ContentFills is true only when
+// the children span most of the container (so Right/Bottom are meaningful).
+type Padding struct {
+	Left         int  `json:"left"`
+	Right        int  `json:"right"`
+	Top          int  `json:"top"`
+	Bottom       int  `json:"bottom"`
+	ContentFills bool `json:"content_fills"`
 }

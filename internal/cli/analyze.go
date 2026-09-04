@@ -413,6 +413,12 @@ func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error
 	// token directly above a group's top with x-overlap names it (e.g. "TO DO (4)"
 	// for a kanban column). Deterministic; leaves unnamed when no clear header.
 	graph.AssociateHeaders(uiGraph.RepeatedGroups, merged)
+	// Spatial layout (Milestone G): container padding (from containment edges) on
+	// the merged components, and inter-sibling gap median/spread on the groups.
+	// Pure box arithmetic; padding lands in page.json, gaps in graph.json.
+	nPad := graph.AttachPadding(merged, uiGraph.Relationships)
+	graph.AttachGroupGaps(uiGraph.RepeatedGroups, merged)
+	slog.Info("attached padding", "containers", nPad)
 	writeArtifact(func() error { return ws.WriteJSON("graph.json", uiGraph) })
 	stage("merge+graph", start)
 
