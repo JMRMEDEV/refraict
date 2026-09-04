@@ -25,7 +25,13 @@ func Analyze(ctx context.Context, req AnalyzeRequest) (string, error) {
 		base := strings.TrimSuffix(filepath.Base(req.ImagePath), filepath.Ext(req.ImagePath))
 		out = "./analysis-" + base
 	}
-	o := &analysisOptions{output: out, quiet: true}
+	// adaptive=true selects the default crop strategy (not the fixed-grid
+	// benchmark path). keepWarm keeps the local models resident across the many
+	// vision calls a single analyze makes — an MCP server is long-lived and
+	// serves repeated analyses, so model-reload thrashing (keep_alive=0) would
+	// dominate latency (~6x slower on dense pages). A caller can still pass a
+	// config_path to override models.keep_alive.
+	o := &analysisOptions{output: out, quiet: true, adaptive: true, keepWarm: "10m"}
 	if err := runAnalyze(ctx, req.ImagePath, o); err != nil {
 		return "", err
 	}
