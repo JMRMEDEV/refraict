@@ -1117,6 +1117,25 @@ LAZY (only when the hierarchy signal is requested), so the second OCR pass is no
 paid on every analyze. No global default change; no new mechanism (reuses the
 existing env override).
 
+### 2026-09-06 — OCR adapter moved to scripts/refraict-ocr; Go-rewrite milestone
+
+The OCR adapter was living in the gitignored `e2e-test/` dir (never tracked) even
+though it's a functional pipeline dependency (README install step; the OCR path
+shells to it). Moved it to `scripts/refraict-ocr` (tracked, proper home; dropped
+the `.py` — it's an installable executable), updated README (refraict + qa) and
+reinstalled from the new path.
+
+**Milestone (future) — Go OCR adapter (drop Python/Pillow)**
+Priority: LOW-MEDIUM (tech-debt/consistency). The adapter is Python only for
+Pillow's image prep (invert / luminance / 2x upscale) around the tesseract
+binary; refraict is otherwise pure Go and already has those ops in
+`internal/imageproc` plus external-command plumbing. Rewrite as a Go OCR adapter
+or a `refraict ocr` subcommand: Go image-prep -> exec tesseract (TSV) -> parse ->
+emit the same JSON contract. Removes the Python/Pillow runtime dependency and
+unifies the language. Must be VERIFIED against current OCR quality across the 25
+(Go invert/resize must match Pillow closely enough that token counts / text
+support don't regress) before replacing the Python adapter. Not built.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses

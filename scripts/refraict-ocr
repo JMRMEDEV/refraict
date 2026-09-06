@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Tesseract OCR wrapper for Refraict with dark-theme handling.
+"""refraict-ocr — the OCR engine adapter refraict shells out to.
 
-Reads an image path (last CLI arg), and runs Tesseract in TSV mode after
-deterministic preprocessing tuned for UI screenshots:
+Refraict does not do OCR itself; it invokes an external command
+(REFRAICT_OCR_CMD) that takes an image path (last arg) and prints a JSON array
+of text tokens. This is the reference adapter over Tesseract, with deterministic
+UI-screenshot preprocessing:
 
   1. Auto-detect a dark background (median luminance) and INVERT so Tesseract
      sees dark-text-on-light (what it expects). Light-on-dark is the main cause
@@ -14,6 +16,13 @@ factor is divided back out). Inversion does not change coordinates.
 
 Prints a JSON array: [{"text","bbox":[x0,y0,x1,y1],"confidence"}].
 Requires: tesseract on PATH, Pillow.
+
+NOTE (tech-debt): this adapter is Python for Pillow's image prep; refraict is
+otherwise pure Go and already has equivalent image ops (internal/imageproc) plus
+external-command plumbing. A future milestone rewrites this as a Go OCR adapter
+(or a `refraict ocr` subcommand) to drop the Python/Pillow runtime dependency
+(see docs/roadmap). Kept as-is until that rewrite is verified against current OCR
+quality across the sample set.
 """
 import subprocess
 import sys

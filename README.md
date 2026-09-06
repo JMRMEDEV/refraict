@@ -256,6 +256,15 @@ export REFRAICT_OCR_CMD="ocr-infer"
 ./refraict analyze screenshot.png
 ```
 
+Refraict ships a reference adapter over Tesseract at [`scripts/refraict-ocr`](scripts/refraict-ocr)
+(dark-theme auto-invert + 2× upscale; requires `tesseract` on PATH and Pillow).
+Install it on PATH and point OCR at it:
+
+```bash
+install -m755 scripts/refraict-ocr ~/.local/bin/refraict-ocr
+export REFRAICT_OCR_CMD=refraict-ocr
+```
+
 OCR tokens are cached per image, used to steer the adaptive crop plan, appended to crop prompts, and (when a crop's vision output is broken) recovered via text-token matching in the repair stage. OCR degrades gracefully — without it, the deterministic pieces (overview, colors, geometry) are still produced.
 
 ### `regions`
