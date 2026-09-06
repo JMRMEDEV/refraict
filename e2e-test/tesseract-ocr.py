@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""Tesseract OCR wrapper for Refraict with dark-theme handling.
+
+Reads an image path (last CLI arg), and runs Tesseract in TSV mode after
+deterministic preprocessing tuned for UI screenshots:
+
+  1. Auto-detect a dark background (median luminance) and INVERT so Tesseract
+     sees dark-text-on-light (what it expects). Light-on-dark is the main cause
+     of garbage OCR on dark-theme UIs.
+  2. Upscale ~2x so small UI text clears Tesseract's minimum legible height.
+
+Bounding boxes are returned in ORIGINAL image pixel coordinates (the upscale
+factor is divided back out). Inversion does not change coordinates.
+
+Prints a JSON array: [{"text","bbox":[x0,y0,x1,y1],"confidence"}].
+Requires: tesseract on PATH, Pillow.
+"""
+import subprocess
+import sys
+import json
+import os
+import tempfile
+
+try:
+    from PIL import Image, ImageOps
+except Exception:  # pragma: no cover - environment guard
+    Image = None
+
+
+# Tuning knobs (hard-coded best defaults; each env-overridable). These defaults
+# are what the pipeline uses; a caller can override per-invocation via env.
+SCALE = float(os.environ.get("REFRAICT_OCR_SCALE", "2"))
+# Mean luminance (0-255) below this => treat as dark background and invert.
+DARK_THRESHOLD = float(os.environ.get("REFRAICT_OCR_DARK_THRESHOLD", "110"))
+# Page-segmentation mode. Default "6" (assume a single uniform block) is the
+# EVIDENCE-BACKED pipeline default: an A/B across the 25-image Hermes set
+# (2026-09-06) showed psm 6 vs psm 11 is flat on OCR-token count / text-support
+# and psm 11 net-REGRESSED the crosscheck grounding metric (worse on 9 images,
+# better on 4). Do NOT flip this default without re-running that A/B. psm "11"
+# (sparse, no single-column assumption) gives cleaner MULTI-COLUMN line grouping
+# and is the right per-use-case override for font-size/hierarchy tiering — set
+# REFRAICT_OCR_PSM=11 for that scoped pass only, never as the pipeline default.
+PSM = os.environ.get("REFRAICT_OCR_PSM", "6")
+MIN_CONF = float(os.environ.get("REFRAICT_OCR_MIN_CONF", "0"))
+
+# Conservative whole-token normalization: only unambiguous OCR artifacts that
+# are NOT real UI words. Applied to entire tokens only (never substrings) so it
+# cannot corrupt legitimate text. Keep this list small and safe.
+TOKEN_FIXES = {
+    "usp": "USD",
+    "uso": "USD",
+    "usd": "USD",
+}
+
+
+def normalize_token(text):
+    """Fix an unambiguous OCR artifact for a WHOLE token only. Preserves any
+    trailing punctuation. Case-insensitive match against the allowlist."""
+    core = text.strip()
+    trail = ""
+    while core and core[-1] in ".,:;)":
+        trail = core[-1] + trail
+        core = core[:-1]
+    fixed = TOKEN_FIXES.get(core.lower())
+    if fixed is not None:
+        return fixed + trail
+    return text
+
+
+def mean_luminance(im):
+    """Approximate mean perceived luminance of an RGB image (0-255)."""
+    small = im.convert("RGB").resize((64, 64))
+    px = small.getdata()
+    total = 0
+    for r, g, b in px:
+        total += 0.299 * r + 0.587 * g + 0.114 * b
+    return total / len(px)
+
+
+def preprocess(path):
+    """Return (processed_image, scale, inverted) or (None, 1, False) if no PIL."""
+    if Image is None:
+        return None, 1.0, False
+    im = Image.open(path).convert("RGB")
+    inverted = False
+    if mean_luminance(im) < DARK_THRESHOLD:
+        im = ImageOps.invert(im)
+        inverted = True
+    scale = SCALE
+    if scale != 1.0:
+        im = im.resize((max(1, int(im.width * scale)),
+                        max(1, int(im.height * scale))))
+    return im, scale, inverted
+
+
+def run_tesseract_tsv(image_path):
+    return subprocess.run(
+        ["tesseract", image_path, "stdout", "--psm", PSM, "tsv"],
+        capture_output=True, text=True, check=True,
+    ).stdout
+
+
+def parse_tsv(tsv, scale):
+    lines = tsv.splitlines()
+    if not lines:
+        return []
+    header = lines[0].split("\t")
+    try:
+        ci = {name: header.index(name) for name in
+              ("left", "top", "width", "height", "conf", "text")}
+    except ValueError:
+        return []
+    tokens = []
+    for line in lines[1:]:
+        parts = line.split("\t")
+        if len(parts) <= max(ci.values()):
+            continue
+        text = parts[ci["text"]].strip()
+        if not text:
+            continue
+        text = normalize_token(text)
+        try:
+            conf = float(parts[ci["conf"]])
+        except ValueError:
+            continue
+        if conf < 0 or conf / 100.0 < MIN_CONF:
+            continue
+        try:
+            x = int(parts[ci["left"]])
+            y = int(parts[ci["top"]])
+            w = int(parts[ci["width"]])
+            h = int(parts[ci["height"]])
+        except ValueError:
+            continue
+        # Map coordinates back to original image space.
+        x0 = int(round(x / scale))
+        y0 = int(round(y / scale))
+        x1 = int(round((x + w) / scale))
+        y1 = int(round((y + h) / scale))
+        tokens.append({
+            "text": text,
+            "bbox": [x0, y0, x1, y1],
+            "confidence": conf / 100.0,
+        })
+    return tokens
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("[]")
+        return 0
+    image = sys.argv[-1]
+
+    proc, scale, _inverted = preprocess(image)
+    ocr_path = image
+    tmp = None
+    if proc is not None:
+        tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+        proc.save(tmp.name)
+        ocr_path = tmp.name
+
+    try:
+        tsv = run_tesseract_tsv(ocr_path)
+    except Exception:
+        print("[]")
+        if tmp:
+            os.unlink(tmp.name)
+        return 0
+
+    tokens = parse_tsv(tsv, scale if proc is not None else 1.0)
+    if tmp:
+        os.unlink(tmp.name)
+    print(json.dumps(tokens))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

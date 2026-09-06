@@ -1,5 +1,8 @@
 # Local tests
 e2e-test/*
+# ...but the OCR wrapper is a functional pipeline dependency (README install
+# step; the OCR path uses it), so track it despite the e2e-test ignore.
+!e2e-test/tesseract-ocr.py
 
 # Ignore .libreq directory contents (libreq tooling state — not part of the project)
 .libreq/
