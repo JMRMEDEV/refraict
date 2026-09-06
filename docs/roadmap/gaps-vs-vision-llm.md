@@ -1125,16 +1125,31 @@ shells to it). Moved it to `scripts/refraict-ocr` (tracked, proper home; dropped
 the `.py` — it's an installable executable), updated README (refraict + qa) and
 reinstalled from the new path.
 
-**Milestone (future) — Go OCR adapter (drop Python/Pillow)**
-Priority: LOW-MEDIUM (tech-debt/consistency). The adapter is Python only for
-Pillow's image prep (invert / luminance / 2x upscale) around the tesseract
-binary; refraict is otherwise pure Go and already has those ops in
-`internal/imageproc` plus external-command plumbing. Rewrite as a Go OCR adapter
-or a `refraict ocr` subcommand: Go image-prep -> exec tesseract (TSV) -> parse ->
-emit the same JSON contract. Removes the Python/Pillow runtime dependency and
-unifies the language. Must be VERIFIED against current OCR quality across the 25
-(Go invert/resize must match Pillow closely enough that token counts / text
-support don't regress) before replacing the Python adapter. Not built.
+**Milestone (future) — In-process Tesseract via gosseract (CGo) — FEASIBILITY CONFIRMED**
+Priority: MEDIUM. Ship OCR in-process the SAME way OpenCV is shipped (CGo), instead
+of shelling out to the Python adapter. Use `github.com/otiai10/gosseract/v2`
+(CGo bindings to libtesseract+leptonica). OCR becomes an in-process call; the
+Python/Pillow/subprocess layer goes away entirely. Keep `REFRAICT_OCR_CMD` as an
+OPTIONAL override (PaddleOCR/cloud), but in-process Tesseract is the default —
+works out-of-the-box, no OCR install step for the user.
+
+Feasibility spike (2026-09-06) — VIABLE:
+- gosseract v2.4.1 compiles + runs against system tesseract 4.1.1 / leptonica
+  1.82 (dev libs: libtesseract-dev + libleptonica-dev, version-matched, in apt).
+- Token yield matches the Python adapter (login-light 27 vs 24; verify-email-dark
+  24 vs 24). The preprocessing is the value-add, NOT the OCR call — and it ports
+  cleanly: `internal/imageproc` already has invert + resize.
+- Impl: imageproc invert(dark-theme) + 2x upscale -> gosseract
+  GetBoundingBoxes(RIL_WORD) -> DIVIDE boxes back to original coords (the upscale
+  factor, as the Python adapter does) -> emit the same token structure.
+- Net user deps DECREASE: today needs tesseract binary + Python + Pillow; this
+  needs only tesseract/leptonica dev libs (the tesseract runtime was already
+  required). README prereqs gain libtesseract-dev/libleptonica-dev next to OpenCV.
+
+Verification gate before making it the DEFAULT: the same 25-image A/B (token
+counts + text_support) — Go+leptonica resampling isn't byte-identical to Pillow,
+so confirm no OCR-quality regression (same discipline as the PSM A/B) before
+replacing the Python adapter. Not built (spike only).
 
 ## References & third-party sources
 
