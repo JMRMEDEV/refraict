@@ -1107,6 +1107,16 @@ per-word heights regardless of line grouping) — NOT by changing OCR mode. POC
 22px body; login-light: title 34 vs labels 18), via k-means on filtered
 (alnum>=2, sane-aspect) token heights. Recorded; not implemented.
 
+Design locked (owner, 2026-09-06): PSM PER USE-CASE, not one global default. The
+OCR wrapper already hard-codes best defaults that are env-overridable
+(`REFRAICT_OCR_PSM`, default "6", now with an evidence comment in the wrapper).
+So: the PIPELINE OCR keeps the verified psm 6; font-size/hierarchy tiering (when
+built) runs its OWN scoped OCR pass with `REFRAICT_OCR_PSM=11` (column-clean line
+grouping) used only to derive the tier signal — NOT feeding the token corpus, and
+LAZY (only when the hierarchy signal is requested), so the second OCR pass is not
+paid on every analyze. No global default change; no new mechanism (reuses the
+existing env override).
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses
