@@ -1080,6 +1080,33 @@ signals in the response, heavy data stays on disk. Smoke-tested end-to-end
 (initialize/tools list/analyze/get_artifact). Builds on the opencv-only
 foundation.
 
+### 2026-09-06 — OCR PSM 6 vs 11 A/B (font-size tiering POC) — KEEP psm 6
+
+While POC-ing font-size tiers (heading/body/caption from OCR token heights), the
+`--psm 11` (sparse) mode produced cleaner multi-column LINE grouping than the
+default `--psm 6` (single uniform block), which merges columns into one line.
+Tempting to flip the wrapper default — but PSM is a SHARED default affecting the
+whole pipeline (crop planning, grounding, hints), so A/B'd it across all 25
+before any change (fresh caches, keep_alive warm):
+
+  aggregate: OCR tokens 51.2 -> 50.2 (-1), crosscheck 0.94 -> 0.93 (flat),
+             text_support 0.98 -> 0.98 (flat).
+  per-image crosscheck: psm11 better=4 / WORSE=9 / equal=12.
+
+So psm11 net-REGRESSES the downstream grounding metric (worse on more images —
+e.g. board-dark cc 1.00->0.96, invite-dark 0.70->0.57, settings-light 1.00->0.95)
+while only marginally helping line grouping. Decision: KEEP `--psm 6` as the
+default. Verifying first avoided a blind-flip regression.
+
+Implication for font-size tiering (if built): do it as a POST-OCR analysis inside
+refraict on the token bboxes we already have (Tesseract's native block/line/word
+structure gives correct reading order at psm 6 too; tier CLUSTERING works on
+per-word heights regardless of line grouping) — NOT by changing OCR mode. POC
+(sharpened): heading/body/caption tiers separate cleanly on single-column pages
+(task-detail: "Implement login screen" 54px heading vs "Build the login form…"
+22px body; login-light: title 34 vs labels 18), via k-means on filtered
+(alnum>=2, sane-aspect) token heights. Recorded; not implemented.
+
 ## References & third-party sources
 
 Tools, libraries, datasets, and papers used across this work, with licenses
