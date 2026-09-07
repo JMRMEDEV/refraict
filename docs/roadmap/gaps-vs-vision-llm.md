@@ -1155,9 +1155,13 @@ across the 25 (in-process GO vs Python adapter PY): OCR tokens GO 51.1 vs PY 51.
 (25/25 within +-15%, most exact), text_support GO 0.972 vs PY 0.968 (+0.004),
 crosscheck GO 0.935 vs PY 0.951 (-0.015, two invite-page outliers). Quality-
 equivalent -> made default. README prereqs updated (libtesseract-dev +
-libleptonica-dev alongside OpenCV); Python adapter kept at scripts/refraict-ocr as
-an optional external engine. Unit-tested (normalizeToken, invert/luminance,
+libleptonica-dev alongside OpenCV). Unit-tested (normalizeToken, invert/luminance,
 upscale).
+
+Follow-up (2026-09-06): the Python adapter (scripts/refraict-ocr) was REMOVED —
+in-process Tesseract makes it redundant, and removing it keeps refraict pure
+Go/CGo with no Python/Pillow anywhere in the repo. The REFRAICT_OCR_CMD external-
+engine hook remains (documented in README) for plugging in PaddleOCR/cloud.
 
 ## References & third-party sources
 

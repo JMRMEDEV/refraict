@@ -269,14 +269,12 @@ export REFRAICT_OCR_CMD="ocr-infer"
 ./refraict analyze screenshot.png
 ```
 
-Refraict ships a reference adapter over Tesseract at [`scripts/refraict-ocr`](scripts/refraict-ocr)
-(dark-theme auto-invert + 2× upscale; requires `tesseract` on PATH and Pillow).
-Install it on PATH and point OCR at it:
-
-```bash
-install -m755 scripts/refraict-ocr ~/.local/bin/refraict-ocr
-export REFRAICT_OCR_CMD=refraict-ocr
-```
+Refraict ships **no OCR script** — OCR is built in (in-process libtesseract, see
+above). Earlier versions shipped a Python (`scripts/refraict-ocr`) adapter; it was
+**removed** once OCR moved in-process, to keep refraict a pure-Go/CGo tool with no
+Python or Pillow runtime dependency. To plug in a *different* OCR engine
+(PaddleOCR/RapidOCR/cloud), point `REFRAICT_OCR_CMD` at any executable that
+follows the token-JSON contract above.
 
 OCR tokens are cached per image, used to steer the adaptive crop plan, appended to crop prompts, and (when a crop's vision output is broken) recovered via text-token matching in the repair stage. OCR degrades gracefully — without it, the deterministic pieces (overview, colors, geometry) are still produced.
 
@@ -570,24 +568,13 @@ Re-running `analyze` on an unchanged image is near-instant because cached crop/O
 ## End-to-end example
 
 ```bash
-# 1. Create a screenshot (example: programmatically with Pillow)
-python3 - << 'EOF'
-from PIL import Image, ImageDraw
-img = Image.new('RGB', (1200, 800), '#ffffff')
-d = ImageDraw.Draw(img)
-d.rectangle([40, 40, 1160, 100], fill='#2563eb')
-d.text((60, 60), "Login", fill='white')
-for i, label in enumerate(["Username", "Password"]):
-    d.rectangle([100, 160 + i*100, 700, 220 + i*100], fill='#f1f5f9', outline='#cbd5e1')
-    d.text((120, 170 + i*100), label, fill='#0f172a')
-d.rectangle([100, 400, 420, 470], fill='#2563eb')
-d.text((180, 420), "Sign in", fill='white')
-img.save('/tmp/login.png')
-EOF
+# 1. Use any UI screenshot you have (PNG/JPEG). For example, grab one with your
+#    OS screenshot tool, or use an existing app screenshot:
+IMG=./my-app.png
 
 # 2. Build and analyze
 go build -o refraict ./cmd/refraict
-./refraict analyze /tmp/login.png --output /tmp/out --verbose
+./refraict analyze "$IMG" --output /tmp/out --verbose
 
 # 3. Inspect everything
 cat /tmp/out/page.md
