@@ -91,7 +91,7 @@ sudo pacman -S opencv tesseract tesseract-data-eng leptonica pkgconf
 Then build:
 
 ```bash
-git clone <repo-url> refraict
+git clone https://github.com/JMRMEDEV/refraict.git refraict
 cd refraict
 go build -o refraict ./cmd/refraict
 ```
