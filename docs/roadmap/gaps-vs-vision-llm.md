@@ -1125,7 +1125,7 @@ shells to it). Moved it to `scripts/refraict-ocr` (tracked, proper home; dropped
 the `.py` — it's an installable executable), updated README (refraict + qa) and
 reinstalled from the new path.
 
-**Milestone (future) — In-process Tesseract via gosseract (CGo) — FEASIBILITY CONFIRMED**
+**Milestone — In-process Tesseract via gosseract (CGo) — DONE (2026-09-06)**
 Priority: MEDIUM. Ship OCR in-process the SAME way OpenCV is shipped (CGo), instead
 of shelling out to the Python adapter. Use `github.com/otiai10/gosseract/v2`
 (CGo bindings to libtesseract+leptonica). OCR becomes an in-process call; the
@@ -1148,8 +1148,16 @@ Feasibility spike (2026-09-06) — VIABLE:
 
 Verification gate before making it the DEFAULT: the same 25-image A/B (token
 counts + text_support) — Go+leptonica resampling isn't byte-identical to Pillow,
-so confirm no OCR-quality regression (same discipline as the PSM A/B) before
-replacing the Python adapter. Not built (spike only).
+so confirm no OCR-quality regression. DONE + VERIFIED: `internal/ocr.TesseractEngine`
+(imageproc invert(dark) + 2x upscale -> gosseract RIL_WORD boxes -> coord-divide),
+default when REFRAICT_OCR_CMD is unset; external command still overrides. A/B
+across the 25 (in-process GO vs Python adapter PY): OCR tokens GO 51.1 vs PY 51.2
+(25/25 within +-15%, most exact), text_support GO 0.972 vs PY 0.968 (+0.004),
+crosscheck GO 0.935 vs PY 0.951 (-0.015, two invite-page outliers). Quality-
+equivalent -> made default. README prereqs updated (libtesseract-dev +
+libleptonica-dev alongside OpenCV); Python adapter kept at scripts/refraict-ocr as
+an optional external engine. Unit-tested (normalizeToken, invert/luminance,
+upscale).
 
 ## References & third-party sources
 

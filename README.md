@@ -63,23 +63,23 @@ Given a screenshot, Refraict:
 
 ## Installation & build
 
-Refraict requires **Go 1.22+** and **OpenCV 4.x** (with headers). OpenCV is a
-hard dependency: refraict's region detection (cards, panels, containers — which
-underpin the structural signals in the output) is OpenCV-backed via CGo. Install
-OpenCV first for your platform:
+Refraict requires **Go 1.22+**, **OpenCV 4.x**, and **Tesseract + Leptonica**
+(all with headers). These are hard CGo dependencies: region detection is
+OpenCV-backed, and OCR now runs **in-process** via libtesseract (no Python, no
+subprocess). Install them first for your platform:
 
 ```bash
 # Debian / Ubuntu
-sudo apt-get install -y libopencv-dev pkg-config
+sudo apt-get install -y libopencv-dev libtesseract-dev libleptonica-dev pkg-config
 
 # Fedora
-sudo dnf install -y opencv-devel pkgconf-pkg-config
+sudo dnf install -y opencv-devel tesseract-devel leptonica-devel pkgconf-pkg-config
 
 # macOS (Homebrew)
-brew install opencv pkg-config
+brew install opencv tesseract leptonica pkg-config
 
 # Arch
-sudo pacman -S opencv pkgconf
+sudo pacman -S opencv tesseract leptonica pkgconf
 ```
 
 Then build:
@@ -232,16 +232,22 @@ low-contrast/light-theme UIs.
 ./refraict ocr screenshot.png
 ```
 
-Output: `{"tokens": [...], "count": N}`. If no OCR engine is configured, it prints a warning and an empty result.
+Output: `{"tokens": [...], "count": N}`.
 
-OCR is optional and uses an **external command** driven by two environment variables:
+OCR runs **in-process by default** via libtesseract (CGo/gosseract) — no Python,
+no subprocess — with deterministic UI-screenshot prep (auto-invert dark themes,
+2× upscale). It requires the Tesseract + Leptonica dev libs from Installation.
+
+To use a **different OCR engine** (PaddleOCR/RapidOCR/cloud), set an external
+command via env — it overrides the in-process default:
 
 | Variable | Purpose |
 | --- | --- |
-| `REFRAICT_OCR_CMD` | Executable that performs OCR on an image and prints a JSON array of tokens to stdout. If unset, OCR is skipped (VLM-only analysis still runs). |
+| `REFRAICT_OCR_CMD` | Executable that performs OCR on an image and prints a JSON array of tokens to stdout. Overrides the in-process Tesseract default. |
 | `REFRAICT_OCR_ARGS` | Optional space-separated fixed arguments passed to the OCR command (**before** the image path). |
+| `REFRAICT_OCR_SCALE` / `REFRAICT_OCR_DARK_THRESHOLD` / `REFRAICT_OCR_MIN_CONF` | Tune the in-process engine's upscale / dark-invert threshold / min confidence. |
 
-The OCR command receives the input image path as its final argument (`REFRAICT_OCR_CMD [REFRAICT_OCR_ARGS...] <image>`). Its stdout must be a JSON array of token objects:
+The external OCR command receives the input image path as its final argument (`REFRAICT_OCR_CMD [REFRAICT_OCR_ARGS...] <image>`). Its stdout must be a JSON array of token objects:
 
 ```json
 [

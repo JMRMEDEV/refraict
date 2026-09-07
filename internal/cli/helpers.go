@@ -73,7 +73,10 @@ func applyOverrides(cfg *config.Config, o *analysisOptions) {
 func buildOCREngine() (ocr.Engine, error) {
 	cmd := os.Getenv("REFRAICT_OCR_CMD")
 	if cmd == "" {
-		return nil, ocr.ErrUnavailable
+		// Default: in-process Tesseract (CGo/gosseract) — no subprocess, no
+		// Python. An external OCR command (PaddleOCR/cloud/etc.) overrides it
+		// when REFRAICT_OCR_CMD is set.
+		return ocr.NewTesseractEngine(), nil
 	}
 	var args []string
 	if raw := os.Getenv("REFRAICT_OCR_ARGS"); strings.TrimSpace(raw) != "" {
