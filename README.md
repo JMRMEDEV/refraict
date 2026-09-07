@@ -70,17 +70,23 @@ subprocess). Install them first for your platform:
 
 ```bash
 # Debian / Ubuntu
-sudo apt-get install -y libopencv-dev libtesseract-dev libleptonica-dev pkg-config
+sudo apt-get install -y libopencv-dev libtesseract-dev libleptonica-dev tesseract-ocr-eng pkg-config
 
 # Fedora
-sudo dnf install -y opencv-devel tesseract-devel leptonica-devel pkgconf-pkg-config
+sudo dnf install -y opencv-devel tesseract-devel leptonica-devel tesseract-langpack-eng pkgconf-pkg-config
 
-# macOS (Homebrew)
+# macOS (Homebrew)  — the tesseract formula bundles the language data
 brew install opencv tesseract leptonica pkg-config
 
 # Arch
-sudo pacman -S opencv tesseract leptonica pkgconf
+sudo pacman -S opencv tesseract tesseract-data-eng leptonica pkgconf
 ```
+
+> **OCR language data is required at runtime.** In-process OCR needs Tesseract's
+> English trained data (`eng.traineddata`, from the `*-eng` package above). Without
+> it the build still succeeds but OCR fails at runtime; `refraict inspect`
+> (deterministic, no OCR) still works. Non-English UIs need the matching language
+> pack.
 
 Then build:
 
@@ -90,8 +96,9 @@ cd refraict
 go build -o refraict ./cmd/refraict
 ```
 
-The build links CGo against system OpenCV, so the resulting binary is **not**
-statically linked and needs OpenCV present at runtime. Verify it works:
+The build links CGo against system OpenCV, Tesseract, and Leptonica, so the
+resulting binary is **not** statically linked and needs those libraries present
+at runtime. Verify it works:
 
 ```bash
 ./refraict version
