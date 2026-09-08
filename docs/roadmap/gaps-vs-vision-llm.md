@@ -1286,7 +1286,25 @@ AA-sharpen), `swtregpoc` (self-calibrating stroke~height regression), `boldval` 
 `boldval2` (consolidated + icon-exclusion + hybrid filter). Kept as the audit
 trail, like the icon-label reliability PoCs.
 
-**Milestone J — Layout hierarchy + occupancy shares (POC-VALIDATED; ready to build) — 2026-09-08**
+**Milestone J — Layout hierarchy + occupancy shares — DONE (2026-09-08)**
+
+Implemented: `graph.BuildLayoutTree` (internal/graph/layout.go) produces an
+ADDITIVE `ir.LayoutTree` (bordered nesting from the smallest strict container +
+RepeatedGroup-seeded, regularity-gated invisible columns/rows + per-child
+`ir.LayoutShare` occupancy fractions), written to `layout.json`. It references
+component IDs only — `merged` and Relationships are untouched. `probableDOM` was
+rewired to consume the tree (nested DOM with `data-inferred`/`data-share`/
+`aria-label`), falling back to the flat writer when the tree has no nesting. MCP:
+`layout.json` is a retrievable artifact and `analyze` surfaces a bounded
+`layout_containers` rollup (inferred columns/rows + labels + confidence).
+REGRESSION GATE VERIFIED: component count, Milestone G padding counts, and
+relationship counts are UNCHANGED vs the pre-milestone baseline on settings-dark/
+board-dark/login-light/signup-dark. board-dark's kanban columns are recovered and
+named (TO DO (4) / IN PROGRESS (3) / IN REVIEW (2)); signup-dark's form nests its
+fields. Unit-tested (bordered nesting + shares, inferred column from group,
+irregular-group withhold, flat fallback, empty). Note: ContainAreaRatio relaxed
+to 1.05 (smallest strict container) vs the flat relationship set's 3x noise-guard,
+because a body legitimately fills ~90% of its parent.
 
 Goal: give the agent the LAYOUT STRUCTURE of a UI — which regions nest inside
 which, and how much of a container each child occupies along an axis — so it can

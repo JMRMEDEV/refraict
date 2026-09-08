@@ -438,6 +438,14 @@ func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error
 	nPad := graph.AttachPadding(merged, uiGraph.Relationships)
 	graph.AttachGroupGaps(uiGraph.RepeatedGroups, merged)
 	slog.Info("attached padding", "containers", nPad)
+	// Layout hierarchy (Milestone J): ADDITIVE nesting tree + occupancy shares,
+	// derived from the (unmodified) merged components + gated RepeatedGroups. It
+	// references component IDs only — merged and Relationships are untouched, so
+	// no measurement feature is affected. Consumed by the DOM inference below and
+	// surfaced as layout.json.
+	layoutTree := graph.BuildLayoutTree(merged, uiGraph.RepeatedGroups, graph.DefaultLayoutOptions())
+	writeArtifact(func() error { return ws.WriteJSON("layout.json", layoutTree) })
+	slog.Info("built layout tree", "roots", len(layoutTree.Roots))
 	writeArtifact(func() error { return ws.WriteJSON("graph.json", uiGraph) })
 	stage("merge+graph", start)
 
@@ -585,7 +593,7 @@ func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error
 	// DOM guess (probable DOM, clearly inferred).
 	dom := ""
 	if !o.noDOM && cfg.Analysis.GenerateDOMGuess {
-		dom = probableDOM(merged)
+		dom = probableDOMFromTree(layoutTree, merged)
 		writeArtifact(func() error { return ws.WriteText("dom.md", dom) })
 		writeArtifact(func() error { return ws.WriteJSON("dom.json", map[string]any{"inferred": true, "tree": dom, "note": "inferred probable DOM, not observed"}) })
 	}

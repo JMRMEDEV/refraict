@@ -260,3 +260,42 @@ type TextWeight struct {
 	BaselinePx float64 `json:"baseline_px"`
 	Confidence float64 `json:"confidence"`
 }
+
+// LayoutTree is the additive layout-hierarchy layer (Milestone J). It is a
+// SEPARATE artifact that REFERENCES component IDs — it never owns or mutates the
+// canonical flat component set, so every per-element measurement feature (colors,
+// corner-style, tier, weight, crosscheck) is unaffected. Only structural
+// consumers (DOM inference, occupancy shares) opt in. Roots are the top-level
+// nodes; inferred (invisible) containers carry a synthetic ID and Confidence.
+type LayoutTree struct {
+	Roots []LayoutNode `json:"roots"`
+}
+
+// LayoutNode is one node in the layout hierarchy. ComponentID references a
+// canonical component (empty for an inferred/invisible container). Inferred is
+// true for whitespace containers (columns/rows) synthesized from alignment, not
+// detected as bordered regions. Share is this node's measured occupancy fraction
+// of its parent along the parent's stacking axis (nil for roots / when withheld).
+type LayoutNode struct {
+	ComponentID string       `json:"component_id,omitempty"`
+	Inferred    bool         `json:"inferred,omitempty"`
+	Kind        string       `json:"kind,omitempty"` // "column" | "row" for inferred containers
+	BBox        BoundingBox  `json:"bbox"`
+	Label       string       `json:"label,omitempty"` // header name (Milestone E) for inferred containers
+	Confidence  float64      `json:"confidence,omitempty"`
+	Share       *LayoutShare `json:"share,omitempty"`
+	Children    []LayoutNode `json:"children,omitempty"`
+}
+
+// LayoutShare is a child's MEASURED occupancy of its parent along an axis
+// (Milestone J) — the flexbox/percentage question answered as an observed
+// fraction, explicitly NOT a claimed CSS property. Axis is "x" (row) or "y"
+// (column); Fraction is the child's extent / the children's span (0..1);
+// GapBeforeFrac is the unallocated space before this child. Tiling is the
+// parent-level coverage confidence (how completely children fill the container).
+type LayoutShare struct {
+	Axis          string  `json:"axis"`
+	Fraction      float64 `json:"fraction"`
+	GapBeforeFrac float64 `json:"gap_before_frac,omitempty"`
+	Tiling        float64 `json:"tiling"`
+}

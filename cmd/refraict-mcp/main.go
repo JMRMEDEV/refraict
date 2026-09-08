@@ -49,6 +49,7 @@ type analyzeOutput struct {
 	Paddings        []paddingRef      `json:"paddings,omitempty"`
 	TextTiers       []tierBandRef     `json:"text_tiers,omitempty"`
 	TextWeights     []weightRef       `json:"text_weights,omitempty"`
+	LayoutContainers []layoutContainerRef `json:"layout_containers,omitempty"`
 	GroupSpacing    []spacingRef      `json:"group_spacing,omitempty"`
 	Grounding       any               `json:"grounding,omitempty"`
 	CrossCheck      any               `json:"crosscheck,omitempty"`
@@ -76,6 +77,7 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 			"page_md":             filepath.Join(outDir, "page.md"),
 			"page_consolidated":   filepath.Join(outDir, "page-consolidated.md"),
 			"graph_json":          filepath.Join(outDir, "graph.json"),
+			"layout_json":         filepath.Join(outDir, "layout.json"),
 			"dom_md":              filepath.Join(outDir, "dom.md"),
 			"evidence_dir":        filepath.Join(outDir, "evidence"),
 		},
@@ -111,6 +113,13 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 				out.RepeatedGroups = len(rg)
 				out.GroupSpacing = spacingRefs(rg)
 			}
+		}
+	}
+	// Layout hierarchy (Milestone J): bounded rollup of inferred containers.
+	if b, rerr := os.ReadFile(filepath.Join(outDir, "layout.json")); rerr == nil {
+		var lt map[string]any
+		if json.Unmarshal(b, &lt) == nil {
+			out.LayoutContainers = layoutContainerRefs(lt)
 		}
 	}
 	return nil, out, nil
@@ -160,6 +169,7 @@ var allowedArtifacts = map[string]string{
 	"page_md":           "page.md",
 	"page_consolidated": "page-consolidated.md",
 	"graph_json":        "graph.json",
+	"layout_json":       "layout.json",
 	"dom_md":            "dom.md",
 	"grounding":         "evidence/grounding.json",
 	"crosscheck":        "evidence/crosscheck.json",
@@ -170,7 +180,7 @@ var allowedArtifacts = map[string]string{
 
 type getArtifactInput struct {
 	OutputDir string `json:"output_dir" jsonschema:"the output_dir returned by a prior analyze call"`
-	Artifact  string `json:"artifact" jsonschema:"which artifact to read: page_json, page_md, page_consolidated, graph_json, dom_md, grounding, crosscheck, merged_components, colors, ocr"`
+	Artifact  string `json:"artifact" jsonschema:"which artifact to read: page_json, page_md, page_consolidated, graph_json, layout_json, dom_md, grounding, crosscheck, merged_components, colors, ocr"`
 }
 
 type getArtifactOutput struct {
@@ -181,7 +191,7 @@ type getArtifactOutput struct {
 func getArtifact(_ context.Context, _ *mcp.CallToolRequest, in getArtifactInput) (*mcp.CallToolResult, getArtifactOutput, error) {
 	rel, ok := allowedArtifacts[in.Artifact]
 	if !ok {
-		return nil, getArtifactOutput{}, fmt.Errorf("unknown artifact %q; allowed: page_json, page_md, page_consolidated, graph_json, dom_md, grounding, crosscheck, merged_components, colors, ocr", in.Artifact)
+		return nil, getArtifactOutput{}, fmt.Errorf("unknown artifact %q; allowed: page_json, page_md, page_consolidated, graph_json, layout_json, dom_md, grounding, crosscheck, merged_components, colors, ocr", in.Artifact)
 	}
 	if in.OutputDir == "" {
 		return nil, getArtifactOutput{}, fmt.Errorf("output_dir is required")
@@ -349,6 +359,50 @@ func tierBandRefs(comps []any) []tierBandRef {
 	return out
 }
 
+// layoutContainerRef is a bounded rollup of an INFERRED layout container
+// (Milestone J): a column/row synthesized from aligned siblings, with its
+// members count, header label (if any), and confidence. Bordered nesting +
+// per-child shares live in the full layout.json (get_artifact 'layout_json').
+type layoutContainerRef struct {
+	Kind       string  `json:"kind"`
+	Label      string  `json:"label,omitempty"`
+	Members    int     `json:"members"`
+	Confidence float64 `json:"confidence"`
+}
+
+// layoutContainerRefs walks the layout tree JSON and lists inferred containers.
+func layoutContainerRefs(lt map[string]any) []layoutContainerRef {
+	var out []layoutContainerRef
+	var walk func(n map[string]any)
+	walk = func(n map[string]any) {
+		if inf, _ := n["inferred"].(bool); inf {
+			kind, _ := n["kind"].(string)
+			label, _ := n["label"].(string)
+			conf, _ := n["confidence"].(float64)
+			members := 0
+			if ch, ok := n["children"].([]any); ok {
+				members = len(ch)
+			}
+			out = append(out, layoutContainerRef{Kind: kind, Label: label, Members: members, Confidence: conf})
+		}
+		if ch, ok := n["children"].([]any); ok {
+			for _, c := range ch {
+				if cm, ok := c.(map[string]any); ok {
+					walk(cm)
+				}
+			}
+		}
+	}
+	if roots, ok := lt["roots"].([]any); ok {
+		for _, r := range roots {
+			if rm, ok := r.(map[string]any); ok {
+				walk(rm)
+			}
+		}
+	}
+	return out
+}
+
 // weightRef is a compact font-weight rollup (Milestone I). For "heavy" it names
 // EVERY bold word (with confidence) so an agent knows exactly WHICH words are
 // bold — heavy tokens are few and high-value, so listing them stays bounded. For
@@ -492,7 +546,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze",
-		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, text_tiers (typography hierarchy heading/body/caption by OCR text height), text_weights (font weight regular/heavy by stroke thickness), grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
+		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, text_tiers (typography hierarchy heading/body/caption by OCR text height), text_weights (font weight regular/heavy by stroke thickness), layout_containers (inferred columns/rows + occupancy shares), grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
 	}, analyze)
 
 	mcp.AddTool(server, &mcp.Tool{

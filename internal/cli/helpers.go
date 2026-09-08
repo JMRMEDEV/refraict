@@ -627,6 +627,92 @@ func probableDOM(comps []ir.Component) string {
 	return b.String()
 }
 
+// probableDOMFromTree builds the inferred DOM from the additive layout tree
+// (Milestone J), nesting children under their containers and annotating inferred
+// column/row containers + occupancy shares. Falls back to the flat component
+// list when the tree has no meaningful nesting, so output is never worse than
+// the pre-tree behavior.
+func probableDOMFromTree(tree ir.LayoutTree, comps []ir.Component) string {
+	nested := false
+	for _, r := range tree.Roots {
+		if len(r.Children) > 0 {
+			nested = true
+			break
+		}
+	}
+	if len(tree.Roots) == 0 || !nested {
+		return probableDOM(comps)
+	}
+	byID := map[string]ir.Component{}
+	for _, c := range comps {
+		byID[c.ID] = c
+	}
+	var b strings.Builder
+	b.WriteString("<!-- This DOM is INFERRED from screenshot analysis (layout tree), not observed HTML. -->\n")
+	b.WriteString("<div class=\"page\">\n")
+	roots := append([]ir.LayoutNode(nil), tree.Roots...)
+	sort.SliceStable(roots, func(i, j int) bool {
+		if roots[i].BBox.Y0 != roots[j].BBox.Y0 {
+			return roots[i].BBox.Y0 < roots[j].BBox.Y0
+		}
+		return roots[i].BBox.X0 < roots[j].BBox.X0
+	})
+	for _, n := range roots {
+		writeLayoutNode(&b, n, byID, 1)
+	}
+	b.WriteString("</div>\n")
+	return b.String()
+}
+
+func writeLayoutNode(b *strings.Builder, n ir.LayoutNode, byID map[string]ir.Component, depth int) {
+	ind := strings.Repeat("  ", depth)
+	shareAttr := ""
+	if n.Share != nil {
+		shareAttr = fmt.Sprintf(" data-share=\"%.0f%%\"", n.Share.Fraction*100)
+	}
+	if n.Inferred {
+		lbl := ""
+		if n.Label != "" {
+			lbl = fmt.Sprintf(" aria-label=%q", n.Label)
+		}
+		fmt.Fprintf(b, "%s<div class=%q data-inferred=\"true\" data-conf=\"%.2f\"%s%s>\n", ind, n.Kind, n.Confidence, lbl, shareAttr)
+		for _, c := range n.Children {
+			writeLayoutNode(b, c, byID, depth+1)
+		}
+		fmt.Fprintf(b, "%s</div>\n", ind)
+		return
+	}
+	c := byID[n.ComponentID]
+	tag := domTag(c.Type.Value)
+	fmt.Fprintf(b, "%s<%s class=%q data-conf=\"%.2f\"%s>\n", ind, tag, c.Type.Value, c.Confidence, shareAttr)
+	if c.Text != nil && c.Text.Value != "" {
+		fmt.Fprintf(b, "%s  %s\n", ind, c.Text.Value)
+	}
+	for _, ch := range n.Children {
+		writeLayoutNode(b, ch, byID, depth+1)
+	}
+	fmt.Fprintf(b, "%s</%s>\n", ind, tag)
+}
+
+func domTag(t string) string {
+	switch t {
+	case "button", "button_primary":
+		return "button"
+	case "input", "text_field":
+		return "input"
+	case "navigation":
+		return "nav"
+	case "card", "container", "panel", "region":
+		return "section"
+	case "label":
+		return "label"
+	case "image":
+		return "img"
+	default:
+		return "div"
+	}
+}
+
 func writeComponents(b *strings.Builder, comps []ir.Component) {
 	// Group by y-band for ordering.
 	sorted := append([]ir.Component(nil), comps...)

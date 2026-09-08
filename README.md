@@ -47,8 +47,9 @@ Given a screenshot, Refraict:
 - Reconciles overlapping observations into one deduplicated component set.
 - Measures actual pixel colors for each component.
 - Builds a canonical **UI IR** (`page.json`) plus a spatial **relationship graph** (`graph.json`).
+- Derives an additive **layout hierarchy** (`layout.json`): a nesting tree (bordered containers + inferred, confidence-gated columns/rows from aligned siblings) with per-child **measured occupancy shares** — reported as observed fractions, not claimed CSS. Kept separate from the flat component set, so measurement features are unaffected.
 - Generates **region-level** and **page-level** natural-language summaries, then runs a deterministic **grounding guard** that flags summary claims (colors, numbers, quoted text, non-observable behavior) unsupported by the measured evidence.
-- Infers a **probable DOM/UI tree** (clearly marked as inference, not observed).
+- Infers a **probable DOM/UI tree** from the layout hierarchy (clearly marked as inference, not observed).
 
 ### Design principles
 
@@ -460,6 +461,7 @@ out/
 ├── page.json                  # CANONICAL UI IR (components, colors, relationships, summary, provenance)
 ├── page.md                    # page-level natural-language summary
 ├── graph.json                 # spatial relationship graph
+├── layout.json                # additive layout hierarchy (nesting tree + occupancy shares)
 ├── dom.json                   # inferred DOM (marked inferred:true)
 ├── dom.md                     # probable DOM tree (inference)
 ├── crops/
@@ -534,9 +536,9 @@ Tools:
 
 | Tool | Purpose |
 | --- | --- |
-| `analyze` | Run the full pipeline on an image. Returns a bounded summary — page type + confidence, component counts by type, repeated-group count, `corner_styles` (rounded/square per card), container `paddings`, repeated-group `group_spacing` gaps, `text_tiers` (heading/body/caption bands), `text_weights` (regular/heavy font weight), and the `grounding` / `crosscheck` / `consolidation_check` scores — plus `output_dir` and `artifacts` paths. |
+| `analyze` | Run the full pipeline on an image. Returns a bounded summary — page type + confidence, component counts by type, repeated-group count, `corner_styles` (rounded/square per card), container `paddings`, repeated-group `group_spacing` gaps, `text_tiers` (heading/body/caption bands), `text_weights` (regular/heavy font weight), `layout_containers` (inferred columns/rows + occupancy shares), and the `grounding` / `crosscheck` / `consolidation_check` scores — plus `output_dir` and `artifacts` paths. |
 | `inspect` | Deterministic facts (dimensions, SHA-256, format, dominant color). No models; fast. |
-| `get_artifact` | Read back a named artifact (`page_json`, `graph_json`, `page_md`, `page_consolidated`, `dom_md`, `grounding`, `crosscheck`, `merged_components`, `colors`, `ocr`) from a prior `analyze` `output_dir` — pull full detail on demand. |
+| `get_artifact` | Read back a named artifact (`page_json`, `graph_json`, `layout_json`, `page_md`, `page_consolidated`, `dom_md`, `grounding`, `crosscheck`, `merged_components`, `colors`, `ocr`) from a prior `analyze` `output_dir` — pull full detail on demand. |
 
 The design keeps the decision signals (page type, grounding, crosscheck) in the
 `analyze` response so the agent can decide whether to trust the summary or pull
