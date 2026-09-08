@@ -1286,6 +1286,107 @@ AA-sharpen), `swtregpoc` (self-calibrating stroke~height regression), `boldval` 
 `boldval2` (consolidated + icon-exclusion + hybrid filter). Kept as the audit
 trail, like the icon-label reliability PoCs.
 
+**Milestone J — Layout hierarchy + occupancy shares (POC-VALIDATED; ready to build) — 2026-09-08**
+
+Goal: give the agent the LAYOUT STRUCTURE of a UI — which regions nest inside
+which, and how much of a container each child occupies along an axis — so it can
+answer "list A has a header (~10%) and a body (~90%)" style questions and
+reconstruct the DOM far more accurately. Answered as a MEASURED occupancy
+fraction, explicitly NOT a claimed CSS property (flex:1 vs 10% vs a fixed px that
+happens to be 10% are pixel-identical; refraict reports the observed share and
+says "replicate however you like"). Deterministic, no model.
+
+Two producers (a layout TREE) + one consumer (occupancy shares). All POC-
+validated on the hermes-25 (harnesses under dev/, see Audit trail):
+
+  PRODUCER 1 — Bordered nesting (containment tree).
+    The OpenCV region detector already computes enclosure (`encloses[i]`) but
+    `filterNested` deliberately DROPS any box >=90% contained in a larger one
+    ("we want top-level regions... detecting genuine child elements is deferred
+    to the medium-difficulty pass"). Un-suppressing that + relaxing MaxAreaFrac
+    (0.60 filters page-spanning layout regions) and building a containment tree
+    (parent = smallest strictly-containing box) yields real multi-level structure
+    — depth 3-5 on content-rich pages. POC (dev/nestpoc): signup-dark surfaced a
+    456x665 FORM container with 6 tiling vertical children (logo → heading →
+    subtitle → name row → email → password → button → footer), verified visually.
+    Bordered/carded layouts (forms, modals, auth cards, settings panels, task
+    detail) — a large fraction of real UIs — become fully structured.
+
+  PRODUCER 2 — Invisible containers (columns/rows with no border).
+    Whitespace groupings (kanban columns, header/body splits) have no edges, so
+    CV can't find them; they must be INFERRED from alignment. The naive approach
+    (cluster raw boxes by shared x/y band) over-reached — a column absorbed the
+    search bar sharing its x-band. FIX (dev/invcont2poc): SEED from RepeatedGroups
+    (Milestone B — same-type, regularly-spaced sibling sets) instead of raw
+    boxes, and gate by regularity (confidence = 1 - GapSpread/GapMedian; withhold
+    < 0.5). This nails it: board-dark's TO DO (4) / IN PROGRESS (3) / IN REVIEW
+    (2) columns are recovered EXACTLY (verified visually — no search-bar over-
+    reach), each already NAMED via Milestone E header association, while icon/
+    symbol noise clusters (GapSpread 283-1204) are withheld at conf 0.00. Reuses
+    B (groups) + E (headers) + G (gap regularity) end to end; no new heavy CV.
+    (Impl note: the RepeatedGroup Axis label reads inverted for this use — a
+    vertical column of cards is Axis="x" because members share x — flip the
+    naming in the real impl; geometry is correct.)
+
+  CONSUMER — Occupancy shares (the flexbox/percentage question).
+    For a container with direct children stacked on an axis: child_share =
+    child_extent / children_span, plus a gap_fraction for unallocated space, and
+    a tiling score (children coverage of the parent inner box) as confidence.
+    Pure box arithmetic on the tree (dev/sharepoc). CRITICAL PREREQUISITE the POC
+    proved: this is meaningless on the FLAT component set — 41/58 "containers"
+    there had overlapping children (co-located card content, not tiling
+    siblings), fractions summing >200%. It only works ON the layout tree above,
+    where children genuinely partition an axis. So Producer 1/2 are hard
+    prerequisites, not optional.
+
+ARCHITECTURE — additive layer, `merged` stays canonical (HARD CONSTRAINT to
+avoid regressions). Analysis of the blast radius: ~15 features consume the flat
+`merged` set (colors, graph, padding, repeated-groups, corner-styles, crosscheck,
+DOM, page-type, tiers, weight, page.json, MCP...). Injecting the nested tree INTO
+`merged` would regress several: `graph.Build` is O(n²) and would emit a `contains`
+edge per nesting level (exploding relationships + corrupting Milestone G padding
+against grandchildren); page-type/crosscheck/pageConfidence counts would shift;
+and filterNested's revival brings back the exact OpenCV artifacts (double-contour
+twins, chart-gridline boxes) it was added to kill — page.json bloat. Therefore:
+  - Keep the FLAT `merged` set canonical. Every per-element MEASUREMENT feature
+    (colors, corner-style, text tier, text weight, crosscheck) stays flat,
+    independent, unregressed — these are leaf-node MEASURED facts, orthogonal to
+    nesting and higher-confidence than the inferred tree.
+  - Emit the hierarchy as a SEPARATE additive artifact (`layout.json` /
+    `Graph.LayoutTree`) that REFERENCES component IDs (like RepeatedGroup.
+    MemberIDs / Relationship.A,B / Component.Children already do), never owns or
+    mutates components, and carries its own confidence so consumers withhold when
+    the grouping is uncertain — without that uncertainty leaking into the flat
+    measurements.
+  - Only STRUCTURAL features opt in: DOM inference (the biggest win — it is
+    currently the weakest, guessiest output and is EXACTLY what a measured layout
+    tree is for; rewiring `probableDOM` to consume the tree is the highest-value
+    single use, above flex-share), padding (grandchild-contamination fix),
+    occupancy shares, and summary framing.
+  Same additive pattern every prior milestone (B/E/G, tiers, weight) used — none
+  regressed others because none changed the reconciled set.
+
+ACCEPTANCE GATE (regression guard): on the hermes-25, component count, Milestone
+G padding numbers, and crosscheck scores must be UNCHANGED vs pre-milestone
+(the layout tree is purely additive). Inferred containers must be confidence-
+gated (regularity >= threshold) and withhold ambiguous clusters.
+
+Known limits: invisible-container inference is bounded by RepeatedGroup detection
+(needs >=2 regularly-spaced same-type siblings — a 2-child header/body split with
+dissimilar children won't seed a group and stays unstructured unless bordered);
+reliability of occupancy shares scales with detection completeness (a missed
+child skews fractions — gate on the tiling score). The flex/percentage INTENT
+(distinguishing flex:1 from 10% from 48px) is NOT deterministically recoverable
+from one screenshot and stays out of scope (belongs in the inferred DOM, marked
+inference).
+
+Audit trail: dev/sharepoc (occupancy on flat set — showed the prerequisite),
+dev/nestpoc (bordered containment tree), dev/invcontpoc (naive invisible — over-
+reach), dev/invcont2poc (RepeatedGroup-seeded + gated — the validated approach).
+The `filterNested` refactor (moved from the inner pass to the top-level
+`DetectRegionsOpenCV`, behavior-preserving, tests green) and the POC-only
+`DetectRegionsOpenCVRawPOC` export are in place for the build.
+
 ### 2026-09-06 — OCR adapter moved to scripts/refraict-ocr; Go-rewrite milestone
 
 The OCR adapter was living in the gitignored `e2e-test/` dir (never tracked) even

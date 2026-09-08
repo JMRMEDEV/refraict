@@ -93,14 +93,14 @@ func DetectRegionsOpenCV(img image.Image, opts OpenCVRegionOptions) ([]RegionBox
 		return nil, err
 	}
 	if opts.CLAHEClip <= 0 {
-		return base, nil
+		return filterNested(base), nil
 	}
 	// Pass 2: CLAHE-enhanced (faint cards on flat UIs).
 	enhanced, err := detectRegionsOnceOpenCV(img, opts, opts.CLAHEClip)
 	if err != nil {
-		return base, nil // pass-1 result is still useful
+		return filterNested(base), nil // pass-1 result is still useful
 	}
-	return unionRegionBoxes(base, enhanced, 0.6), nil
+	return filterNested(unionRegionBoxes(base, enhanced, 0.6)), nil
 }
 
 // unionRegionBoxes merges two box sets, dropping a box from `add` when it
@@ -285,7 +285,26 @@ func detectRegionsOnceOpenCV(img image.Image, opts OpenCVRegionOptions, claheCli
 			FillRatio: fill,
 		})
 	}
-	return filterNested(dedupeBoxesIoU(out)), nil
+	return dedupeBoxesIoU(out), nil
+}
+
+// DetectRegionsOpenCVRawPOC returns the deduped boxes WITHOUT the filterNested
+// flatten — i.e. keeping nested boxes so a containment tree can be built. POC
+// ONLY (dev/nestpoc, layout-container/nesting experiment); not used by the
+// shipping pipeline.
+func DetectRegionsOpenCVRawPOC(img image.Image, opts OpenCVRegionOptions) ([]RegionBox, error) {
+	base, err := detectRegionsOnceOpenCV(img, opts, 0)
+	if err != nil {
+		return nil, err
+	}
+	if opts.CLAHEClip <= 0 {
+		return base, nil
+	}
+	enhanced, err := detectRegionsOnceOpenCV(img, opts, opts.CLAHEClip)
+	if err != nil {
+		return base, nil
+	}
+	return unionRegionBoxes(base, enhanced, 0.6), nil
 }
 
 // dedupeBoxesIoU removes near-duplicate boxes. Contour trees commonly yield an
