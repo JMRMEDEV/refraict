@@ -368,6 +368,15 @@ func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error
 	nHints := detect.AttachSemanticHints(merged)
 	slog.Info("attached semantic hints", "count", nHints)
 
+	// Typography hierarchy (Milestone H): cluster text components by OCR text
+	// height into heading/body/caption tiers and label each. Deterministic
+	// post-OCR geometry — no model, no extra OCR pass. A size proxy, not font
+	// weight/family (which Tesseract cannot observe).
+	if cfg.Analysis.DetectTextTiers {
+		nTiers := detect.AttachTextTiers(merged, detect.DefaultTierOptions())
+		slog.Info("attached text tiers", "count", nTiers)
+	}
+
 	// Corner-style detection (Milestone F): rounded|square per card/region/panel,
 	// measured from pixels — lets an agent settle "rounded vs square" visual
 	// disputes deterministically. No model.

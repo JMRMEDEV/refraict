@@ -1117,6 +1117,40 @@ LAZY (only when the hierarchy signal is requested), so the second OCR pass is no
 paid on every analyze. No global default change; no new mechanism (reuses the
 existing env override).
 
+**Milestone H — Typography hierarchy (font-size tiering) — DONE (2026-09-07)**
+Implemented per the locked design as a POST-OCR analysis on the token/component
+heights refraict already has (NOT a second OCR pass — the POC confirmed tier
+CLUSTERING is independent of OCR line grouping, so the psm-11 rescan was
+unnecessary for tiering itself and would only have helped column line-grouping,
+which tiering does not need). `detect.AttachTextTiers` clusters the text
+components' measured heights into up to three size bands via a deterministic
+1-D k-means (quantile-seeded, no randomness), ranks the bands largest-first, and
+labels each text component with `ir.TextTier{tier: heading|body|caption, level,
+height_px, confidence}` (in page.json). A band-separation guard
+(`MinBandSeparation`, default 0.18 of the larger center) collapses to all-`body`
+on uniform-size pages so no spurious heading is invented; `confidence` is a
+silhouette-style margin (how much closer the height is to its own band center vs
+the nearest other band). It is a SIZE proxy only — explicitly NOT font
+weight/family, which Tesseract cannot observe. Gated by
+`analysis.detect_text_tiers` (default on); pure geometry, no model, no extra OCR.
+The MCP `analyze` summary surfaces a BOUNDED per-band rollup (`text_tiers`:
+tier/level/count/min-max height) rather than every component. Verified e2e on
+deep-seek-ui.png: three clean non-overlapping bands (heading 24–60px ×10, body
+13–22px ×19, caption 9–12px ×11). Unit-tested (3-band, 2-band, uniform-collapse,
+non-text-skip, no-overwrite, empty, band confidence). Validated on the
+hermes-stress 25-image set (login-light: heading 22px ×1 / body 12–15 / caption
+8–9; settings-dark, board-dark, profile-light: clean 3-tier splits with headings
+24–43px well above body 14–22px). Dense pages (board-dark, voirel-task-detail,
+profile-light) initially showed the caption band's min height dipping to 2–3px —
+OCR mis-boxes (e.g. a 3px "see"), not real captions. FIXED in the same milestone:
+`AttachTextTiers` drops degenerate tokens whose height is below `MinHeightFrac`
+(default 0.35) of the page's MEDIAN text height BEFORE clustering, so they are
+left untiered (they remain text components for grounding/recovery — the shared
+psm-6 OCR corpus is untouched) and no longer pollute the caption floor. A guard
+falls back to tiering all when filtering would leave <2 candidates (uniformly-tiny
+UIs). Post-fix caption floors: board-dark 7px, voirel-task-detail 8px,
+profile-light 9px; clean-page login-light unchanged.
+
 ### 2026-09-06 — OCR adapter moved to scripts/refraict-ocr; Go-rewrite milestone
 
 The OCR adapter was living in the gitignored `e2e-test/` dir (never tracked) even

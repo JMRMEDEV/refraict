@@ -110,6 +110,11 @@ type Component struct {
 	// git_branch_ref). Kept distinct from Semantic (VLM-voted labels): this is
 	// pattern-matched, not model-inferred, so the agent knows it's rule-based.
 	SemanticHint *SemanticHint  `json:"semantic_hint,omitempty"`
+	// Tier is a deterministic typographic-hierarchy band (heading/body/caption)
+	// derived from the component's OCR text height relative to the page
+	// (Milestone H). Set only on text components when a hierarchy signal is
+	// requested; nil otherwise. A size proxy, not font weight/family.
+	Tier *TextTier `json:"tier,omitempty"`
 	// CornerStyle is a deterministic rounded|square classification of a
 	// card/region/panel's corners, measured from pixels (Milestone F). Empty when
 	// not applicable or low-confidence. Lets an agent settle "rounded vs square"
@@ -207,4 +212,25 @@ type Padding struct {
 	Top          int  `json:"top"`
 	Bottom       int  `json:"bottom"`
 	ContentFills bool `json:"content_fills"`
+}
+
+// TextTier is a deterministic typographic-hierarchy classification of a text
+// component, derived from OCR token heights (Milestone H — typography hierarchy).
+// Tesseract does not report font metrics, but glyph HEIGHT is a reliable proxy
+// for relative font size on a rendered UI. Refraict clusters the measured text
+// heights on a page into up to three size bands and labels each text component
+// with its band, so a consuming agent can tell a heading from body copy from a
+// caption without a paid vision read.
+//
+// Tier is the coarse label ("heading" | "body" | "caption"); Level is the
+// numeric rank (0 = largest/most prominent), useful when a page has fewer than
+// three distinct bands. HeightPx is the component's measured text height, and
+// Confidence reflects how cleanly this component's height separates from the
+// neighbouring band (silhouette-style margin), 0..1. It is a size proxy only —
+// NOT font weight/family, which Tesseract cannot observe.
+type TextTier struct {
+	Tier       string  `json:"tier"`  // "heading" | "body" | "caption"
+	Level      int     `json:"level"` // 0 = largest band
+	HeightPx   int     `json:"height_px"`
+	Confidence float64 `json:"confidence"`
 }

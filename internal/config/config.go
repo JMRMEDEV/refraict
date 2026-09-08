@@ -108,6 +108,11 @@ type AnalysisConfig struct {
 	// the crop tight to the element (avoiding neighbor bleed on packed nav
 	// bars); larger values add surrounding context. 0 uses a built-in default.
 	ElementLabelPadFrac float64 `json:"element_label_pad_frac" yaml:"element_label_pad_frac"`
+	// DetectTextTiers enables deterministic typography-hierarchy tiering
+	// (Milestone H): text components are clustered by OCR text height into
+	// heading/body/caption bands and each is labeled with its tier. Pure
+	// post-OCR geometry (no model, no extra OCR pass). Default on.
+	DetectTextTiers bool `json:"detect_text_tiers" yaml:"detect_text_tiers"`
 }
 
 // CacheConfig controls caching behavior. The cache is a file-based JSON store
@@ -199,6 +204,7 @@ func Default() *Config {
 			ElementLabelRuns:    10,
 			ElementLabelThreshold: 0.7,
 			ElementLabelPadFrac: 0.15,
+			DetectTextTiers:     true,
 		},
 		Cache: CacheConfig{
 			Enabled: true,

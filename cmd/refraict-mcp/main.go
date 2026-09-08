@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/refraict/refraict/internal/cli"
@@ -46,6 +47,7 @@ type analyzeOutput struct {
 	RepeatedGroups  int               `json:"repeated_group_count"`
 	CornerStyles    []cornerStyleRef  `json:"corner_styles,omitempty"`
 	Paddings        []paddingRef      `json:"paddings,omitempty"`
+	TextTiers       []tierBandRef     `json:"text_tiers,omitempty"`
 	GroupSpacing    []spacingRef      `json:"group_spacing,omitempty"`
 	Grounding       any               `json:"grounding,omitempty"`
 	CrossCheck      any               `json:"crosscheck,omitempty"`
@@ -96,6 +98,7 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 			out.Counts = countByType(comps)
 			out.CornerStyles = cornerStyleRefs(comps)
 			out.Paddings = paddingRefs(comps)
+			out.TextTiers = tierBandRefs(comps)
 		}
 	}
 	// Repeated-group count from graph.json.
@@ -279,6 +282,71 @@ func paddingRefs(comps []any) []paddingRef {
 	return out
 }
 
+// tierBandRef is a compact typography-hierarchy rollup (Milestone H): one entry
+// per detected size band (heading/body/caption), with how many text components
+// fall in it and the band's text-height range in px. Bounded — it does NOT list
+// every text component (pull page.json for per-component `tier`). A size proxy,
+// not font weight/family.
+type tierBandRef struct {
+	Tier      string `json:"tier"`
+	Level     int    `json:"level"`
+	Count     int    `json:"count"`
+	MinHeight int    `json:"min_height_px"`
+	MaxHeight int    `json:"max_height_px"`
+}
+
+// tierBandRefs rolls up per-component `tier` entries in page.json into one
+// bounded entry per (tier, level) band, ordered largest band first.
+func tierBandRefs(comps []any) []tierBandRef {
+	type acc struct {
+		tier          string
+		level         int
+		count         int
+		minH, maxH    int
+	}
+	bands := map[int]*acc{}
+	for _, c := range comps {
+		m, ok := c.(map[string]any)
+		if !ok {
+			continue
+		}
+		tm, ok := m["tier"].(map[string]any)
+		if !ok || tm == nil {
+			continue
+		}
+		tier, _ := tm["tier"].(string)
+		level := 0
+		if f, ok := tm["level"].(float64); ok {
+			level = int(f)
+		}
+		h := 0
+		if f, ok := tm["height_px"].(float64); ok {
+			h = int(f)
+		}
+		a := bands[level]
+		if a == nil {
+			a = &acc{tier: tier, level: level, minH: h, maxH: h}
+			bands[level] = a
+		}
+		a.count++
+		if h < a.minH {
+			a.minH = h
+		}
+		if h > a.maxH {
+			a.maxH = h
+		}
+	}
+	if len(bands) == 0 {
+		return nil
+	}
+	out := make([]tierBandRef, 0, len(bands))
+	for _, a := range bands {
+		out = append(out, tierBandRef{Tier: a.tier, Level: a.level, Count: a.count, MinHeight: a.minH, MaxHeight: a.maxH})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Level < out[j].Level })
+	return out
+}
+
 // spacingRef is a compact repeated-group spacing entry (Milestone G): the gap
 // median + spread between adjacent siblings (spread ~0 = evenly spaced).
 type spacingRef struct {
@@ -361,7 +429,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze",
-		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
+		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, text_tiers (typography hierarchy heading/body/caption by OCR text height), grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
 	}, analyze)
 
 	mcp.AddTool(server, &mcp.Tool{
