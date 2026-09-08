@@ -538,7 +538,10 @@ Tools:
 | --- | --- |
 | `analyze` | Run the full pipeline on an image. Returns a bounded summary — page type + confidence, component counts by type, repeated-group count, `corner_styles` (rounded/square per card), container `paddings`, repeated-group `group_spacing` gaps, `text_tiers` (heading/body/caption bands), `text_weights` (regular/heavy font weight), `layout_containers` (inferred columns/rows + occupancy shares), and the `grounding` / `crosscheck` / `consolidation_check` scores — plus `output_dir` and `artifacts` paths. |
 | `inspect` | Deterministic facts (dimensions, SHA-256, format, dominant color). No models; fast. |
-| `get_artifact` | Read back a named artifact (`page_json`, `graph_json`, `layout_json`, `page_md`, `page_consolidated`, `dom_md`, `grounding`, `crosscheck`, `merged_components`, `colors`, `ocr`) from a prior `analyze` `output_dir` — pull full detail on demand. |
+| `get_components` | Selectively list components from a prior `output_dir`, filtered server-side (`type`, `has` weight/tier/semantic/corner_style/padding, `text` substring, `tier`, `region` top/bottom/left/right) and projected to only the `fields` you ask for. Bounded by `limit`/`offset`. Returns a small slice, not the whole `page.json`. |
+| `query_text` | Text components joined with their measured `color` + `weight` + `tier` in one compact row (server-side join). Filter by `contains`, `tier`, `weight`, or `near_color` (hex + tolerance). Answers "which texts are blueish?", "the bold texts", "headings and colors" without pulling `colors.json` + `page.json`. |
+| `get_container_children` | Direct children (with measured occupancy `share_pct`) of a layout container by `container_id` or inferred-container `label` (e.g. "TO DO (4)"). Answers "what's in the sidebar / this card / the TO DO column?". |
+| `get_artifact` | Read back a named artifact (`page_json`, `graph_json`, `layout_json`, `page_md`, `page_consolidated`, `dom_md`, `grounding`, `crosscheck`, `merged_components`, `colors`, `ocr`) from a prior `analyze` `output_dir`. Escape hatch for full detail — prefer the selective query tools above, which return a small filtered slice instead of a whole (often hundreds-of-KB) artifact. |
 
 The design keeps the decision signals (page type, grounding, crosscheck) in the
 `analyze` response so the agent can decide whether to trust the summary or pull

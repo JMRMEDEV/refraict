@@ -556,8 +556,23 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_artifact",
-		Description: "Read back a named artifact (page_json, graph_json, page_md, etc.) from a prior analyze output_dir. Use this to pull full detail on demand instead of receiving it all up front.",
+		Description: "Read back a named artifact (page_json, graph_json, page_md, etc.) from a prior analyze output_dir. Use this to pull full detail on demand instead of receiving it all up front. For most questions prefer the selective query tools (get_components, query_text, get_container_children) which return a small filtered slice instead of a whole artifact.",
 	}, getArtifact)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_components",
+		Description: "Selectively list components from a prior analyze output_dir, filtered server-side and projected to only the fields you ask for (default id,type,text,bbox) — returns a small slice, not the whole page.json. Filter by type (text/icon/card/...), has (weight/tier/semantic/corner_style/padding), text substring, tier (heading/body/caption), or region (top/bottom/left/right band). Bounded by limit/offset. Use this for 'which icons?', 'which bold texts?', 'list the cards', 'any non-rounded corners?'.",
+	}, getComponents)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "query_text",
+		Description: "List text components JOINED with their measured color, font weight, and typography tier in one compact row — server-side, so you avoid pulling and cross-referencing colors.json + page.json yourself. Filter by contains (substring), tier, weight (regular/heavy), or near_color (hex + tolerance). Use this for 'which texts are blueish?', 'what are the bold texts?', 'headings and their colors'.",
+	}, queryText)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_container_children",
+		Description: "Return the direct children (with measured occupancy share %) of a layout container from a prior analyze output_dir, by container_id or by inferred-container label (e.g. 'TO DO (4)'). Use this for 'what's inside the sidebar/card X?', 'what's in the TO DO column?', 'how is this container's space divided?'.",
+	}, getContainerChildren)
 
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		fmt.Fprintln(os.Stderr, "refraict-mcp:", err)
