@@ -41,6 +41,7 @@ Given a screenshot, Refraict:
 - Runs OCR to pull visible text tokens with bounding boxes (auto-inverts dark-theme UIs for legibility).
 - Plans a bounded set of **crops** (overview + grid of focused tiles) optimized for small vision models.
 - Synthesizes **components deterministically** from measured evidence: OCR text tokens become text components, and a CV detector finds non-text regions (cards, panels, chart containers). Coordinates and colors are measured, not guessed.
+- Measures **deterministic text properties** per text component (no model): a **typography tier** (heading/body/caption, clustered from OCR text heights) and a **font weight** (regular/heavy, from distance-transform stroke thickness vs the page's own body baseline) — so a consuming agent can tell headings and bold labels from body copy. Both withhold low-confidence calls.
 - Types non-text regions (icon/logo/chart/image) and, for graphic elements, adds a **vote-based semantic label**: the vision model is sampled multiple times per element, canonicalized against an embedded Lucide alias map, and majority-voted — a label is kept only when the runs agree (confidence = agreement ratio), else the element stays unlabeled.
 - Uses a **vision model** on each crop only for a *grounded* natural-language description (constrained to the measured OCR text and colors), not for geometry — small local models cannot emit reliable bounding boxes.
 - Reconciles overlapping observations into one deduplicated component set.
