@@ -546,7 +546,16 @@ Tools:
 The design keeps the decision signals (page type, grounding, crosscheck) in the
 `analyze` response so the agent can decide whether to trust the summary or pull
 the full artifacts; the heavy data stays on disk. OCR (`REFRAICT_OCR_CMD`) and
-Ollama are used the same way as the CLI. Register it with any MCP client, e.g.:
+Ollama are used the same way as the CLI.
+
+> **Cost:** analyze-once + cheap selective text queries beats re-reading the
+> image on every turn. In a measured comparison, a direct multimodal image read
+> cost ~1.93 credits per turn vs ≤0.5 per refraict-backed follow-up (~4× cheaper,
+> compounding over a conversation) — and the refraict facts are *measured* and
+> reusable, not a per-turn description. See
+> [`docs/qa/2026-09-08T14-17-00-cost-comparison.md`](docs/qa/2026-09-08T14-17-00-cost-comparison.md).
+
+Register it with any MCP client, e.g.:
 
 ```json
 {
