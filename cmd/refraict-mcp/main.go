@@ -45,16 +45,37 @@ type analyzeOutput struct {
 	ComponentCount  int               `json:"component_count"`
 	Counts          map[string]int    `json:"component_counts_by_type"`
 	RepeatedGroups  int               `json:"repeated_group_count"`
-	CornerStyles    []cornerStyleRef  `json:"corner_styles,omitempty"`
-	Paddings        []paddingRef      `json:"paddings,omitempty"`
-	TextTiers       []tierBandRef     `json:"text_tiers,omitempty"`
-	TextWeights     []weightRef       `json:"text_weights,omitempty"`
+	// Derived-signal ROLL-UPS (counts, not per-item arrays) to keep the summary
+	// lean — pull per-item detail on demand via the query tools:
+	//   corner styles  -> get_components(has=corner_style)
+	//   paddings       -> get_components(has=padding)
+	//   font weights   -> get_components(type=text,has=weight) / query_text
+	//   layout detail  -> get_container_children / layout_json
+	CornerStyles     *cornerRollup      `json:"corner_styles,omitempty"`
+	PaddingContainers int               `json:"padding_containers,omitempty"`
+	TextTiers        []tierBandRef      `json:"text_tiers,omitempty"`
+	TextWeights      *weightRollup      `json:"text_weights,omitempty"`
 	LayoutContainers []layoutContainerRef `json:"layout_containers,omitempty"`
-	GroupSpacing    []spacingRef      `json:"group_spacing,omitempty"`
+	EvenGroups       int                `json:"evenly_spaced_groups,omitempty"`
 	Grounding       any               `json:"grounding,omitempty"`
 	CrossCheck      any               `json:"crosscheck,omitempty"`
 	ConsolidationOK any               `json:"consolidation_check,omitempty"`
 	Note            string            `json:"note"`
+}
+
+// cornerRollup summarizes corner-style measurements (counts, not per-card list).
+type cornerRollup struct {
+	Rounded  int `json:"rounded"`
+	Square   int `json:"square"`
+	Measured int `json:"measured"`
+}
+
+// weightRollup summarizes font weight (counts + a few sample bold words, not the
+// full per-token list). Full detail via get_components/query_text.
+type weightRollup struct {
+	Heavy       int      `json:"heavy"`
+	Regular     int      `json:"regular"`
+	HeavySample []string `json:"heavy_sample,omitempty"`
 }
 
 func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp.CallToolResult, analyzeOutput, error) {
@@ -81,7 +102,7 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 			"dom_md":              filepath.Join(outDir, "dom.md"),
 			"evidence_dir":        filepath.Join(outDir, "evidence"),
 		},
-		Note: "Summary is bounded; call get_artifact with 'page_json' or 'graph_json' for full detail. page.md is the faithful assembled summary; page-consolidated.md is the gemma-consolidated narrative (see consolidation_check for its grounding).",
+		Note: "Summary is bounded — counts/rollups + decision signals only. For per-item detail use the SELECTIVE query tools (cheap, filtered): get_components (has=corner_style|padding|weight|tier, or type=icon/card/...), query_text (text+color+weight+tier), get_container_children. Use get_artifact only as a last resort (whole files, often 100s of KB). page.md = faithful assembled summary; page-consolidated.md = gemma narrative (see consolidation_check).",
 	}
 
 	// Read the flagship page.json to populate the bounded summary.
@@ -99,19 +120,19 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 		if comps, ok := page["components"].([]any); ok {
 			out.ComponentCount = len(comps)
 			out.Counts = countByType(comps)
-			out.CornerStyles = cornerStyleRefs(comps)
-			out.Paddings = paddingRefs(comps)
+			out.CornerStyles = cornerRollupOf(comps)
+			out.PaddingContainers = countHas(comps, "padding")
 			out.TextTiers = tierBandRefs(comps)
-			out.TextWeights = weightRefs(comps)
+			out.TextWeights = weightRollupOf(comps)
 		}
 	}
-	// Repeated-group count from graph.json.
+	// Repeated-group count + evenly-spaced count from graph.json.
 	if b, rerr := os.ReadFile(filepath.Join(outDir, "graph.json")); rerr == nil {
 		var g map[string]any
 		if json.Unmarshal(b, &g) == nil {
 			if rg, ok := g["repeated_groups"].([]any); ok {
 				out.RepeatedGroups = len(rg)
-				out.GroupSpacing = spacingRefs(rg)
+				out.EvenGroups = evenlySpacedCount(rg)
 			}
 		}
 	}
@@ -218,20 +239,9 @@ func toInt(v any) int {
 	return 0
 }
 
-// cornerStyleRef is a compact per-component corner-style entry surfaced in the
-// analyze summary so an agent can settle a "rounded vs square" dispute without
-// pulling the full page.json.
-type cornerStyleRef struct {
-	ID         string  `json:"id"`
-	Type       string  `json:"type"`
-	Style      string  `json:"style"`
-	Confidence float64 `json:"confidence"`
-}
-
-// cornerStyleRefs extracts the compact corner-style rollup from page.json
-// components (only those that carry a corner_style).
-func cornerStyleRefs(comps []any) []cornerStyleRef {
-	var out []cornerStyleRef
+// cornerRollupOf counts corner-style measurements (rounded/square/total).
+func cornerRollupOf(comps []any) *cornerRollup {
+	r := &cornerRollup{}
 	for _, c := range comps {
 		m, ok := c.(map[string]any)
 		if !ok {
@@ -241,57 +251,82 @@ func cornerStyleRefs(comps []any) []cornerStyleRef {
 		if !ok || cs == nil {
 			continue
 		}
-		id, _ := m["id"].(string)
-		typ := ""
-		if t, ok := m["type"].(map[string]any); ok {
-			typ, _ = t["value"].(string)
+		r.Measured++
+		switch cs["style"] {
+		case "rounded":
+			r.Rounded++
+		case "square":
+			r.Square++
 		}
-		style, _ := cs["style"].(string)
-		conf, _ := cs["confidence"].(float64)
-		out = append(out, cornerStyleRef{ID: id, Type: typ, Style: style, Confidence: conf})
 	}
-	return out
+	if r.Measured == 0 {
+		return nil
+	}
+	return r
 }
 
-// paddingRef is a compact container-padding entry (Milestone G) for the analyze
-// summary. content_fills=false means right/bottom are leftover slack, not real
-// padding.
-type paddingRef struct {
-	ID           string `json:"id"`
-	Type         string `json:"type"`
-	Left         int    `json:"left"`
-	Right        int    `json:"right"`
-	Top          int    `json:"top"`
-	Bottom       int    `json:"bottom"`
-	ContentFills bool   `json:"content_fills"`
+// countHas counts components carrying a given attribute key.
+func countHas(comps []any, key string) int {
+	n := 0
+	for _, c := range comps {
+		if m, ok := c.(map[string]any); ok {
+			if _, has := m[key]; has {
+				n++
+			}
+		}
+	}
+	return n
 }
 
-func paddingRefs(comps []any) []paddingRef {
-	var out []paddingRef
+// weightRollupOf counts font weights and keeps a few sample heavy words.
+func weightRollupOf(comps []any) *weightRollup {
+	r := &weightRollup{}
 	for _, c := range comps {
 		m, ok := c.(map[string]any)
 		if !ok {
 			continue
 		}
-		pm, ok := m["padding"].(map[string]any)
-		if !ok || pm == nil {
+		wm, ok := m["weight"].(map[string]any)
+		if !ok || wm == nil {
 			continue
 		}
-		id, _ := m["id"].(string)
-		typ := ""
-		if t, ok := m["type"].(map[string]any); ok {
-			typ, _ = t["value"].(string)
-		}
-		gi := func(k string) int {
-			if f, ok := pm[k].(float64); ok {
-				return int(f)
+		switch wm["weight"] {
+		case "heavy":
+			r.Heavy++
+			if len(r.HeavySample) < 5 {
+				if t, ok := m["text"].(map[string]any); ok {
+					if v, _ := t["value"].(string); v != "" {
+						r.HeavySample = append(r.HeavySample, v)
+					}
+				}
 			}
-			return 0
+		case "regular":
+			r.Regular++
 		}
-		cf, _ := pm["content_fills"].(bool)
-		out = append(out, paddingRef{ID: id, Type: typ, Left: gi("left"), Right: gi("right"), Top: gi("top"), Bottom: gi("bottom"), ContentFills: cf})
 	}
-	return out
+	if r.Heavy == 0 && r.Regular == 0 {
+		return nil
+	}
+	return r
+}
+
+// evenlySpacedCount counts repeated groups whose members are evenly spaced
+// (gap_spread small relative to gap_median) — a decision signal without the
+// per-group detail (pull graph.json for that).
+func evenlySpacedCount(groups []any) int {
+	n := 0
+	for _, g := range groups {
+		m, ok := g.(map[string]any)
+		if !ok {
+			continue
+		}
+		med, _ := m["gap_median"].(float64)
+		spread, _ := m["gap_spread"].(float64)
+		if med > 0 && spread/med < 0.25 {
+			n++
+		}
+	}
+	return n
 }
 
 // tierBandRef is a compact typography-hierarchy rollup (Milestone H): one entry
@@ -403,102 +438,6 @@ func layoutContainerRefs(lt map[string]any) []layoutContainerRef {
 	return out
 }
 
-// weightRef is a compact font-weight rollup (Milestone I). For "heavy" it names
-// EVERY bold word (with confidence) so an agent knows exactly WHICH words are
-// bold — heavy tokens are few and high-value, so listing them stays bounded. For
-// "regular" (the majority) it reports only a count. Stroke-thickness proxy, not
-// font family; uncertain-band tokens are withheld. Full per-component detail
-// (stroke_px/baseline_px) is in page.json's `weight`.
-type weightRef struct {
-	Weight string       `json:"weight"`
-	Count  int          `json:"count"`
-	Words  []weightWord `json:"words,omitempty"`
-}
-
-// weightWord names a single heavy word and the confidence of the call.
-type weightWord struct {
-	Text       string  `json:"text"`
-	Confidence float64 `json:"confidence"`
-}
-
-// weightRefs rolls up per-component `weight` entries in page.json: one entry per
-// weight class, heavy-first. Heavy lists every bold word + confidence (capped at
-// a generous 100 to bound pathological pages); regular is a count only.
-func weightRefs(comps []any) []weightRef {
-	regular := 0
-	var heavy []weightWord
-	for _, c := range comps {
-		m, ok := c.(map[string]any)
-		if !ok {
-			continue
-		}
-		wm, ok := m["weight"].(map[string]any)
-		if !ok || wm == nil {
-			continue
-		}
-		w, _ := wm["weight"].(string)
-		switch w {
-		case "regular":
-			regular++
-		case "heavy":
-			text := ""
-			if t, ok := m["text"].(map[string]any); ok {
-				text, _ = t["value"].(string)
-			}
-			conf, _ := wm["confidence"].(float64)
-			if len(heavy) < 100 {
-				heavy = append(heavy, weightWord{Text: text, Confidence: conf})
-			}
-		}
-	}
-	if regular == 0 && len(heavy) == 0 {
-		return nil
-	}
-	var out []weightRef
-	if len(heavy) > 0 {
-		out = append(out, weightRef{Weight: "heavy", Count: len(heavy), Words: heavy})
-	}
-	if regular > 0 {
-		out = append(out, weightRef{Weight: "regular", Count: regular})
-	}
-	return out
-}
-
-// spacingRef is a compact repeated-group spacing entry (Milestone G): the gap
-// median + spread between adjacent siblings (spread ~0 = evenly spaced).
-type spacingRef struct {
-	Type      string `json:"type"`
-	Axis      string `json:"axis"`
-	Members   int    `json:"members"`
-	Header    string `json:"header,omitempty"`
-	GapMedian int    `json:"gap_median"`
-	GapSpread int    `json:"gap_spread"`
-}
-
-func spacingRefs(groups []any) []spacingRef {
-	var out []spacingRef
-	gi := func(m map[string]any, k string) int {
-		if f, ok := m[k].(float64); ok {
-			return int(f)
-		}
-		return 0
-	}
-	for _, g := range groups {
-		m, ok := g.(map[string]any)
-		if !ok {
-			continue
-		}
-		mem, _ := m["member_ids"].([]any)
-		if len(mem) < 2 {
-			continue
-		}
-		typ, _ := m["type"].(string)
-		axis, _ := m["axis"].(string)
-		hdr, _ := m["header"].(string)
-		out = append(out, spacingRef{Type: typ, Axis: axis, Members: len(mem), Header: hdr, GapMedian: gi(m, "gap_median"), GapSpread: gi(m, "gap_spread")})
-	}
-	return out
-}
 
 func countByType(comps []any) map[string]int {
 	out := map[string]int{}
@@ -546,7 +485,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze",
-		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, text_tiers (typography hierarchy heading/body/caption by OCR text height), text_weights (font weight regular/heavy by stroke thickness), layout_containers (inferred columns/rows + occupancy shares), grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
+		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a LEAN bounded summary: page type + confidence, component counts by type, roll-up COUNTS for the derived signals (corner_styles rounded/square/measured, padding_containers, text_tiers bands, text_weights heavy/regular + a few sample bold words, layout_containers inferred columns/rows, evenly_spaced_groups) and the grounding/crosscheck/consolidation scores — plus output_dir. For PER-ITEM detail use the selective query tools (get_components, query_text, get_container_children), not get_artifact. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
 	}, analyze)
 
 	mcp.AddTool(server, &mcp.Tool{
