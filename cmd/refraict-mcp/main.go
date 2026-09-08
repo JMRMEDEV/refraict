@@ -22,6 +22,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/refraict/refraict/internal/cli"
 	"github.com/refraict/refraict/internal/imageproc"
+	versionpkg "github.com/refraict/refraict/internal/version"
 )
 
 // ---- analyze ----
@@ -519,4 +520,4 @@ func main() {
 	}
 }
 
-func version() string { return "0.1.0" }
+func version() string { return versionpkg.Version }

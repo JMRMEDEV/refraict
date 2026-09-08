@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      # Maintains a release PR from Conventional Commits; on merge it tags the
+      # version and creates the GitHub Release. Source-only release: refraict is
+      # a CGo tool (needs system OpenCV/Tesseract/Leptonica), so users install
+      # via `go install ...@vX.Y.Z` after installing those libs (see README).
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

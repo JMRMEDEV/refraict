@@ -107,6 +107,20 @@ at runtime. Verify it works:
 ./refraict inspect <some-screenshot.png>   # deterministic, no models needed
 ```
 
+Alternatively, once the system libraries above are installed, install the
+released commands directly with the Go toolchain (they compile the CGo locally
+and land in `$GOPATH/bin`):
+
+```bash
+go install github.com/refraict/refraict/cmd/refraict@latest       # CLI
+go install github.com/refraict/refraict/cmd/refraict-mcp@latest   # MCP server
+```
+
+Because refraict is a CGo tool that links your system's OpenCV/Tesseract/
+Leptonica, releases are **source only** (no prebuilt binaries): install the
+libraries first, then `go install` (or `go build`) compiles against them. Pin a
+version with `@vX.Y.Z` instead of `@latest`.
+
 > **Note on gocv/OpenCV versions:** refraict pins `gocv.io/x/gocv` (see `go.mod`);
 > gocv supports specific OpenCV releases. If the build fails to find OpenCV,
 > confirm `pkg-config --modversion opencv4` reports a 4.x version and that the

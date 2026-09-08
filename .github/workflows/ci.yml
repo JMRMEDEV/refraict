@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+
+      # refraict is CGo: it links system OpenCV 4.x + Tesseract + Leptonica at
+      # build AND runtime (see README). These must be present on the runner.
+      - name: Install system dependencies (OpenCV, Tesseract, Leptonica)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libopencv-dev libtesseract-dev libleptonica-dev \
+            tesseract-ocr-eng pkg-config
+
+      - name: Verify OpenCV is discoverable
+        run: pkg-config --modversion opencv4
+
+      - name: Build (default + opencv tag)
+        run: |
+          go build ./...
+          go build -tags opencv ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test (default + opencv tag)
+        run: |
+          go test ./...
+          go test -tags opencv ./...

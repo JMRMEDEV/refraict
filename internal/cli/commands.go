@@ -17,6 +17,7 @@ import (
 	"github.com/refraict/refraict/internal/model"
 	"github.com/refraict/refraict/internal/ocr"
 	"github.com/refraict/refraict/internal/summarize"
+	"github.com/refraict/refraict/internal/version"
 	"github.com/refraict/refraict/internal/workdir"
 	"github.com/spf13/cobra"
 )
@@ -226,7 +227,7 @@ func newVersionCmd() *cobra.Command {
 		Use:   "version",
 		Short: "Print version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("refraict v0.1.0")
+			fmt.Println("refraict " + version.Version)
 		},
 	}
 }
