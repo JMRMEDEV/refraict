@@ -377,6 +377,16 @@ func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error
 		slog.Info("attached text tiers", "count", nTiers)
 	}
 
+	// Bold/font-weight detection (Milestone I): measure each text component's
+	// stroke thickness (distance-transform SWT + AA-sharpen, OpenCV) and classify
+	// regular|heavy against the page's own body baseline. Icons/logos are excluded
+	// (typed by the region detector); a wordy gate + stroke-sanity ceiling drop
+	// OCR glyph hallucinations. Withholds in the uncertain band. Deterministic.
+	if cfg.Analysis.DetectTextWeight {
+		nWeight := detect.AttachTextWeights(img.AsImage(), merged, detect.DefaultWeightOptions())
+		slog.Info("attached text weights", "count", nWeight)
+	}
+
 	// Corner-style detection (Milestone F): rounded|square per card/region/panel,
 	// measured from pixels — lets an agent settle "rounded vs square" visual
 	// disputes deterministically. No model.

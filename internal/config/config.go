@@ -113,6 +113,11 @@ type AnalysisConfig struct {
 	// heading/body/caption bands and each is labeled with its tier. Pure
 	// post-OCR geometry (no model, no extra OCR pass). Default on.
 	DetectTextTiers bool `json:"detect_text_tiers" yaml:"detect_text_tiers"`
+	// DetectTextWeight enables deterministic bold/font-weight detection
+	// (Milestone I): each text component's stroke thickness is measured (SWT +
+	// AA-sharpen, OpenCV) and classified regular|heavy against the page's own
+	// body baseline. No model. Default on.
+	DetectTextWeight bool `json:"detect_text_weight" yaml:"detect_text_weight"`
 }
 
 // CacheConfig controls caching behavior. The cache is a file-based JSON store
@@ -205,6 +210,7 @@ func Default() *Config {
 			ElementLabelThreshold: 0.7,
 			ElementLabelPadFrac: 0.15,
 			DetectTextTiers:     true,
+			DetectTextWeight:    true,
 		},
 		Cache: CacheConfig{
 			Enabled: true,

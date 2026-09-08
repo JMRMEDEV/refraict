@@ -1151,6 +1151,141 @@ falls back to tiering all when filtering would leave <2 candidates (uniformly-ti
 UIs). Post-fix caption floors: board-dark 7px, voirel-task-detail 8px,
 profile-light 9px; clean-page login-light unchanged.
 
+**Milestone I — Bold / font-weight detection — DONE (2026-09-08)**
+
+Implemented: `detect.AttachTextWeights` (internal/detect/weights.go) attaches
+`ir.TextWeight{weight: regular|heavy, stroke_px, baseline_px, confidence}` to
+text components in page.json, using the validated recipe below. Gated by
+`analysis.detect_text_weight` (default on); runs after AttachTextTiers on the
+reconciled components. The MCP `analyze` summary surfaces `text_weights`: it
+names EVERY heavy word (with confidence) plus a regular count — both refraict
+(page.json, per-component) and MCP point to WHICH words are bold, not just a
+count. Withholds (no attachment) in the uncertain band. Unit-tested (wordy gate,
+confidence, synthetic thick-vs-thin separation, icon/junk exclusion).
+
+Goal: label each text component's font WEIGHT (regular / heavy, with an
+uncertain band; semibold as a lower-confidence stretch tier) so a consuming
+agent can tell a bold heading/button/label from body copy — deterministically,
+local-first, no model. This was investigated exhaustively across a POC series;
+the sections below record the full arc so the decision (and the many rejected
+approaches) is not re-litigated.
+
+Design principle check: font weight is NOT reliably measurable the way height
+(tiering) or corner pixels are — it is a low-dynamic-range signal at screenshot
+resolution — so the bar was "does a deterministic method separate weight on REAL
+UIs with acceptable, gated error." Only the final architecture below cleared it.
+
+PROVEN ARCHITECTURE (multi-step, all deterministic; validated on the hermes 25):
+
+  1. Candidate selection — run on RECONCILED components; keep only `type=="text"`
+     with text. This REUSES existing infrastructure: the OpenCV region detector
+     already types icon/logo/chart/image, and `dub.Reconcile` merges OCR tokens
+     onto graphic regions — so those are excluded for free (same pattern as
+     Milestone H's tier skip). No new icon detection.
+
+  2. Per-token stroke width via distance-transform SWT (gocv, `-tags opencv`):
+       a. crop the token bbox and upscale (~6x) — screenshot glyphs are ~1-3px
+          stroke; measuring needs more pixels (same reason the OCR path upscales).
+       b. AA-AWARE grayscale UNSHARP before Otsu (amount ~3.0) — THE KEY STEP.
+          Regular strokes at low res are mostly anti-aliased soft edge; sharpening
+          thins them MORE than a bold stroke's solid core, widening the bold/
+          regular gap (measured: bold/regular stroke ratio 1.43 -> 1.76 as sharpen
+          0 -> 3). Without this the classes overlap and bold headings are missed.
+       c. Otsu binarize (auto-polarity for dark themes), distance-transform
+          (DistL2), stroke width = 2 * mean(top-20% ridge DT values). SWT is robust
+          to caps/tracking/glyph-mix where run-length ÷ height (`swPerH`) is not.
+
+  3. Self-calibrating classification — NO synthetic reference font (those fail on
+     calibration: a fixed font pool's bold is systematically heavier/lighter than
+     the UI's actual bold). Instead compute the PAGE'S OWN regular-body baseline =
+     median SWT stroke over body-tier tokens (height <= 1.3*median height; body
+     text is overwhelmingly regular). Classify: HEAVY if stroke >= baseline *
+     1.45; `uncertain` in a band just below (withhold — grounding-guard pattern);
+     else regular. Self-calibration was stable across all 25 pages (baseline ~9-11
+     stroke, light & dark themes).
+
+  4. Three-layer junk filter (icons that OCR hallucinated into text-like strings
+     still slip step 1 when they are small INLINE glyphs the region detector does
+     not type as graphic — e.g. an avatar OCR'd as "'@'", a gear as "£63", a
+     folder as "(C3)"):
+       (a) region-type exclusion [step 1] — card/panel-sized icons/logos/charts.
+       (b) letter-ratio "wordy" gate — require >=2 letters AND >=55% of non-space
+           chars are letters. Kills symbol soup ("@", "£63", "@®"). Validated: it
+           removed every pure-symbol FP on the stress set.
+       (c) stroke-sanity ceiling — reject stroke > 3x the body baseline as non-text
+           (physically impossible for real text; it is icon contamination). Killed
+           the glyph+text merged FPs ("ene: VOIREL"@45px, "| Sprint Board"@31px).
+
+VALIDATION (hermes 25 downsampled; per-page + a 14-word hand-labeled accuracy
+check verified against pixels):
+- Genuine headings/titles/buttons and thin body/labels classified correctly,
+  INCLUDING the hard cases every earlier approach missed (Settings, VÖIREL,
+  Profile, Implement, "Sign in to your account" H1, kanban column headers).
+- 14-word labeled sample: 10 correct, 2 correctly WITHHELD as uncertain, 2 clear
+  misses. Errors after the 3-layer filter concentrate in: 2-letter icon labels
+  that are all-letters ("OF" — a grid glyph; passes the wordy gate, stroke only
+  ~1.6x baseline so the ceiling can't catch it), thin ALL-CAPS ("List" — caps
+  read slightly heavy), and one low-contrast red bold button ("Deactivate")
+  under-called into the uncertain band. All firmly "a cloud VLM would also fumble
+  these" cases.
+
+REMAINING IMPLEMENTATION REFINEMENTS (before/at build): caps-aware normalization
+(all-caps measures ~10% heavier — normalize to fix "List"); resolution-dependent
+confidence (margin shrinks at small sizes / low DPI — reliability scales with
+input resolution); semibold as a third, LOW-CONFIDENCE tier only (the
+semibold↔bold boundary is ~5px at these sizes — regular-vs-heavy is the robust
+cut). Attach `ir.TextWeight{weight: regular|heavy, stroke_px, confidence}` to
+text components (gated; withhold in the uncertain band), behind an
+`analysis.detect_text_weight` toggle, sitting after AttachTextTiers in the
+pipeline (both consume reconciled text components).
+
+APPROACHES INVESTIGATED AND REJECTED (with the killer evidence for each — do not
+retry without new inputs/model):
+- OCR-native `is_bold` (Tesseract `WordFontAttributes`) — DEAD. Only the LEGACY
+  engine populated it; our LSTM build (`--oem` default) does not, and gosseract
+  v2.4.1 exposes no font-attribute API. Would need a fork + legacy model.
+- Isolated-crop stroke width — weak signal (MAD/median ~0.13); top outliers were
+  OCR noise, not bold.
+- VLM (gemma3:4b) weight perception — has essentially NO discriminative ability
+  for weight and a fixed positional/answer bias. Verified on clean SYNTHETIC
+  bold-vs-regular pairs: "regular" for both, thickness "3/10" for both; the
+  collage/comparative framing only exposed the bias more. A vision model is the
+  wrong tool for this perceptual discrimination at this scale.
+- Collage relative stroke (compare tokens to each other) — confounded by glyph
+  shape (two same-weight words differ ~1.5x in stroke).
+- Synthetic same-word template matching (render "Settings" bold/regular, compare)
+  — worked on medium/large clean text, FAILED on small/caps and on CALIBRATION
+  (reference font weight != UI font weight); multi-font averaging did not fix the
+  directional offset.
+- Relative `swPerH` (stroke ÷ height) vs body baseline — FAILED: on real UIs
+  weight and size covary, and at screenshot res sw/xh actually INVERTS (a bold
+  heading is bigger, its stroke scales sub-proportionally, so its stroke-per-
+  height is LOWER than body). Measured directly: Settings sw/xh 0.126 < Manage
+  0.164.
+- Preprocessing / vectorization to "recover" strokes — potrace vectorization
+  NORMALIZES weight away (its stroke is set by the mkbitmap threshold, not the
+  source) and made bold ≈ regular; confirmed the signal isn't a contrast problem.
+  (Note: distinct from the earlier vtracer-for-VLM rejection — this was for pixel
+  measurement, and separately fails.) Learned super-resolution rejected upfront:
+  it would HALLUCINATE stroke thickness, corrupting the measured quantity, and
+  needs a model.
+- English-dictionary junk filter — REJECTED. Orthogonal to the actual problem:
+  it KEEPS "OF"/"£63" (real word / plausible currency, but here they are icons)
+  and would WRONGLY DROP proper-noun headings (VÖIREL, Hermes) that dictionaries
+  lack — exactly the bold text we most want. "Is-English-word" != "is-text-vs-icon".
+- Text-model plausibility gate ("does '£63' seem like text given the page title?")
+  — REJECTED. Cannot undo an icon→string hallucination from TEXT alone: the
+  hallucinated string looks fine ("£63" is a plausible price); only the PIXELS
+  reveal it is a gear icon, which refraict already measures deterministically.
+  Would add paid/probabilistic calls to replace a free, exact signal — against
+  the local-first, measure-what-is-measurable principle.
+
+Audit trail: five throwaway POC harnesses under `dev/` — `strokepoc` (run-length +
+VLM vote), `collagemeasure` (common-frame), `swtpoc` (distance-transform SWT +
+AA-sharpen), `swtregpoc` (self-calibrating stroke~height regression), `boldval` /
+`boldval2` (consolidated + icon-exclusion + hybrid filter). Kept as the audit
+trail, like the icon-label reliability PoCs.
+
 ### 2026-09-06 — OCR adapter moved to scripts/refraict-ocr; Go-rewrite milestone
 
 The OCR adapter was living in the gitignored `e2e-test/` dir (never tracked) even

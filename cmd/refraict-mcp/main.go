@@ -48,6 +48,7 @@ type analyzeOutput struct {
 	CornerStyles    []cornerStyleRef  `json:"corner_styles,omitempty"`
 	Paddings        []paddingRef      `json:"paddings,omitempty"`
 	TextTiers       []tierBandRef     `json:"text_tiers,omitempty"`
+	TextWeights     []weightRef       `json:"text_weights,omitempty"`
 	GroupSpacing    []spacingRef      `json:"group_spacing,omitempty"`
 	Grounding       any               `json:"grounding,omitempty"`
 	CrossCheck      any               `json:"crosscheck,omitempty"`
@@ -99,6 +100,7 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 			out.CornerStyles = cornerStyleRefs(comps)
 			out.Paddings = paddingRefs(comps)
 			out.TextTiers = tierBandRefs(comps)
+			out.TextWeights = weightRefs(comps)
 		}
 	}
 	// Repeated-group count from graph.json.
@@ -347,6 +349,67 @@ func tierBandRefs(comps []any) []tierBandRef {
 	return out
 }
 
+// weightRef is a compact font-weight rollup (Milestone I). For "heavy" it names
+// EVERY bold word (with confidence) so an agent knows exactly WHICH words are
+// bold — heavy tokens are few and high-value, so listing them stays bounded. For
+// "regular" (the majority) it reports only a count. Stroke-thickness proxy, not
+// font family; uncertain-band tokens are withheld. Full per-component detail
+// (stroke_px/baseline_px) is in page.json's `weight`.
+type weightRef struct {
+	Weight string       `json:"weight"`
+	Count  int          `json:"count"`
+	Words  []weightWord `json:"words,omitempty"`
+}
+
+// weightWord names a single heavy word and the confidence of the call.
+type weightWord struct {
+	Text       string  `json:"text"`
+	Confidence float64 `json:"confidence"`
+}
+
+// weightRefs rolls up per-component `weight` entries in page.json: one entry per
+// weight class, heavy-first. Heavy lists every bold word + confidence (capped at
+// a generous 100 to bound pathological pages); regular is a count only.
+func weightRefs(comps []any) []weightRef {
+	regular := 0
+	var heavy []weightWord
+	for _, c := range comps {
+		m, ok := c.(map[string]any)
+		if !ok {
+			continue
+		}
+		wm, ok := m["weight"].(map[string]any)
+		if !ok || wm == nil {
+			continue
+		}
+		w, _ := wm["weight"].(string)
+		switch w {
+		case "regular":
+			regular++
+		case "heavy":
+			text := ""
+			if t, ok := m["text"].(map[string]any); ok {
+				text, _ = t["value"].(string)
+			}
+			conf, _ := wm["confidence"].(float64)
+			if len(heavy) < 100 {
+				heavy = append(heavy, weightWord{Text: text, Confidence: conf})
+			}
+		}
+	}
+	if regular == 0 && len(heavy) == 0 {
+		return nil
+	}
+	var out []weightRef
+	if len(heavy) > 0 {
+		out = append(out, weightRef{Weight: "heavy", Count: len(heavy), Words: heavy})
+	}
+	if regular > 0 {
+		out = append(out, weightRef{Weight: "regular", Count: regular})
+	}
+	return out
+}
+
 // spacingRef is a compact repeated-group spacing entry (Milestone G): the gap
 // median + spread between adjacent siblings (spread ~0 = evenly spaced).
 type spacingRef struct {
@@ -429,7 +492,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze",
-		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, text_tiers (typography hierarchy heading/body/caption by OCR text height), grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
+		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a bounded summary (page type + confidence, component counts, corner_styles rounded/square per card, container paddings, repeated-group spacing gaps, text_tiers (typography hierarchy heading/body/caption by OCR text height), text_weights (font weight regular/heavy by stroke thickness), grounding + crosscheck scores) and paths to on-disk artifacts. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
 	}, analyze)
 
 	mcp.AddTool(server, &mcp.Tool{

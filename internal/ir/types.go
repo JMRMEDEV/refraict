@@ -115,6 +115,12 @@ type Component struct {
 	// (Milestone H). Set only on text components when a hierarchy signal is
 	// requested; nil otherwise. A size proxy, not font weight/family.
 	Tier *TextTier `json:"tier,omitempty"`
+	// Weight is a deterministic font-weight classification (regular|heavy) of a
+	// text component, measured from stroke thickness relative to the page's own
+	// body baseline (Milestone I). Set only on text components when a clear call
+	// can be made; nil when withheld (uncertain band) or not applicable. A
+	// stroke-thickness proxy, not font family.
+	Weight *TextWeight `json:"weight,omitempty"`
 	// CornerStyle is a deterministic rounded|square classification of a
 	// card/region/panel's corners, measured from pixels (Milestone F). Empty when
 	// not applicable or low-confidence. Lets an agent settle "rounded vs square"
@@ -232,5 +238,25 @@ type TextTier struct {
 	Tier       string  `json:"tier"`  // "heading" | "body" | "caption"
 	Level      int     `json:"level"` // 0 = largest band
 	HeightPx   int     `json:"height_px"`
+	Confidence float64 `json:"confidence"`
+}
+
+// TextWeight is a deterministic font-WEIGHT classification of a text component
+// (Milestone I — bold/font-weight detection). Tesseract exposes no weight, so
+// refraict measures stroke thickness from PIXELS: a distance-transform SWT on an
+// AA-sharpened, upscaled crop, compared to the PAGE'S OWN regular-body baseline
+// (self-calibrating — no synthetic reference font). It is a stroke-thickness
+// proxy, NOT font family, and reliability scales with input resolution.
+//
+// Weight is the coarse label ("regular" | "heavy"); "heavy" covers semibold and
+// bold, which are not reliably separable at screenshot resolution. StrokePx is
+// the measured SWT stroke width; BaselinePx is the page regular-body baseline it
+// was compared against; Confidence is the margin of the call (0..1). A component
+// left in the uncertain band carries no TextWeight (withheld), matching the
+// grounding-guard "withhold when unsure" stance.
+type TextWeight struct {
+	Weight     string  `json:"weight"` // "regular" | "heavy"
+	StrokePx   float64 `json:"stroke_px"`
+	BaselinePx float64 `json:"baseline_px"`
 	Confidence float64 `json:"confidence"`
 }
