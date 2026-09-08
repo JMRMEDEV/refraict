@@ -272,6 +272,43 @@ scoped to the calling agent (Gap 7 re-scope); the milestones below narrow both
 gaps by emitting richer STRUCTURED SIGNALS that make the agent's job trivially
 easier, without refraict crossing the "emit evidence, don't assemble" boundary.
 
+### Gap re-score: refraict vs. vision-LLM (`fs_read`) — 2026-09-08 (post A–J)
+
+Updated after shipping Milestones A–J (containment/graph, repeating groups,
+page-type, semantic hints, header association, corner style, padding/gaps, icon
+typing+labeling, typography tiers, font weight, and the additive layout
+hierarchy + occupancy shares) and an end-to-end reconstruction test (a Kiro
+agent rebuilt `journeys.png` from refraict facts alone — see
+`docs/qa/2026-09-08T15-15-00-reconstruction.md`).
+
+| Dimension                | fs_read  | refraict (09-03) | refraict (now) | Note |
+| ---                      | ---      | ---              | ---            | --- |
+| Text extraction          | 9/10     | 9/10             | 9/10           | ~parity (in-process Tesseract) |
+| Color accuracy           | 7/10 est | 10/10 px         | 10/10 px       | measured hex; fg-vs-glyph precision is the open refinement |
+| Geometry / positioning   | 0/10     | 10/10            | 10/10          | measured, exhaustive |
+| Structural assembly      | 9/10     | **3/10**         | **~7/10**      | Milestone J: layout tree (bordered nesting + inferred columns/rows) + occupancy shares; DOM consumes it. Gap narrowed most here. |
+| Semantic interpretation  | 9/10     | 5/10             | **~6-7/10**    | element labels (Gap 6), semantic hints (D), tiers (H), weight (I) add grounded signal; deep intent still favors fs_read |
+| Typography detail        | ~6/10    | (n/a)            | **8/10**       | NEW: size tiers (H) + stroke-based weight (I) — measured, fs_read only estimates |
+| Non-text element ID      | 8/10     | (n/a)            | **7/10**       | icon/logo/chart typing + vote-based labels (Gap 6); icon VECTOR SHAPE not captured |
+
+Net: refraict now **leads or ties fs_read on every MEASURABLE dimension** (text,
+color, geometry, typography) and has closed most of the structural-assembly gap
+via the additive layout hierarchy. The reconstruction test confirmed this
+empirically — the rebuild was faithful wherever refraict measures, and degraded
+HONESTLY where it does not.
+
+Remaining true gaps vs a vision-LLM (all either agent-scoped or narrow tool
+refinements, none fundamental):
+1. **Deep semantic intent / cross-element reasoning** — deliberately scoped to
+   the calling AGENT (Gap 7 re-scope): refraict emits evidence, the agent
+   reasons. This is by design, not a deficiency.
+2. **Un-measured graphics** — a chart/route graphic's internal shape and icon
+   VECTOR shapes are typed/labeled but not captured as geometry (the
+   reconstruction's empty route box + generic icons). Candidate: vectorize icon
+   glyphs FOR reconstruction (distinct from the rejected vectorize-for-VLM PoC).
+3. **fg-vs-glyph color precision** — a color sample can capture the region
+   background rather than the exact glyph ink; a per-glyph refinement.
+
 ### Next milestones (narrowing structural + semantic gaps)
 
 Ordered by leverage × simplicity, all deterministic, no new model:
