@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/JMRMEDEV/refraict/compare/v0.2.0...v0.3.0) (2026-09-10)
+
+
+### Features
+
+* cap get_artifact, lean page.json (v2) ([8649b06](https://github.com/JMRMEDEV/refraict/commit/8649b069ac0734b62e863b5720486515884faf33))
+
 ## [0.2.0](https://github.com/JMRMEDEV/refraict/compare/v0.1.0...v0.2.0) (2026-09-08)
 
 
