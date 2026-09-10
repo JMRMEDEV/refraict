@@ -472,7 +472,7 @@ Refraict reads a JSON config file (`--config refraict.json`). Any omitted fields
 out/
 ├── manifest.json              # image path, sha256, dimensions, timestamp
 ├── overview.png               # resized overview image
-├── page.json                  # CANONICAL UI IR (components, colors, relationships, summary, provenance)
+├── page.json                  # CANONICAL UI IR (components, colors, summary, provenance)
 ├── page.md                    # page-level natural-language summary
 ├── graph.json                 # spatial relationship graph
 ├── layout.json                # additive layout hierarchy (nesting tree + occupancy shares)
@@ -491,7 +491,7 @@ out/
     └── grounding.json         # grounding-guard report (claims unsupported by evidence)
 ```
 
-**`page.json`** is the key reusable artifact — feed it to any LLM as structured UI context. It includes schema version, components, colors, relationship elements, the page summary, and full provenance of every model backend.
+**`page.json`** is the key reusable artifact — feed it to any LLM as structured UI context. It includes schema version, components, colors, the page summary, and full provenance of every model backend. (The spatial relationship edges live in **`graph.json`**, not `page.json`, as of schema `ui-ir-v2` — they were previously duplicated in both.)
 
 ---
 

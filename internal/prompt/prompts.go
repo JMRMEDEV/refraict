@@ -20,7 +20,10 @@ const (
 )
 
 // SchemaVersion identifies the canonical UI IR schema.
-const SchemaVersion = "ui-ir-v1"
+// v2 (2026-09-09): dropped the redundant `relationships_elements` from page.json
+// (it duplicated graph.json.relationships verbatim; edges now live only in
+// graph.json — read them via get_artifact("graph_json") / get_container_children).
+const SchemaVersion = "ui-ir-v2"
 
 // BuildCropPrompt constructs a GROUNDED per-crop analysis prompt. Instead of
 // demanding a strict JSON schema with bounding boxes (which small local VLMs

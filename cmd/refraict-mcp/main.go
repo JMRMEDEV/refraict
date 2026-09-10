@@ -58,11 +58,28 @@ type analyzeOutput struct {
 	TextWeights      *weightRollup      `json:"text_weights,omitempty"`
 	LayoutContainers []layoutContainerRef `json:"layout_containers,omitempty"`
 	EvenGroups       int                `json:"evenly_spaced_groups,omitempty"`
+	// Bounded samples so the two commonest follow-ups ("what are the headings?",
+	// "what colors?") are answerable from the resident summary WITHOUT any extra
+	// tool call. Capped (<= sampleHeadingsMax / topColorsMax); full detail via
+	// query_text (headings) / get_components(has=... ) / colors artifact.
+	SampleHeadings  []string          `json:"sample_headings,omitempty"`
+	TopColors       []colorCount      `json:"top_colors,omitempty"`
 	Grounding       any               `json:"grounding,omitempty"`
 	CrossCheck      any               `json:"crosscheck,omitempty"`
 	ConsolidationOK any               `json:"consolidation_check,omitempty"`
 	Note            string            `json:"note"`
 }
+
+// colorCount is a measured dominant color + how many components carry it.
+type colorCount struct {
+	Hex   string `json:"hex"`
+	Count int    `json:"count"`
+}
+
+const (
+	sampleHeadingsMax = 8
+	topColorsMax      = 8
+)
 
 // cornerRollup summarizes corner-style measurements (counts, not per-card list).
 type cornerRollup struct {
@@ -125,8 +142,12 @@ func analyze(ctx context.Context, _ *mcp.CallToolRequest, in analyzeInput) (*mcp
 			out.PaddingContainers = countHas(comps, "padding")
 			out.TextTiers = tierBandRefs(comps)
 			out.TextWeights = weightRollupOf(comps)
+			out.SampleHeadings = sampleHeadings(comps, sampleHeadingsMax)
 		}
 	}
+	// Top dominant colors (bounded) from evidence/colors.json so "what colors?"
+	// needs no extra fetch.
+	out.TopColors = topColorsOf(outDir, topColorsMax)
 	// Repeated-group count + evenly-spaced count from graph.json.
 	if b, rerr := os.ReadFile(filepath.Join(outDir, "graph.json")); rerr == nil {
 		var g map[string]any
@@ -203,11 +224,23 @@ var allowedArtifacts = map[string]string{
 type getArtifactInput struct {
 	OutputDir string `json:"output_dir" jsonschema:"the output_dir returned by a prior analyze call"`
 	Artifact  string `json:"artifact" jsonschema:"which artifact to read: page_json, page_md, page_consolidated, graph_json, layout_json, dom_md, grounding, crosscheck, merged_components, colors, ocr"`
+	MaxBytes  int    `json:"max_bytes,omitempty" jsonschema:"cap the returned content to this many bytes (default 12000). Large artifacts (page.json/graph.json) are 100s of KB and bloat agent context — prefer get_components/query_text/get_container_children, or page through with offset."`
+	Offset    int    `json:"offset,omitempty" jsonschema:"start reading at this byte offset (for paging a large artifact in bounded windows)"`
 }
 
+// defaultArtifactMaxBytes bounds get_artifact so a whole-file read cannot dump
+// 100s of KB into the agent's shared context window. The MCP transport also
+// JSON-escapes the payload (~2.9x), so capping bytes caps the escaped size too.
+const defaultArtifactMaxBytes = 12000
+
 type getArtifactOutput struct {
-	Path    string `json:"path"`
-	Content string `json:"content"`
+	Path        string `json:"path"`
+	TotalBytes  int    `json:"total_bytes"`
+	Offset      int    `json:"offset"`
+	ReturnedLen int    `json:"returned_bytes"`
+	Truncated   bool   `json:"truncated"`
+	Content     string `json:"content"`
+	Note        string `json:"note,omitempty"`
 }
 
 func getArtifact(_ context.Context, _ *mcp.CallToolRequest, in getArtifactInput) (*mcp.CallToolResult, getArtifactOutput, error) {
@@ -228,7 +261,37 @@ func getArtifact(_ context.Context, _ *mcp.CallToolRequest, in getArtifactInput)
 	if err != nil {
 		return nil, getArtifactOutput{}, fmt.Errorf("read artifact: %w", err)
 	}
-	return nil, getArtifactOutput{Path: full, Content: string(b)}, nil
+	total := len(b)
+	off := in.Offset
+	if off < 0 {
+		off = 0
+	}
+	if off > total {
+		off = total
+	}
+	max := in.MaxBytes
+	if max <= 0 {
+		max = defaultArtifactMaxBytes
+	}
+	end := off + max
+	if end > total {
+		end = total
+	}
+	slice := b[off:end]
+	out := getArtifactOutput{
+		Path:        full,
+		TotalBytes:  total,
+		Offset:      off,
+		ReturnedLen: len(slice),
+		Truncated:   end < total,
+		Content:     string(slice),
+	}
+	if out.Truncated {
+		out.Note = fmt.Sprintf(
+			"TRUNCATED: returned bytes %d-%d of %d. This is a whole-file read and bloats context — for components/text/colors prefer get_components / query_text / get_container_children (small, filtered). To keep reading raw bytes call again with offset=%d, or raise max_bytes deliberately.",
+			off, end, total, end)
+	}
+	return nil, out, nil
 }
 
 // ---- helpers ----
@@ -309,6 +372,87 @@ func weightRollupOf(comps []any) *weightRollup {
 		return nil
 	}
 	return r
+}
+
+// sampleHeadings returns up to n heading-tier text strings (deduped, in order),
+// so "what are the headings?" is answerable from the summary without a fetch.
+func sampleHeadings(comps []any, n int) []string {
+	var out []string
+	seen := map[string]bool{}
+	for _, c := range comps {
+		m, ok := c.(map[string]any)
+		if !ok {
+			continue
+		}
+		tm, ok := m["tier"].(map[string]any)
+		if !ok || tm["tier"] != "heading" {
+			continue
+		}
+		t, ok := m["text"].(map[string]any)
+		if !ok {
+			continue
+		}
+		v, _ := t["value"].(string)
+		if v == "" || seen[v] {
+			continue
+		}
+		seen[v] = true
+		out = append(out, v)
+		if len(out) >= n {
+			break
+		}
+	}
+	return out
+}
+
+// topColorsOf reads evidence/colors.json and returns the n most frequent
+// measured color hexes (count = how many components carry them), so "what
+// colors?" needs no extra fetch. Bounded; full detail via the colors artifact.
+func topColorsOf(outputDir string, n int) []colorCount {
+	full := filepath.Join(outputDir, "evidence", "colors.json")
+	if !within(outputDir, full) {
+		return nil
+	}
+	b, err := os.ReadFile(full)
+	if err != nil {
+		return nil
+	}
+	var raw []map[string]any
+	if json.Unmarshal(b, &raw) != nil {
+		return nil
+	}
+	freq := map[string]int{}
+	var order []string
+	for _, m := range raw {
+		hex, _ := m["value"].(string)
+		if hex == "" {
+			continue
+		}
+		if _, ok := freq[hex]; !ok {
+			order = append(order, hex)
+		}
+		freq[hex]++
+	}
+	// stable sort by count desc, tie-break by first-seen order
+	rank := map[string]int{}
+	for i, h := range order {
+		rank[h] = i
+	}
+	sort.SliceStable(order, func(i, j int) bool {
+		a, b := order[i], order[j]
+		if freq[a] != freq[b] {
+			return freq[a] > freq[b]
+		}
+		return rank[a] < rank[b]
+	})
+	out := make([]colorCount, 0, n)
+	for _, h := range order {
+		out = append(out, colorCount{Hex: h, Count: freq[h]})
+		if len(out) >= n {
+			break
+		}
+	}
+	return out
 }
 
 // evenlySpacedCount counts repeated groups whose members are evenly spaced
@@ -486,7 +630,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "analyze",
-		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a LEAN bounded summary: page type + confidence, component counts by type, roll-up COUNTS for the derived signals (corner_styles rounded/square/measured, padding_containers, text_tiers bands, text_weights heavy/regular + a few sample bold words, layout_containers inferred columns/rows, evenly_spaced_groups) and the grounding/crosscheck/consolidation scores — plus output_dir. For PER-ITEM detail use the selective query tools (get_components, query_text, get_container_children), not get_artifact. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
+		Description: "Run the full refraict analysis pipeline on a UI screenshot. Returns a LEAN bounded summary: page type + confidence, component counts by type, roll-up COUNTS for the derived signals (corner_styles rounded/square/measured, padding_containers, text_tiers bands, text_weights heavy/regular + a few sample bold words, layout_containers inferred columns/rows, evenly_spaced_groups), a few sample_headings, the top_colors (measured dominant hexes), and the grounding/crosscheck/consolidation scores — plus output_dir. The summary alone answers most questions (headings, colors, counts) with NO further calls. For more PER-ITEM detail use the selective query tools (get_components, query_text, get_container_children), not get_artifact. Requires OpenCV and (for semantic output) a local Ollama vision/text model.",
 	}, analyze)
 
 	mcp.AddTool(server, &mcp.Tool{
@@ -496,7 +640,7 @@ func main() {
 
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_artifact",
-		Description: "Read back a named artifact (page_json, graph_json, page_md, etc.) from a prior analyze output_dir. Use this to pull full detail on demand instead of receiving it all up front. For most questions prefer the selective query tools (get_components, query_text, get_container_children) which return a small filtered slice instead of a whole artifact.",
+		Description: "Read back part of a named artifact (page_json, graph_json, page_md, etc.) from a prior analyze output_dir. BOUNDED: returns at most max_bytes (default 12000) starting at offset, with total_bytes + a truncated flag so you can page — it will NOT dump a whole 100s-of-KB file in one call. For components/text/colors/containers PREFER the selective query tools (get_components, query_text, get_container_children), which return a small filtered slice; use get_artifact only for raw content a query tool can't express, and page with offset rather than raising max_bytes blindly.",
 	}, getArtifact)
 
 	mcp.AddTool(server, &mcp.Tool{

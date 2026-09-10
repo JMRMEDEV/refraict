@@ -607,7 +607,6 @@ func runAnalyze(ctx context.Context, imagePath string, o *analysisOptions) error
 		"schema_version":         prompt.SchemaVersion,
 		"components":             merged,
 		"colors":                 colors,
-		"relationships_elements": uiGraph.Relationships,
 		"summary":                pageSummary,
 		"grounding":              grounding,
 		"crosscheck":             crosscheck,
