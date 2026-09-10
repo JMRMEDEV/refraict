@@ -302,27 +302,36 @@ tokens. This validates (and exceeds) the "~20% of the window per image" concern.
    delete, but it is a schema change to the flagship artifact: **bump
    `schema_version`** and update the output-layout docs. External consumers that
    read edges should use `graph.json` / `get_artifact("graph_json")`.
-5. **BM25/FTS5 ranked retrieval over the analyze artifacts (larger; the durable
-   answer).** Items 1–4 make *known-shape* queries cheap (components, text,
-   colors, containers) and bound the worst case. What they do NOT provide is
-   *ranked keyword search over prose / large artifacts* — e.g. "which section
-   mentions billing?", "the text about tokens" — without pulling a whole file.
-   Add a SQLite-FTS5 index (bm25 ranking) over the on-disk artifacts (`page.md`,
-   `dom.md`, the consolidated narrative, and OCR text; the structured component
-   data is better served by the query tools above), returning ranked, bounded
-   fact-slices (file + line range + short snippet, `limit`-capped). Reference
-   implementation to port: a self-contained, pure-Go (modernc.org/sqlite,
-   CGo-free) FTS5 engine — chunk (markdown at `##`, generic by blank-line/50-line
-   blocks) → contentless-external FTS5 table + sync triggers → `MATCH ... ORDER
-   BY rank LIMIT ?` with operator-char sanitization. Indexing is per analyze
-   `output_dir` (keyed by image SHA, which refraict already computes), not
-   whole-project. With BM25 in place, `get_artifact` can be denied entirely for
-   most roles: the model reaches ranked slices instead of whole files.
+5. **BM25/FTS5 ranked retrieval over the analyze artifacts — DEFERRED /
+   CONDITIONAL (only if a multi-image corpus emerges).** Originally scoped as
+   "the durable answer," but the 2026-09-09 measurements (below) show items 1–4
+   already closed the measured gap: context fell 48.7%→6.3% (deep-seek) and
+   12.2%→6.5% (journeys) with ZERO whole-file reads. The reason is that the
+   questions actually asked — headings, colors, components, containers — are
+   *structured lookups*, which the filtered/projected query tools serve better
+   than keyword ranking; BM25 does not beat `get_components(tier=heading)` or
+   `query_text(near_color=…)`. BM25's only unique capability is *ranked keyword
+   search over prose*, and the prose artifacts are small (`page.md` ~3KB,
+   `dom.md` ~5KB, consolidated narrative <1KB) — a ~12KB-capped
+   `get_artifact("page_md")` or a `get_components(text=…)` substring filter
+   covers "find the text about X" without an index. So BM25 is **not required**
+   for single/few-image, structured-question usage (the demonstrated workload).
+   It earns its keep ONLY if the corpus grows — indexing MANY analyses at once
+   (a whole design system, dozens of screens) for "which screen mentions X"
+   across them. That is a different, larger scenario not on the table today.
+   If/when it is: SQLite-FTS5 (bm25 ranking), pure-Go modernc.org/sqlite
+   (CGo-free), chunk (markdown at `##`, generic by blank-line/50-line blocks) →
+   contentless-external FTS5 + sync triggers → `MATCH ... ORDER BY rank LIMIT ?`
+   with operator-char sanitization; index the prose/OCR artifacts (NOT the
+   structured component data — the query tools own that).
+
+**Items 1–4 are SUFFICIENT for the measured problem.** BM25 (5) is deferred.
 
 **Ordering:** (1) is free and removes the measured failure today; (2) bounds the
 worst case in-code and absorbs the transport multiplier; (3) and (4) shrink the
-floor without dropping any analysis; (5) is the general-retrieval endgame. Do NOT
-assume the single-session-over-MCP usage is context-safe until (1)+(2) land.
+floor without dropping any analysis. Items 1–4 are done and MEASURED sufficient
+(see 2026-09-09 mitigation entry). (5) BM25 is deferred until a cross-analysis
+corpus need appears; do NOT build it speculatively.
 
 ## Prioritized order (highest leverage first)
 
@@ -1626,6 +1635,41 @@ Decisions (see Gap 8 for the full plan; nothing implemented in this entry):
 Explicitly REJECTED: a `no_summary`/fast-path env default to shrink output — it
 would drop useful analysis (stages), which is the wrong tradeoff; the size goal
 is met by 1–4 without removing any analysis.
+
+### 2026-09-09 — Gap 8 items 1–4 shipped + MEASURED sufficient; BM25 (item 5) deferred
+
+Implemented items 1–4 and re-measured on real kiro-cli 2.20.1 (before/after via
+git stash of the same working tree):
+- get_artifact CAP (`max_bytes` default 12000, `offset`, truncation footer
+  naming the query tools) in cmd/refraict-mcp/main.go.
+- analyze summary ENRICHED with `sample_headings` + `top_colors` (bounded) so the
+  two commonest follow-ups need no fetch.
+- `relationships_elements` REMOVED from page.json (schema `ui-ir-v1`→`ui-ir-v2`);
+  edges remain only in graph.json. Verified content-preserving: components 66=66,
+  colors 66=66, edges 1354=1354 (graph.json), page.json 242,946→64,457 bytes
+  (−73%) on the journeys screen.
+- agent-config: grant get_components/query_text/get_container_children, drop
+  get_artifact (lives in the consuming agent, not this repo).
+
+Measured effect (5-turn single Kiro session, per-turn context from the session
+sidecar): deep-seek-ui final context **48.7%→6.3%** (7.7×), credits 1.34→0.41,
+largest tool result 377KB→7.9KB, whole-file reads 1→0. journeys screen final
+context **12.2%→6.5%**, credits 0.65→0.47, whole-file reads 1→0. ANSWER QUALITY
+held or improved (same measured components/headings/colors; the tuned run
+additionally annotated garbled OCR and gave counted, precise colors). Full
+evidence external (pyromon-qa harness + findings).
+
+Decision — **BM25 (item 5) DOWNGRADED from "the durable answer" to
+"deferred / only if a multi-image corpus emerges."** Rationale, from the numbers:
+the measured workload is *structured lookups* (headings/colors/components/
+containers), which the filtered query tools serve better than keyword ranking;
+BM25 does not beat `get_components`/`query_text`. Its only unique capability is
+ranked keyword search over prose, and the prose artifacts are tiny (page.md ~3KB,
+dom.md ~5KB, consolidated <1KB) — a 12KB-capped `get_artifact("page_md")` or a
+`get_components(text=…)` filter already covers "find the text about X". So items
+1–4 are SUFFICIENT for single/few-image, structured-question usage. BM25 earns
+its keep ONLY for a cross-analysis corpus (index many screens, "which screen
+mentions X"), which is not on the table today. Do not build it speculatively.
 
 ## References & third-party sources
 
