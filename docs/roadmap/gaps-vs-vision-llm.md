@@ -233,6 +233,97 @@ Building spec-matching/assertions into Refraict would be redundant, invite a
 brittle "spec format", and cause scope creep. Refraict emits facts; the agent
 owns the verdict.
 
+### Gap 8 — Agent context-window burden over an MCP session (measured; mitigable)
+
+This gap is not about analysis quality — it is about how much of a consuming
+agent's context window Refraict's *outputs* occupy when Refraict is used as an
+MCP tool across a multi-turn session. It matters because Refraict's whole value
+proposition is "analyze once, reuse the measured facts cheaply for many turns"
+(the cost-lever pattern) — and that only holds if the per-query footprint stays
+small. If a single image can push a shared context window toward its limit, the
+reuse advantage erodes and the agent risks lossy auto-compaction.
+
+**Measured evidence (2026-09-09, real kiro-cli 2.20.1 + refraict-mcp, Ollama
+gemma3:4b/qwen2.5:3b, claude-sonnet-4.5, 200k window, image
+`e2e-test/deep-seek-ui.png`; harness + finding external to this repo):**
+
+| turn | action | ctx used | Δ | tool-result size |
+|---|---|---|---|---|
+| analyze | bounded summary | 4.76% | +4.76 | ~9.5KB (~2.4k tok) ✅ |
+| headings | (no bounded tool granted) → `get_artifact(page_json)` | 48.30% | **+43.54** | **377KB escaped / ~94k tok** |
+| colors | reuse | 48.49% | +0.19 | (already resident) |
+| get_artifact | reuse | 48.57% | +0.09 | — |
+| reason-only | — | 48.71% | +0.13 | — |
+
+Root cause was NOT `analyze` (its bounded summary is ~2.4k tokens — the
+lean-summary design works). It was a single `get_artifact("page_json")`
+whole-file read dumped into the shared window, forced because the agent had not
+been granted the bounded selective tools (`get_components`/`query_text`) and so
+fell back to the one whole-file reader it *was* granted. Two multipliers stack:
+(a) `page.json` is large on disk (129KB on this image), and (b) the MCP transport
+JSON-escapes it into a string-in-a-string, ~2.9× inflation, → ~377KB / ~94k
+tokens. This validates (and exceeds) the "~20% of the window per image" concern.
+
+**Mitigation plan (all preserve every analysis output; none skip stages):**
+
+1. **Grant the bounded query tools in the agent (config, no refraict code).**
+   `get_components` / `query_text` / `get_container_children` already exist and
+   are bounded (server-side filtered, field-projected, `limit`-defaulted). The
+   forced `get_artifact` fallback disappears once they are in the agent's
+   allowlist. This is the single highest-leverage fix and needs no code change.
+   Recommend also removing `get_artifact` from allowlists that don't specifically
+   need whole-file reads.
+2. **Cap `get_artifact` itself (small refraict change; highest value-to-effort
+   in-code).** It currently does a raw `os.ReadFile` → returns the whole file as
+   one string, with no budget — unlike the query tools (`limit=40` default). Add
+   `max_bytes` (bounded default, e.g. ~12KB), `offset` (paginate), and an
+   optional JSON `path`/pointer selector so a caller can pull *part* of a
+   structured artifact server-side. Return a truncation footer that names the
+   cheaper query tool ("truncated at N bytes; for components/text/colors use
+   get_components/query_text"). Because the cap bounds the *escaped* payload too,
+   it neutralizes the ~2.9× transport multiplier and does most of the shrink work
+   without touching the artifacts. (This folds in an earlier "make the tool
+   description an enforced nudge" idea: cap + footer + description.)
+3. **Enrich the `analyze` summary so the commonest follow-ups need no fetch.**
+   The bounded summary is cheap (~2.4k tok) and already rolls up counts/tiers/
+   weights/corner-styles. Inline a few sample heading strings and the top-N
+   dominant colors (bounded, ≤~10 each) so "what are the headings?" / "what
+   colors?" — the two most common follow-ups — are answerable from the resident
+   summary with zero extra tool calls.
+4. **Remove the `relationships_elements` duplication from `page.json`
+   (verified-safe, versioned).** `page.json.relationships_elements` is an EXACT
+   copy of `graph.json.relationships` — confirmed identical across 5 real
+   analyses (14–1377 edges; same fields `{a,b,relation,source,confidence}`; zero
+   set difference). It is written from the same in-memory `uiGraph.Relationships`
+   (analyze.go: `graph.json` ← `uiGraph`, and separately `page.json[...]` ←
+   `uiGraph.Relationships`), and NOTHING in refraict reads it back from
+   `page.json` (the MCP server itself reads relationships from `graph.json`). On
+   `deep-seek-ui` it is ~42% of `page.json` (129KB → ~75KB). Safe as a one-line
+   delete, but it is a schema change to the flagship artifact: **bump
+   `schema_version`** and update the output-layout docs. External consumers that
+   read edges should use `graph.json` / `get_artifact("graph_json")`.
+5. **BM25/FTS5 ranked retrieval over the analyze artifacts (larger; the durable
+   answer).** Items 1–4 make *known-shape* queries cheap (components, text,
+   colors, containers) and bound the worst case. What they do NOT provide is
+   *ranked keyword search over prose / large artifacts* — e.g. "which section
+   mentions billing?", "the text about tokens" — without pulling a whole file.
+   Add a SQLite-FTS5 index (bm25 ranking) over the on-disk artifacts (`page.md`,
+   `dom.md`, the consolidated narrative, and OCR text; the structured component
+   data is better served by the query tools above), returning ranked, bounded
+   fact-slices (file + line range + short snippet, `limit`-capped). Reference
+   implementation to port: a self-contained, pure-Go (modernc.org/sqlite,
+   CGo-free) FTS5 engine — chunk (markdown at `##`, generic by blank-line/50-line
+   blocks) → contentless-external FTS5 table + sync triggers → `MATCH ... ORDER
+   BY rank LIMIT ?` with operator-char sanitization. Indexing is per analyze
+   `output_dir` (keyed by image SHA, which refraict already computes), not
+   whole-project. With BM25 in place, `get_artifact` can be denied entirely for
+   most roles: the model reaches ranked slices instead of whole files.
+
+**Ordering:** (1) is free and removes the measured failure today; (2) bounds the
+worst case in-code and absorbs the transport multiplier; (3) and (4) shrink the
+floor without dropping any analysis; (5) is the general-retrieval endgame. Do NOT
+assume the single-session-over-MCP usage is context-safe until (1)+(2) land.
+
 ## Prioritized order (highest leverage first)
 
 ### Completed milestones
@@ -1487,6 +1578,54 @@ Follow-up (2026-09-06): the Python adapter (scripts/refraict-ocr) was REMOVED �
 in-process Tesseract makes it redundant, and removing it keeps refraict pure
 Go/CGo with no Python/Pillow anywhere in the repo. The REFRAICT_OCR_CMD external-
 engine hook remains (documented in README) for plugging in PaddleOCR/cloud.
+
+### 2026-09-09 — Agent context-window burden measured over a real MCP session (Gap 8)
+
+Measured, on real kiro-cli 2.20.1 + refraict-mcp (Ollama gemma3:4b/qwen2.5:3b,
+model claude-sonnet-4.5, 200k-token window), how much of a consuming agent's
+context Refraict's MCP outputs occupy across a multi-turn session on ONE image
+(`e2e-test/deep-seek-ui.png`). One image drove the shared window to **~48.7%**
+across 5 turns; the entire jump was a single turn (+43.5%) — not `analyze`.
+
+Attribution (from the session transcript): `analyze` returned a genuinely bounded
+summary (~9.5KB / ~2.4k tok → +4.76%; the lean-summary design works). The spike
+was one `get_artifact("page_json")` whole-file read whose tool result was ~377KB
+escaped (~94k tokens). It was FORCED: the agent had been granted
+`inspect/analyze/get_artifact` but NOT the bounded `get_components`/`query_text`
+tools, so — asked for headings — it fell back to the one whole-file reader it
+had. Two multipliers stack: `page.json` is 129KB on disk on this image AND the
+MCP transport JSON-escapes it into a string-in-a-string (~2.9×) → ~377KB. Once
+resident it persists, so later turns each added <0.2% (already in-window /
+cache-read). This validates and exceeds the "~20% per image" concern.
+
+Grounding checks done for the mitigation plan (Gap 8):
+- `page.json.relationships_elements` proven to be an EXACT duplicate of
+  `graph.json.relationships` across 5 analyses (14–1377 edges; identical fields
+  and identical `(a,relation,b,source,confidence)` sets; zero set difference).
+  Single producer (`uiGraph.Relationships`), ZERO readers of the page.json copy
+  inside refraict (the MCP server reads relationships from `graph.json`). So
+  dropping it from `page.json` is a verified-safe ~42% size cut — but a schema
+  change (bump `schema_version`, update output-layout docs), not a silent trim.
+- `analyze`'s bounded summary is the design working as intended; the fix surface
+  is `get_artifact` (unbounded) + missing bounded-tool grants, NOT `analyze`.
+
+Decisions (see Gap 8 for the full plan; nothing implemented in this entry):
+1. Prefer/grant the bounded query tools in agent configs; consider denying
+   `get_artifact` where whole-file reads aren't needed (config, no refraict code
+   — removes the measured failure today).
+2. Cap `get_artifact` (`max_bytes` default, `offset`, optional JSON `path`
+   selector, truncation footer naming the query tools). Bounds the worst case
+   AND the transport multiplier; highest value-to-effort in-code.
+3. Enrich the `analyze` summary with a few sample heading strings + top-N
+   dominant colors so the two commonest follow-ups need no extra fetch.
+4. Drop the `relationships_elements` duplication from `page.json` (versioned).
+5. BM25/FTS5 ranked retrieval over the analyze artifacts (SQLite FTS5, bm25
+   ranking, pure-Go modernc.org/sqlite) for open-ended/prose queries — the
+   durable answer, after which `get_artifact` can be denied for most roles.
+
+Explicitly REJECTED: a `no_summary`/fast-path env default to shrink output — it
+would drop useful analysis (stages), which is the wrong tradeoff; the size goal
+is met by 1–4 without removing any analysis.
 
 ## References & third-party sources
 
