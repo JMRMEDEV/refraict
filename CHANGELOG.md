@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/JMRMEDEV/refraict/compare/v0.3.0...v0.4.0) (2026-10-23)
+
+
+### Features
+
+* **mcp:** add measure_region targeted-color verb [F-UI-5] ([71eb875](https://github.com/JMRMEDEV/refraict/commit/71eb875db936d145e592bd641f089ab9344d5c26))
+* **mcp:** add measure_region targeted-color verb [F-UI-5] [pyromon-experiments] ([28604ce](https://github.com/JMRMEDEV/refraict/commit/28604ce85010e85969a6b0dada3d9809695fae02))
+
 ## [0.3.0](https://github.com/JMRMEDEV/refraict/compare/v0.2.0...v0.3.0) (2026-09-10)
 
 
