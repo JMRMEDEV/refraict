@@ -453,6 +453,79 @@ func SampleRegion(img image.Image, x0, y0, x1, y1 int, borderPct float64) (hex s
 	return fmt.Sprintf("#%02X%02X%02X", r, g, b), r, g, b, true
 }
 
+// SampleRegionCoverage measures the DOMINANT (median) color of the interior of
+// a region AND how much of the region that color actually covers — a dominance
+// signal the plain SampleRegion lacks. It exists so a targeted-region measurement
+// can report an HONEST confidence: a solid fill yields coverage ≈ 1.0, while a
+// mixed / antialiased / gradient region yields a LOW coverage (no single color
+// dominates), so a caller can refuse to "ground" an ambiguous region rather than
+// trust the bare median. This is the integrity primitive behind the measure_region
+// MCP verb (roadmap F-UI-5): it lowers the thin-element grounding floor by
+// measuring the right rect, NOT by relaxing what counts as "measured."
+//
+// borderPct trims each edge (as in SampleRegion) to avoid border/text
+// contamination. nearThresh is the per-pixel Euclidean RGB distance within which
+// a pixel counts as "the dominant color"; pass <=0 for a sensible default (24).
+// coverage = (pixels within nearThresh of the median) / (opaque pixels sampled).
+// Returns the median hex + rgb, coverage in [0,1], the opaque pixel count, and ok.
+func SampleRegionCoverage(img image.Image, x0, y0, x1, y1 int, borderPct float64, nearThresh float64) (hex string, r, g, b int, coverage float64, pixels int, ok bool) {
+	w := x1 - x0
+	h := y1 - y0
+	if w <= 0 || h <= 0 {
+		return "", 0, 0, 0, 0, 0, false
+	}
+	if nearThresh <= 0 {
+		nearThresh = 24
+	}
+	padX := int(float64(w) * borderPct)
+	padY := int(float64(h) * borderPct)
+	ix0 := x0 + padX
+	iy0 := y0 + padY
+	ix1 := x1 - padX
+	iy1 := y1 - padY
+	if ix1 <= ix0 || iy1 <= iy0 {
+		ix0, iy0, ix1, iy1 = x0, y0, x1, y1
+	}
+	var rs, gs, bs []int
+	type px struct{ r, g, b int }
+	var opaque []px
+	for y := iy0; y < iy1; y++ {
+		for x := ix0; x < ix1; x++ {
+			c := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
+			if c.A < 128 {
+				continue
+			}
+			rs = append(rs, int(c.R))
+			gs = append(gs, int(c.G))
+			bs = append(bs, int(c.B))
+			opaque = append(opaque, px{int(c.R), int(c.G), int(c.B)})
+		}
+	}
+	if len(rs) == 0 {
+		return "", 0, 0, 0, 0, 0, false
+	}
+	sort.Ints(rs)
+	sort.Ints(gs)
+	sort.Ints(bs)
+	r = rs[len(rs)/2]
+	g = gs[len(gs)/2]
+	b = bs[len(bs)/2]
+	// Coverage: fraction of opaque pixels within nearThresh (Euclidean) of the
+	// median dominant color.
+	near := 0
+	t2 := nearThresh * nearThresh
+	for _, p := range opaque {
+		dr := float64(p.r - r)
+		dg := float64(p.g - g)
+		db := float64(p.b - b)
+		if dr*dr+dg*dg+db*db <= t2 {
+			near++
+		}
+	}
+	coverage = float64(near) / float64(len(opaque))
+	return fmt.Sprintf("#%02X%02X%02X", r, g, b), r, g, b, coverage, len(opaque), true
+}
+
 // HexToRGB converts a hex color to RGB.
 func HexToRGB(hex string) ([3]int, error) {
 	h := strings.TrimPrefix(hex, "#")

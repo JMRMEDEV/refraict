@@ -658,6 +658,11 @@ func main() {
 		Description: "Return the direct children (with measured occupancy share %) of a layout container from a prior analyze output_dir, by container_id or by inferred-container label (e.g. 'TO DO (4)'). Use this for 'what's inside the sidebar/card X?', 'what's in the TO DO column?', 'how is this container's space divided?'.",
 	}, getContainerChildren)
 
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "measure_region",
+		Description: "Measure the DOMINANT color of an explicit rectangle directly from a prior analyze's source image — the targeted-color verb for THIN elements the region detector drops (full-width progress bars, dividers, 1-2px underlines, small chips). Given output_dir + a bbox in global image coordinates (e.g. a testid's rendered rect the capture driver knows), it returns {hex, rgb, coverage, confidence, grounded, pixels_sampled}, plus an optional expect_hex match. INTEGRITY: confidence is REAL (derived from coverage = how much of the rect is the dominant color); a solid fill grounds (grounded:true), while a mixed/antialiased/gradient region returns low coverage and grounded:false — treat that as UNVERIFIABLE-by-measurement (route to human), never assume the color. It measures the rect you GIVE it; it does not guess one.",
+	}, measureRegion)
+
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		fmt.Fprintln(os.Stderr, "refraict-mcp:", err)
 		os.Exit(1)
