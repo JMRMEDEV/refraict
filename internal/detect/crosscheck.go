@@ -26,6 +26,12 @@ type CrossCheckReport struct {
 	// Unsupported lists overview claims not backed by measured evidence.
 	Unsupported []UnsupportedClaim `json:"unsupported_claims"`
 	// Counts of checkable claims by kind, for diagnostics.
+	//
+	// ⚠️ These are INTEGER COUNTS, emitted as json "text_supported" /
+	// "color_supported" / "count_supported". Do NOT confuse the "*_supported"
+	// (count) keys here with GroundingReport's "*_support" (FLOAT RATIO) keys in
+	// guard.go — they differ by one character and by type. Ratio = supported/total
+	// in [0,1]; count = number supported.
 	TextChecked  int `json:"text_checked"`
 	TextOK       int `json:"text_supported"`
 	ColorChecked int `json:"color_checked"`

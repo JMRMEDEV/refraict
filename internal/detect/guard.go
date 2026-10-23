@@ -21,14 +21,34 @@ type UnsupportedClaim struct {
 }
 
 // GroundingReport is the result of checking a summary against evidence.
+//
+// CONTRACT (governed, machine-readable — consumed downstream by pyromon
+// verify_ui via the ui_analyze packet). ColorSupport and TextSupport are
+// floating-point SUPPORT RATIOS in the closed interval [0.0, 1.0] — NOT counts.
+// They are DIAGNOSTIC honesty signals only; they are NOT a MET-gate input (the
+// measured MET decision is the component-color audit, not these ratios). Any
+// consumer MUST decode them as a JSON number (Go: float64 / *float64), never as
+// an int — a real screen typically yields a fraction like 0.5833 (7 of 12
+// mentions supported), and coercing that to int both fails to parse and would
+// lie about grounding.
+//
+// ⚠️ NAMING COLLISION — do NOT conflate these with the crosscheck COUNTS.
+// GroundingReport here emits  json "color_support" / "text_support"  = FLOAT
+// RATIOS. The adjacent CrossCheckReport (crosscheck.go) emits the differently-
+// named (by ONE character) json "color_supported" / "text_supported" = INTEGER
+// COUNTS of supported claims (fields ColorOK / TextOK). Ratio (…support) vs count
+// (…supported) are DIFFERENT fields with DIFFERENT types; this near-identical
+// naming is the known trap that led a consumer to mistype the ratio as int.
 type GroundingReport struct {
 	Grounded         bool               `json:"grounded"`
 	UnsupportedClaims []UnsupportedClaim `json:"unsupported_claims"`
-	// Coverage: fraction of summary color mentions that ARE supported (1.0 when
-	// none are mentioned). Diagnostic only.
+	// ColorSupport is the FRACTION of summary color mentions that ARE supported
+	// by a measured color — a float ratio in [0.0, 1.0], defaulting to 1.0 when
+	// the summary mentions no colors. Diagnostic only (not a MET input).
 	ColorSupport float64 `json:"color_support"`
-	// TextSupport: fraction of quoted text spans in the summary that ARE
-	// supported by the OCR corpus (1.0 when none are quoted). Diagnostic only.
+	// TextSupport is the FRACTION of quoted text spans in the summary that ARE
+	// supported by the OCR corpus — a float ratio in [0.0, 1.0], defaulting to
+	// 1.0 when nothing is quoted. Diagnostic only (not a MET input).
 	TextSupport float64 `json:"text_support"`
 }
 

@@ -1,6 +1,8 @@
 package detect
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/refraict/refraict/internal/ir"
@@ -228,5 +230,62 @@ func TestGuardCleanSummaryPasses(t *testing.T) {
 	rep := CheckGrounding(summary, colors, nil, true)
 	if !rep.Grounded {
 		t.Fatalf("expected clean summary grounded, got %+v", rep.UnsupportedClaims)
+	}
+}
+
+// TestGroundingReportFractionalRoundTrip pins the governed contract that
+// color_support / text_support are FLOAT RATIOS: a fractional report must
+// round-trip through JSON as a number (not collapse to an int), and the JSON a
+// real screen produces (a fraction like 0.5833) must decode back to the same
+// float. This is the source-side regression for the verify_ui Layer-2 parse
+// crash where a downstream consumer had typed color_support as int.
+func TestGroundingReportFractionalRoundTrip(t *testing.T) {
+	in := GroundingReport{
+		Grounded:     false,
+		ColorSupport: 0.5833333333333334, // 7 of 12 color mentions supported
+		TextSupport:  0.5,                // 1 of 2 quoted spans supported
+	}
+	b, err := json.Marshal(in)
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+	// The emitted JSON must carry fractional numbers, not truncated integers.
+	s := string(b)
+	if !strings.Contains(s, `"color_support":0.5833333333333334`) {
+		t.Fatalf("color_support not emitted as its fractional value; got %s", s)
+	}
+	if !strings.Contains(s, `"text_support":0.5`) {
+		t.Fatalf("text_support not emitted as 0.5; got %s", s)
+	}
+
+	var out GroundingReport
+	if err := json.Unmarshal(b, &out); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+	if out.ColorSupport != in.ColorSupport {
+		t.Fatalf("color_support round-trip lost precision: got %v want %v", out.ColorSupport, in.ColorSupport)
+	}
+	if out.TextSupport != in.TextSupport {
+		t.Fatalf("text_support round-trip changed: got %v want %v", out.TextSupport, in.TextSupport)
+	}
+
+	// Decoding the SAME fractional JSON into an int field MUST fail — this is the
+	// exact consumer bug (analyzePacket.color_support of type int) this contract
+	// forbids. Asserting it here documents the trap at the source.
+	var intConsumer struct {
+		ColorSupport *int `json:"color_support"`
+	}
+	if err := json.Unmarshal(b, &intConsumer); err == nil {
+		t.Fatal("decoding a fractional color_support into *int unexpectedly succeeded; the contract requires float")
+	}
+}
+
+// TestGroundingReportDefaultsAreFloatOne pins the "1.0 when no mentions"
+// convention as a float (not a bare int 1 that a consumer might infer a count
+// from).
+func TestGroundingReportDefaultsAreFloatOne(t *testing.T) {
+	rep := CheckGrounding("A plain layout with a header and a footer.", nil, nil, true)
+	if rep.ColorSupport != 1.0 || rep.TextSupport != 1.0 {
+		t.Fatalf("expected both supports to default to 1.0, got color=%v text=%v", rep.ColorSupport, rep.TextSupport)
 	}
 }

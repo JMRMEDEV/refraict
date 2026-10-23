@@ -660,6 +660,7 @@ Region detection is OpenCV-backed (Canny + CLAHE). Faint cards on very low-contr
 All project documentation lives under [`docs/`](docs/):
 
 - [`docs/refraict.md`](docs/refraict.md) — the implementation/spec guide: full architecture, IR schema, and design rationale.
+- [`docs/grounding-contract.md`](docs/grounding-contract.md) — the authoritative JSON type contract for the diagnostic grounding signals (`grounding.json` / `crosscheck.json`): `color_support`/`text_support` are **float ratios** in [0,1], distinct from crosscheck's `color_supported`/`text_supported` **int counts** — pin consumer types to this to avoid the one-character naming collision.
 - [`docs/roadmap/gaps-vs-vision-llm.md`](docs/roadmap/gaps-vs-vision-llm.md) — the gap roadmap and gap-closing history: how Refraict compares to a vision-LLM (`fs_read`) on text, color, layout, and non-text detection, the prioritized plan to narrow each gap, and a dated log of what has been implemented (OCR dark-theme fix, grounded summaries + grounding guard, CV region detection, keep-alive memory controls).
 - [`docs/qa/`](docs/qa/) — QA findings and reassessments.
 
