@@ -526,6 +526,149 @@ func SampleRegionCoverage(img image.Image, x0, y0, x1, y1 int, borderPct float64
 	return fmt.Sprintf("#%02X%02X%02X", r, g, b), r, g, b, coverage, len(opaque), true
 }
 
+// FillMeasurement is the result of SampleFillExcludingInk: the measured FILL
+// (background) color behind text, with an HONEST coverage computed AFTER the
+// glyph/ink pixels are removed, plus the ink fraction and the counts that back
+// the measurement.
+type FillMeasurement struct {
+	Hex          string  // "#RRGGBB" of the measured fill color
+	R, G, B      int     // fill RGB
+	Coverage     float64 // fraction of NON-ink pixels close to the fill color (solidity of the fill)
+	InkFraction  float64 // fraction of opaque pixels classified as glyph ink (excluded from the fill)
+	FillPixels   int     // non-ink pixels that defined the fill measurement
+	OpaquePixels int     // total opaque pixels sampled
+	OK           bool    // false for a degenerate/empty rect
+}
+
+// SampleFillExcludingInk measures the dominant FILL (background) color of a rect
+// that contains text, EXCLUDING the glyph (ink) pixels so the ink cannot
+// contaminate — or flip — the fill measurement. It is the integrity primitive
+// behind the measure_fill MCP verb: a very common acceptance check is "this
+// interactive element renders on the theme's accent fill" (a solid blue button
+// with white "Open"; a full-width blue menu row with white "Center Align"). The
+// text's OWN color is white (correctly measured elsewhere); this reports the
+// color BEHIND it.
+//
+// METHOD (deterministic, no model):
+//
+//  1. Collect opaque pixels in the border-trimmed rect.
+//  2. Estimate the fill color as the per-channel MEDIAN of all opaque pixels.
+//     In a padded element rect the fill is the majority of pixels and the glyphs
+//     a minority, so the median lands on the fill, not the ink — this is what
+//     keeps the glyphs from flipping the dominant color. (A tight glyph-only
+//     bbox where ink is the majority is exactly the case that SHOULD fail to
+//     ground: there is no fill to measure, and coverage will be low.)
+//  3. Classify each opaque pixel by Euclidean RGB distance to the fill median:
+//     - <= inkThresh from the median        => part of the FILL (incl. its own
+//       antialiasing / gradient variation),
+//     - >  inkThresh from the median         => glyph INK (a distinct contrasting
+//       tone), EXCLUDED from the fill entirely.
+//  4. Recompute the fill median over ONLY the fill pixels (stability), then
+//     compute coverage = (fill pixels within nearThresh of the refined fill
+//     median) / (fill pixels). Ink is in NEITHER the numerator NOR the
+//     denominator, so white glyphs on solid blue do not drag coverage down —
+//     BUT a genuine GRADIENT/mixed fill still scatters across nearThresh and
+//     yields LOW coverage (the pixels are "fill", just not one color), so an
+//     ambiguous fill stays ungrounded. That asymmetry is the whole point.
+//
+// nearThresh is the "same color" distance for coverage (default 24). inkThresh is
+// the distance beyond which a pixel is treated as contrasting glyph ink (default
+// 90 — well past antialiasing/gradient spread but short of white-on-blue /
+// black-on-white contrast). Pass <=0 for the defaults.
+func SampleFillExcludingInk(img image.Image, x0, y0, x1, y1 int, borderPct, nearThresh, inkThresh float64) FillMeasurement {
+	w := x1 - x0
+	h := y1 - y0
+	if w <= 0 || h <= 0 {
+		return FillMeasurement{}
+	}
+	if nearThresh <= 0 {
+		nearThresh = 24
+	}
+	if inkThresh <= 0 {
+		inkThresh = 90
+	}
+	padX := int(float64(w) * borderPct)
+	padY := int(float64(h) * borderPct)
+	ix0 := x0 + padX
+	iy0 := y0 + padY
+	ix1 := x1 - padX
+	iy1 := y1 - padY
+	if ix1 <= ix0 || iy1 <= iy0 {
+		ix0, iy0, ix1, iy1 = x0, y0, x1, y1
+	}
+	type px struct{ r, g, b int }
+	var opaque []px
+	var rs, gs, bs []int
+	for y := iy0; y < iy1; y++ {
+		for x := ix0; x < ix1; x++ {
+			c := color.RGBAModel.Convert(img.At(x, y)).(color.RGBA)
+			if c.A < 128 {
+				continue
+			}
+			opaque = append(opaque, px{int(c.R), int(c.G), int(c.B)})
+			rs = append(rs, int(c.R))
+			gs = append(gs, int(c.G))
+			bs = append(bs, int(c.B))
+		}
+	}
+	if len(opaque) == 0 {
+		return FillMeasurement{}
+	}
+	// Step 2: median over ALL opaque pixels -> fill estimate (fill is majority).
+	median := func(v []int) int {
+		s := make([]int, len(v))
+		copy(s, v)
+		sort.Ints(s)
+		return s[len(s)/2]
+	}
+	fr, fg, fb := median(rs), median(gs), median(bs)
+
+	// Step 3: split fill vs ink by distance from the fill estimate.
+	ink2 := inkThresh * inkThresh
+	var frs, fgs, fbs []int
+	inkCount := 0
+	for _, p := range opaque {
+		dr := float64(p.r - fr)
+		dg := float64(p.g - fg)
+		db := float64(p.b - fb)
+		if dr*dr+dg*dg+db*db > ink2 {
+			inkCount++ // glyph ink — excluded from the fill
+			continue
+		}
+		frs = append(frs, p.r)
+		fgs = append(fgs, p.g)
+		fbs = append(fbs, p.b)
+	}
+	if len(frs) == 0 {
+		// Everything read as ink relative to the median (degenerate / no fill).
+		return FillMeasurement{OpaquePixels: len(opaque), OK: false}
+	}
+	// Step 4: refine the fill color over fill-only pixels, then coverage over them.
+	fr, fg, fb = median(frs), median(fgs), median(fbs)
+	near2 := nearThresh * nearThresh
+	near := 0
+	for i := range frs {
+		dr := float64(frs[i] - fr)
+		dg := float64(fgs[i] - fg)
+		db := float64(fbs[i] - fb)
+		if dr*dr+dg*dg+db*db <= near2 {
+			near++
+		}
+	}
+	coverage := float64(near) / float64(len(frs))
+	return FillMeasurement{
+		Hex:          fmt.Sprintf("#%02X%02X%02X", fr, fg, fb),
+		R:            fr,
+		G:            fg,
+		B:            fb,
+		Coverage:     coverage,
+		InkFraction:  float64(inkCount) / float64(len(opaque)),
+		FillPixels:   len(frs),
+		OpaquePixels: len(opaque),
+		OK:           true,
+	}
+}
+
 // HexToRGB converts a hex color to RGB.
 func HexToRGB(hex string) ([3]int, error) {
 	h := strings.TrimPrefix(hex, "#")

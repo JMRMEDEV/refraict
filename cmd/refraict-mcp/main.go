@@ -663,6 +663,11 @@ func main() {
 		Description: "Measure the DOMINANT color of an explicit rectangle directly from a prior analyze's source image — the targeted-color verb for THIN elements the region detector drops (full-width progress bars, dividers, 1-2px underlines, small chips). Given output_dir + a bbox in global image coordinates (e.g. a testid's rendered rect the capture driver knows), it returns {hex, rgb, coverage, confidence, grounded, pixels_sampled}, plus an optional expect_hex match. INTEGRITY: confidence is REAL (derived from coverage = how much of the rect is the dominant color); a solid fill grounds (grounded:true), while a mixed/antialiased/gradient region returns low coverage and grounded:false — treat that as UNVERIFIABLE-by-measurement (route to human), never assume the color. It measures the rect you GIVE it; it does not guess one.",
 	}, measureRegion)
 
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "measure_fill",
+		Description: "Measure the FILL (background) color BEHIND a text token — the color the ink sits on, NOT the ink itself — directly from a prior analyze's source image, with the glyph pixels EXCLUDED so they cannot flip the measurement. Use it for the common check 'is this interactive element the theme's accent fill?': a solid blue button with white 'Open' centered on it, or a full-width blue-highlighted menu row with white 'Center Align' text — query_text correctly reports the ink is white; measure_fill reports the blue behind it. Name the rect ONE of two ways (it never invents one): text_component_id (a text component ID from get_components/query_text — the verb resolves that token's measured bbox and pads it to capture the surrounding fill), OR an explicit bbox in global image coordinates. Returns {hex, rgb, coverage, confidence, grounded, ink_fraction, fill_pixels, pixels_sampled} plus an optional expect_hex match. INTEGRITY: coverage is REAL and computed AFTER ink removal — a SOLID fill grounds (grounded:true), while a gradient/mixed fill, or a glyph-majority rect with no real fill, returns low coverage / grounded:false → treat as UNVERIFIABLE-by-measurement (route to human), never assume the color.",
+	}, measureFill)
+
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		fmt.Fprintln(os.Stderr, "refraict-mcp:", err)
 		os.Exit(1)
