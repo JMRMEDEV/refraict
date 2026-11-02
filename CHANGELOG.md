@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/JMRMEDEV/refraict/compare/v0.4.0...v0.5.0) (2026-11-02)
+
+
+### Features
+
+* **mcp:** add measure_fill verb for fill color behind text tokens ([8ad7abb](https://github.com/JMRMEDEV/refraict/commit/8ad7abbdd0a26c85a6943d5e2a432601bca4f221))
+* **mcp:** add measure_fill verb for fill color behind text tokens ([64d5513](https://github.com/JMRMEDEV/refraict/commit/64d55135ac5260dc3cbcab29e68d5f8c28460448))
+
 ## [0.4.0](https://github.com/JMRMEDEV/refraict/compare/v0.3.0...v0.4.0) (2026-10-23)
 
 
